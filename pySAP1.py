@@ -12,23 +12,20 @@ class Clock():
     def __init__(self,cpu,Hz=0):
         self.cpu        = cpu
         self.Hz         = Hz # 0:manual
-        self.last_pulse = time()
-        #print("{}".format(self.cpu))
+        self.freq       = 0
+        if self.Hz > 0: self.freq = 1/self.Hz
+        self.last_pulse = time() - self.freq
     def pulse(self):
-        self.cpu.ctlseq.tick()
-        if self.cpu.ctlseq.HLT == 1:
-            print("Final RAM: {}".format(self.cpu.ram.value))
-            return False
-        self.cpu.ctlseq.tock()
+        self.cpu.clock()
         self.last_pulse = time()
-        return True
+        return self.cpu.flags['HLT'] == 0
     def run(self):
         if self.Hz == 0:
             input("Press [Enter] to pulse the clock.")
         elif self.Hz > 0:
-            freq = 1/self.Hz
-            while (time() < (self.last_pulse + freq)):
-                sleep(freq)
+            wait = self.last_pulse + self.freq - time()
+            if wait > 0:
+                sleep(wait)
         return self.pulse()
 
 
@@ -40,7 +37,7 @@ class Register():
         self.latch = 0
         self.enable = 0
     def tick(self):
-        if self.cpu.ctlseq.CLR == 1:
+        if self.cpu.flags['CLR'] == 1:
             self.value = 0
         if self.enable == 1:
             self.cpu.w = self.value & self.mask
@@ -68,20 +65,26 @@ class BReg(StdRegister):
 
 
 class OUT(StdRegister):
-    pass
+    def __str__(self):
+        L=strflag(self.latch,"l")
+        V='{self.value:02X}'.format(self=self)
+        return '{}{}'.format(L,V)
 
 
 class PC(Register):
     def tock(self):
         if self.latch == 1:
-            self.value += 1
-            if self.value > (self.mask):
-                self.value = 0
+            if self.enable == 1:
+                self.value = self.cpu.w & self.mask
+            else:
+                self.value += 1
+                if self.value > (self.mask):
+                    self.value = 0
 
 
 class IR(StdRegister):
     def tick(self):
-        if self.cpu.ctlseq.CLR == 1:
+        if self.cpu.flags['CLR'] == 1:
             self.value = 0
         if self.enable == 1:
             self.cpu.w = self.value & 0xF
@@ -141,76 +144,63 @@ class CtlSeq():
         self.cpu     = cpu
         self.AROM    = AROM
         self.CROM    = CROM
-        self.CLR     = 1 # Clear Flag for PC and IR on boot
-        self.HLT     = 0 # Halt the clock
         self.Tstep   = 1
+        self.micro   = 0x43E3
     def __str__(self):
-        return '{}{}{}'.format(strflag(self.CLR,"c"),strflag(self.HLT,"h"),self.Tstep)
+        return '{}'.format(self.Tstep)
     def decode(self):
-        if self.CLR:
-            micro = 0x3E3
+        if self.cpu.flags['CLR']:
+            self.micro = 0x43E3
         else:
-            if self.Tstep <= 0x3:
-                micro = self.CROM[self.Tstep-1]
+            if self.Tstep <= 0x2:
+                self.micro = self.CROM[self.Tstep-1]
             else:
-                instr = (self.cpu.ir.value & 0xF0) >> 4
-                if instr == 0xF:    # HLT
-                    self.HLT = 1
-                micro = self.CROM[self.AROM[instr]+(self.Tstep-4)]
+                instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
+                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-3)]
         #print("MICRO: Bin={v:012b} Hex={v:03X} Dec={v:05d}".format(v=micro))
-        self.cpu.pc.latch   =   (micro & 0x800) >> 11
-        self.cpu.pc.enable  =   (micro & 0x400) >> 10
-        self.cpu.mar.latch  = ~((micro & 0x200) >>  9) & 1
-        self.cpu.ram.enable = ~((micro & 0x100) >>  8) & 1
-        self.cpu.ir.latch   = ~((micro & 0x080) >>  7) & 1
-        self.cpu.ir.enable  = ~((micro & 0x040) >>  6) & 1
-        self.cpu.a.latch    = ~((micro & 0x020) >>  5) & 1
-        self.cpu.a.enable   =   (micro & 0x010) >>  4
-        self.cpu.alu.sub    =   (micro & 0x008) >>  3
-        self.cpu.alu.enable =   (micro & 0x004) >>  2
-        self.cpu.b.latch    = ~((micro & 0x002) >>  1) & 1
-        self.cpu.out.latch  = ~((micro & 0x001)      ) & 1
-        if micro == 0x3E3:
-            self.Tstep = 0
+        self.cpu.flags['HLT'] =   (self.micro & 0x8000) >> 15
+        self.cpu.flags['CLR'] =   (self.micro & 0x4000) >> 14
+        self.cpu.b.enable     =   (self.micro & 0x2000) >> 13
+        self.cpu.ram.latch    =   (self.micro & 0x1000) >> 12
+        self.cpu.pc.latch     =   (self.micro &  0x800) >> 11
+        self.cpu.pc.enable    =   (self.micro &  0x400) >> 10
+        self.cpu.mar.latch    = ~((self.micro &  0x200) >>  9) & 1 
+        self.cpu.ram.enable   = ~((self.micro &  0x100) >>  8) & 1
+        self.cpu.ir.latch     = ~((self.micro &   0x80) >>  7) & 1
+        self.cpu.ir.enable    = ~((self.micro &   0x40) >>  6) & 1
+        self.cpu.a.latch      = ~((self.micro &   0x20) >>  5) & 1
+        self.cpu.a.enable     =   (self.micro &   0x10) >>  4
+        self.cpu.alu.sub      =   (self.micro &    0x8) >>  3
+        self.cpu.alu.enable   =   (self.micro &    0x4) >>  2
+        self.cpu.b.latch      = ~((self.micro &    0x2) >>  1) & 1
+        self.cpu.out.latch    = ~((self.micro &    0x1)      ) & 1
         return 0
-    def tick(self):
+    def clock(self):
         # Parse the subinstruction
         self.decode()
         print("{}".format(self.cpu))
         # enable to bus
-        self.cpu.a.tick()
-        self.cpu.b.tick()
-        self.cpu.alu.tick()
-        self.cpu.out.tick()
-        self.cpu.pc.tick()
-        self.cpu.ir.tick()
-        self.cpu.mar.tick()
-        self.cpu.ram.tick()
-    def tock(self):
+        for component in [self.cpu.a,self.cpu.b,self.cpu.alu,self.cpu.out,self.cpu.pc,self.cpu.ir,self.cpu.mar,self.cpu.ram]:
+            component.tick()
         # latch from bus
-        self.cpu.a.tock()
-        self.cpu.b.tock()
-        self.cpu.alu.tock()
-        self.cpu.out.tock()
-        self.cpu.pc.tock()
-        self.cpu.ir.tock()
-        self.cpu.mar.tock()
-        self.cpu.ram.tock()
+        for component in [self.cpu.a,self.cpu.b,self.cpu.alu,self.cpu.out,self.cpu.pc,self.cpu.ir,self.cpu.mar,self.cpu.ram]:
+            component.tock()
         # Increment the RingCounter
-        if self.CLR != 0:
-            self.CLR = 0
+        if self.cpu.flags['CLR'] != 0:
+            self.cpu.flags['CLR'] = 0
+            self.Tstep = 1
+        elif self.micro == 0x03E3:
             self.Tstep = 1
         else:
             self.Tstep += 1
-            if self.Tstep > 6:
+            if self.Tstep > 5:
                 self.Tstep = 1
 
 
 class pySAP1():
-    def __init__(self,AROM,CROM,FirstRAM,bits=8,addrlen=4,instrlen=4):
+    def __init__(self,AROM,CROM,FirstRAM,bits=8,addrlen=4):
         self.bits      = bits
         self.addrlen   = addrlen
-        self.instrlen  = instrlen
         self.a         = AReg(self)
         self.b         = BReg(self)
         self.out       = OUT(self)
@@ -220,52 +210,51 @@ class pySAP1():
         self.ram       = RAM(self, FirstRAM)       
         self.ctlseq    = CtlSeq(self,AROM,CROM)
         self.alu       = ALU(self)
+        self.flags     = { 'CLR':1, 'HLT':0 }
+    def clock(self):
+        self.ctlseq.clock()
     def __str__(self):
-        return '''o:{self.out} cs:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(self=self)       
+        return '''o:{self.out} T:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(self=self)       
 
 
 if __name__ == "__main__":
-    # ISAv1
-    #   LDA 0x0
-    #   ADD 0x1
-    #   SUB 0x2
-    #   OUT 0xE
-    #   HLT 0xF
-    
+    # ISAv2
     AddrROM = [
-        0x03,
-        0x06,
-        0x09,
+        0x02,    #   LDA 0x0 Addr
+        0x05,    #   ADD 0x1 Addr
+        0x08,    #   SUB 0x2 Addr
+        0x0E,    #   STA 0x3 Addr
+        0x11,    #   RST 0x4*
+        0x12,    #   NOP 0x5*
+        0x13,    #   JMP 0x6 Value
+        0x15,    #   LDI 0x7 Value
         0xFF,
         0xFF,
         0xFF,
         0xFF,
         0xFF,
         0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0x0C,
-        0x0E
+        0x0B,    #   OUT 0xE*
+        0x0D     #   HLT 0xF*
     ]
     CtlROM = [
-        0b010111100011,
-        0b101111100011,
-        0b001001100011,
-        0x1A3,0x2C3,0x3E3,
-        0x1A3,0x2E1,0x3C7,
-        0x1A3,0x2E1,0x3CF,
-        0x3F2,0x3E3,
-        0x3E3
+        0b0000010111100011,0b0000101001100011,
+        0x01A3,0x02C3,0x03E3,
+        0x01A3,0x02E1,0x03C7,
+        0x01A3,0x02E1,0x03CF,
+        0x03F2,0x03E3,
+        0x83E3,
+        0x01A3,0x13F3,0x03E3,
+        0x43E3,
+        0x03E3,
+        0x0FA3,0x03E3,
+        0x0383,0x03E3
     ]
-    PaulMalvinoSAP1 = [
-        0x09, 0x1A, 0x1B, 0x2C, 0xE0, 0xF0,
-        0xFF, 0xFF, 0xFF,
-        0x01, 0x02, 0x03, 0x04,
-        0xFF, 0xFF, 0xFF
+    MyProgram = [
+        0x09, 0x1A, 0x1B, 0x2C, 0xE0, 0x78, 0x3E, 0x6E,
+        0x55, 0x01, 0x02, 0x03, 0x04, 0x55, 0xFF, 0xF0
     ]
-    cpu    = pySAP1(AddrROM,CtlROM,PaulMalvinoSAP1)
+    cpu    = pySAP1(AddrROM,CtlROM,MyProgram)
     clock  = Clock(cpu,-1)
     while( clock.run() ): pass
+    print("Final RAM: {}".format(cpu.ram.value))
