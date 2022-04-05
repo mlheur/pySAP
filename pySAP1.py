@@ -27,6 +27,7 @@ class Clock():
                 wait = self.last_pulse + self.freq - time()
                 if wait > 0:
                     sleep(wait)
+            self.pulse()
         print("Final RAM: {}".format(self.cpu.ram.value))
 
 
@@ -70,6 +71,10 @@ class OUT(StdRegister):
         L=strflag(self.latch,"l")
         V='{self.value:02X}'.format(self=self)
         return '{}{}'.format(L,V)
+    def tock(self):
+        super().tock()
+        if self.latch == 1:
+            print("OUT: {v:08X} {v:03d}".format(v=self.value))
 
 
 class PC(Register):
@@ -161,9 +166,8 @@ class CtlSeq():
                 self.micro = self.CROM[self.Tstep]
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
-                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-2)]
-        #print("MICRO: Bin={v:012b} Hex={v:03X} Dec={v:05d}".format(v=micro))
-        for F in [ 'HLT', 'CLR' ]:
+                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-3)]
+        for F in self.masks.keys():
             self.cpu.flags[F] =   (self.micro & self.masks[F]['BITS']) >> self.masks[F]['POS']
         self.cpu.b.enable     =   (self.micro & 0x2000) >> 13
         self.cpu.ram.latch    =   (self.micro & 0x1000) >> 12
@@ -182,7 +186,8 @@ class CtlSeq():
     def clock(self):
         # Parse the subinstruction
         self.decode()
-        print("{}".format(self.cpu))
+        #print("T:{} MICRO: Bin={v:016b} Hex={v:04X} Dec={v:05d}".format(self.Tstep,v=self.micro))
+        #print("{}".format(self.cpu))
         if self.cpu.flags['HLT'] == 1:
             return
         # enable to bus
