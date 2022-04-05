@@ -215,7 +215,7 @@ class pySAP1():
     def clock(self):
         self.ctlseq.clock()
     def __str__(self):
-        return '''{}{} o:{self.out} T:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(strflag(self.flags['CLR'],"C"),strflag(self.flags['HLT'],"H"),self=self)       
+        return '''{}{} o:{self.out} T:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(strflag(self.flags['CLR'],"c"),strflag(self.flags['HLT'],"h"),self=self)       
 
 
 if __name__ == "__main__":
