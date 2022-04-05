@@ -174,11 +174,12 @@ class CtlSeq():
         self.cpu.alu.enable   =   (self.micro &    0x4) >>  2
         self.cpu.b.latch      = ~((self.micro &    0x2) >>  1) & 1
         self.cpu.out.latch    = ~((self.micro &    0x1)      ) & 1
-        return 0
     def clock(self):
         # Parse the subinstruction
         self.decode()
         print("{}".format(self.cpu))
+        if self.cpu.flags['HLT'] == 1:
+            return
         # enable to bus
         for component in [self.cpu.a,self.cpu.b,self.cpu.alu,self.cpu.out,self.cpu.pc,self.cpu.ir,self.cpu.mar,self.cpu.ram]:
             component.tick()
@@ -214,7 +215,7 @@ class pySAP1():
     def clock(self):
         self.ctlseq.clock()
     def __str__(self):
-        return '''o:{self.out} T:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(self=self)       
+        return '''{}{} o:{self.out} T:{self.ctlseq} alu:{self.alu} a:{self.a} b:{self.b} pc:{self.pc} mar:{self.mar} ram:{self.ram} ir:{self.ir}'''.format(strflag(self.flags['CLR'],"C"),strflag(self.flags['HLT'],"H"),self=self)       
 
 
 if __name__ == "__main__":
