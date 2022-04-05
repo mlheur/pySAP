@@ -132,8 +132,11 @@ class ALU(StdRegister):
     def update(self):
         if self.sub == 1:
             self.value = (self.cpu.a.value - self.cpu.b.value)
+            self.cpu.conditions['CARRY']['VALUE'] = int(self.cpu.b.value > self.cpu.a.value)
         else:
             self.value = (self.cpu.a.value + self.cpu.b.value)
+            self.cpu.conditions['CARRY']['VALUE'] = int(self.value > self.mask)
+        self.cpu.conditions['ZERO']['VALUE'] = int(self.value == 0)
         self.value &= self.mask
     def tick(self):
         self.update()
@@ -158,6 +161,11 @@ class CtlSeq():
         }
     def __str__(self):
         return '{}'.format(self.Tstep)
+    def getConditions(self):
+        result = 0
+        for condition in self.cpu.conditions.keys():
+            result |= (self.cpu.conditions[condition]['BITS'] & self.cpu.conditions[condition]['VALUE'])
+        return result
     def decode(self):
         if self.cpu.flags['CLR']:
             self.micro = self.CROM[0] | self.masks['CLR']['BITS']
@@ -166,7 +174,7 @@ class CtlSeq():
                 self.micro = self.CROM[self.Tstep]
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
-                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-3)]
+                self.micro = self.CROM[self.AROM[self.getConditions()][instr]+(self.Tstep-3)]
         for F in self.masks.keys():
             self.cpu.flags[F] =   (self.micro & self.masks[F]['BITS']) >> self.masks[F]['POS']
         self.cpu.b.enable     =   (self.micro & 0x2000) >> 13
@@ -200,7 +208,7 @@ class CtlSeq():
         if self.cpu.flags['CLR'] != 0:
             self.cpu.flags['CLR'] = 0
             self.Tstep = 1
-        elif self.micro == 0x03E3:
+        elif self.micro == self.CROM[0]:
             self.Tstep = 1
         else:
             self.Tstep += 1
@@ -210,18 +218,22 @@ class CtlSeq():
 
 class pySAP1():
     def __init__(self,AROM,CROM,FirstRAM,bits=8,addrlen=4):
-        self.bits      = bits
-        self.addrlen   = addrlen
-        self.a         = AReg(self)
-        self.b         = BReg(self)
-        self.out       = OUT(self)
-        self.ir        = IR(self)
-        self.pc        = PC(self,addrlen)
-        self.mar       = MAR(self,addrlen)
-        self.ram       = RAM(self, FirstRAM)       
-        self.ctlseq    = CtlSeq(self,AROM,CROM)
-        self.alu       = ALU(self)
-        self.flags     = { 'CLR':1, 'HLT':0 }
+        self.bits       = bits
+        self.addrlen    = addrlen
+        self.a          = AReg(self)
+        self.b          = BReg(self)
+        self.out        = OUT(self)
+        self.ir         = IR(self)
+        self.pc         = PC(self,addrlen)
+        self.mar        = MAR(self,addrlen)
+        self.ram        = RAM(self, FirstRAM)       
+        self.ctlseq     = CtlSeq(self,AROM,CROM)
+        self.alu        = ALU(self)
+        self.flags      = { 'CLR':1, 'HLT':0 }
+        self.conditions = {
+            'CARRY':{'POS':0, 'BITS':0b01, 'VALUE':0},
+            'ZERO': {'POS':1, 'BITS':0b10, 'VALUE':0}
+        }
     def clock(self):
         self.ctlseq.clock()
     def __str__(self):
@@ -229,25 +241,39 @@ class pySAP1():
 
 
 if __name__ == "__main__":
-    # ISAv2
+    # ISAv3 - now with conditional flags
     AddrROM = [
-        0x03,    #   LDA 0x0 Addr
-        0x06,    #   ADD 0x1 Addr
-        0x09,    #   SUB 0x2 Addr
-        0x0F,    #   STA 0x3 Addr
-        0x12,    #   RST 0x4*
-        0x00,    #   NOP 0x5*
-        0x13,    #   JMP 0x6 Value
-        0x15,    #   LDI 0x7 Value
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0x0C,    #   OUT 0xE*
-        0x0E     #   HLT 0xF*
+        [ # conditions == 0b00
+            0x03,    #   LDA 0x0 Addr
+            0x06,    #   ADD 0x1 Addr
+            0x09,    #   SUB 0x2 Addr
+            0x0F,    #   STA 0x3 Addr
+            0x12,    #   RST 0x4*
+            0x00,    #   NOP 0x5*
+            0x13,    #   JMP 0x6 Addr
+            0x15,    #   LDI 0x7 Value
+            0x00,    #   JC  0x8 Addr | do NOP when all conditions are off
+            0x00,    #   JZ  0x9 Addr | do NOP when all conditions are off
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0x0C,    #   OUT 0xE*
+            0x0E     #   HLT 0xF*
+        ]
     ]
+    # copy the base AddrROM across all conditions
+    for CONDS in range(1,4):
+        AddrROM.append([])
+        for v in AddrROM[0]:
+            AddrROM[CONDS].append(v)
+    # override the base when conditions warrant
+    # ToDo: generalize this.
+    AddrROM[0b01][0x8] = 0x13 # JC 0x8 Addr | do JMP when Carry condition is on
+    AddrROM[0b11][0x8] = 0x13 # JC 0x8 Addr | do JMP when Carry condition is on
+    AddrROM[0b10][0x9] = 0x13 # JZ 0x9 Addr | do JMP when Zero condition is on
+    AddrROM[0b11][0x9] = 0x13 # JZ 0x9 Addr | do JMP when Zero condition is on
+
     CtlROM = [
         0x03E3,                                # 0x00 NOP : NOP
         0b0000010111100011,0b0000101001100011, # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
