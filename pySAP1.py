@@ -146,21 +146,25 @@ class CtlSeq():
         self.AROM    = AROM
         self.CROM    = CROM
         self.Tstep   = 1
-        self.micro   = 0x43E3
+        self.micro   = self.CROM[0]
+        self.masks   = {
+            'CLR':{'POS':14,'BITS':0x4000},
+            'HLT':{'POS':15,'BITS':0x8000}
+        }
     def __str__(self):
         return '{}'.format(self.Tstep)
     def decode(self):
         if self.cpu.flags['CLR']:
-            self.micro = 0x43E3
+            self.micro = self.CROM[0] | self.masks['CLR']['BITS']
         else:
             if self.Tstep <= 0x2:
-                self.micro = self.CROM[self.Tstep-1]
+                self.micro = self.CROM[self.Tstep]
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
-                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-3)]
+                self.micro = self.CROM[self.AROM[instr]+(self.Tstep-2)]
         #print("MICRO: Bin={v:012b} Hex={v:03X} Dec={v:05d}".format(v=micro))
-        self.cpu.flags['HLT'] =   (self.micro & 0x8000) >> 15
-        self.cpu.flags['CLR'] =   (self.micro & 0x4000) >> 14
+        for F in [ 'HLT', 'CLR' ]:
+            self.cpu.flags[F] =   (self.micro & self.masks[F]['BITS']) >> self.masks[F]['POS']
         self.cpu.b.enable     =   (self.micro & 0x2000) >> 13
         self.cpu.ram.latch    =   (self.micro & 0x1000) >> 12
         self.cpu.pc.latch     =   (self.micro &  0x800) >> 11
@@ -222,12 +226,12 @@ class pySAP1():
 if __name__ == "__main__":
     # ISAv2
     AddrROM = [
-        0x02,    #   LDA 0x0 Addr
-        0x05,    #   ADD 0x1 Addr
-        0x08,    #   SUB 0x2 Addr
-        0x0E,    #   STA 0x3 Addr
-        0x11,    #   RST 0x4*
-        0x12,    #   NOP 0x5*
+        0x03,    #   LDA 0x0 Addr
+        0x06,    #   ADD 0x1 Addr
+        0x09,    #   SUB 0x2 Addr
+        0x0F,    #   STA 0x3 Addr
+        0x12,    #   RST 0x4*
+        0x00,    #   NOP 0x5*
         0x13,    #   JMP 0x6 Value
         0x15,    #   LDI 0x7 Value
         0xFF,
@@ -236,21 +240,21 @@ if __name__ == "__main__":
         0xFF,
         0xFF,
         0xFF,
-        0x0B,    #   OUT 0xE*
-        0x0D     #   HLT 0xF*
+        0x0C,    #   OUT 0xE*
+        0x0E     #   HLT 0xF*
     ]
     CtlROM = [
-        0b0000010111100011,0b0000101001100011,
-        0x01A3,0x02C3,0x03E3,
-        0x01A3,0x02E1,0x03C7,
-        0x01A3,0x02E1,0x03CF,
-        0x03F2,0x03E3,
-        0x83E3,
-        0x01A3,0x13F3,0x03E3,
-        0x43E3,
-        0x03E3,
-        0x0FA3,0x03E3,
-        0x0383,0x03E3
+        0x03E3,                                # 0x00 NOP : NOP
+        0b0000010111100011,0b0000101001100011, # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
+        0x01A3,0x02C3,0x03E3,                  # 0x03 LDA : IR->MAR, RAM->A, NOP
+        0x01A3,0x02E1,0x03C7,                  # 0x06 ADD : IR->MAR, RAM->B, ALU->A
+        0x01A3,0x02E1,0x03CF,                  # 0x09 SUB : IR->MAR, RAM->B, ALU->A w/ SUB
+        0x03F2,0x03E3,                         # 0x0C OUT : A->OUT, NOP
+        0x83E3,                                # 0x0E HLT : NOP w/ HLT
+        0x01A3,0x13F3,0x03E3,                  # 0x0F STA : IR->MAR, A->RAM, NOP
+        0x43E3,                                # 0x12 RST : NOP w/ CLR
+        0x0FA3,0x03E3,                         # 0x13 JMP : IR->PC, NOP
+        0x0383,0x03E3                          # 0x15 LDI : IR->A, NOP
     ]
     MyProgram = [
         0x09, 0x1A, 0x1B, 0x2C, 0xE0, 0x78, 0x3E, 0x6E,
