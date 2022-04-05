@@ -20,13 +20,14 @@ class Clock():
         self.last_pulse = time()
         return self.cpu.flags['HLT'] == 0
     def run(self):
-        if self.Hz == 0:
-            input("Press [Enter] to pulse the clock.")
-        elif self.Hz > 0:
-            wait = self.last_pulse + self.freq - time()
-            if wait > 0:
-                sleep(wait)
-        return self.pulse()
+        while (self.cpu.flags['HLT'] == 0):
+            if self.Hz == 0:
+                input("Press [Enter] to pulse the clock.")
+            elif self.Hz > 0:
+                wait = self.last_pulse + self.freq - time()
+                if wait > 0:
+                    sleep(wait)
+        print("Final RAM: {}".format(self.cpu.ram.value))
 
 
 class Register():
@@ -255,7 +256,5 @@ if __name__ == "__main__":
         0x09, 0x1A, 0x1B, 0x2C, 0xE0, 0x78, 0x3E, 0x6E,
         0x55, 0x01, 0x02, 0x03, 0x04, 0x55, 0xFF, 0xF0
     ]
-    cpu    = pySAP1(AddrROM,CtlROM,MyProgram)
-    clock  = Clock(cpu,-1)
-    while( clock.run() ): pass
-    print("Final RAM: {}".format(cpu.ram.value))
+
+    Clock(pySAP1(AddrROM,CtlROM,MyProgram),-1).run()
