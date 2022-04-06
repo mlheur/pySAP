@@ -74,7 +74,7 @@ class OUT(StdRegister):
     def tock(self):
         super().tock()
         if self.latch == 1:
-            print("OUT: {v:08X} {v:03d}".format(v=self.value))
+            print("OUT: {v:02X} {v:03d} {v:08b}".format(v=self.value))
 
 
 class PC(Register):
@@ -118,6 +118,7 @@ class RAM(StdRegister):
     def tock(self):
         if self.latch == 1:
             self.value[self.cpu.mar.value] = self.cpu.w & self.mask
+            #print("RAM updated: {}".format(self.value))
     def __str__(self):
         L=strflag(self.latch,"l")
         E=strflag(self.enable,"e")
@@ -241,6 +242,11 @@ class pySAP1():
 
 
 if __name__ == "__main__":
+    Fib = [
+        0x71,0x3E,0x70,0x3F,0xE5,0x0E,0x1F,0x3E,
+        0xE5,0x0F,0x1E,0x8D,0x63,0xF5,0x55,0x55
+    ]
+    
     # ISAv3 - now with conditional flags
     AddrROM = [
         [ # conditions == 0b00
@@ -287,9 +293,6 @@ if __name__ == "__main__":
         0x0FA3,0x03E3,                         # 0x13 JMP : IR->PC, NOP
         0x0383,0x03E3                          # 0x15 LDI : IR->A, NOP
     ]
-    MyProgram = [
-        0x09, 0x1A, 0x1B, 0x2C, 0xE0, 0x78, 0x3E, 0x6E,
-        0x55, 0x01, 0x02, 0x03, 0x04, 0x55, 0xFF, 0xF0
-    ]
 
-    Clock(pySAP1(AddrROM,CtlROM,MyProgram),-1).run()
+
+    Clock(pySAP1(AddrROM,CtlROM,Fib),-1).run()
