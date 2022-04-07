@@ -200,10 +200,10 @@ class CtlSeq():
         if self.cpu.flags['HLT'] == 1:
             return
         # enable to bus
-        for component in [self.cpu.a,self.cpu.b,self.cpu.alu,self.cpu.out,self.cpu.pc,self.cpu.ir,self.cpu.mar,self.cpu.ram]:
+        for component in self.cpu.components:
             component.tick()
         # latch from bus
-        for component in [self.cpu.a,self.cpu.b,self.cpu.alu,self.cpu.out,self.cpu.pc,self.cpu.ir,self.cpu.mar,self.cpu.ram]:
+        for component in self.cpu.components:
             component.tock()
         # Increment the RingCounter
         if self.cpu.flags['CLR'] != 0:
@@ -230,6 +230,7 @@ class pySAP1():
         self.ram        = RAM(self, FirstRAM)       
         self.ctlseq     = CtlSeq(self,AROM,CROM)
         self.alu        = ALU(self)
+        self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
         self.flags      = { 'CLR':1, 'HLT':0 }
         self.conditions = {
             'CARRY':{'POS':0, 'BITS':0b01, 'VALUE':0},
