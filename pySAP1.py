@@ -167,7 +167,7 @@ class CtlSeq():
         return '{}'.format(self.Tstep)
     def getConditions(self):
         result = 0
-        for condition in self.cpu.conditions.keys():
+        for condition in self.cpu.conditions:
             result |= (self.cpu.conditions[condition].mask & self.cpu.conditions[condition].value)
         return result
     def decode(self):
@@ -179,7 +179,7 @@ class CtlSeq():
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
                 self.micro = self.CROM[self.AROM[self.getConditions()][instr]+(self.Tstep-3)]
-        for F in self.cpu.flags.keys():
+        for F in self.cpu.flags:
             self.cpu.flags[F].value =   (self.micro & self.cpu.flags[F].mask) >> self.cpu.flags[F].pos
         self.cpu.b.enable           =   (self.micro & 0x2000) >> 13
         self.cpu.ram.latch          =   (self.micro & 0x1000) >> 12
