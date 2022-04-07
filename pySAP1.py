@@ -18,9 +18,9 @@ class Clock():
     def pulse(self):
         self.cpu.clock()
         self.last_pulse = time()
-        return self.cpu.flags['HLT'] == 0
+        return self.cpu.flags['HLT'].value == 0
     def run(self):
-        while (self.cpu.flags['HLT'] == 0):
+        while (self.cpu.flags['HLT'].value == 0):
             if self.Hz == 0:
                 input("Press [Enter] to pulse the clock.")
             elif self.Hz > 0:
@@ -31,21 +31,28 @@ class Clock():
         print("Final RAM: {}".format(self.cpu.ram.value))
 
 
+class Bit():
+    def __init__(self,pos,value=0):
+        self.value      = value
+        self.pos        = pos
+        self.mask       = 1 << self.pos
+
+
 class Register():
     def __init__(self,cpu,bits):
-        self.cpu = cpu
-        self.mask = (2**bits) - 1
-        self.value = rand(0,self.mask) & self.mask
-        self.latch = 0
-        self.enable = 0
+        self.cpu        = cpu
+        self.mask       = (2**bits) - 1
+        self.value      = rand(0,self.mask) & self.mask
+        self.latch      = 0
+        self.enable     = 0
     def tick(self):
-        if self.cpu.flags['CLR'] == 1:
-            self.value = 0
+        if self.cpu.flags['CLR'].value == 1:
+            self.value  = 0
         if self.enable == 1:
-            self.cpu.w = self.value & self.mask
+            self.cpu.w  = self.value & self.mask
     def tock(self):
-        if self.latch == 1:
-            self.value = self.cpu.w & self.mask
+        if self.latch  == 1:
+            self.value  = self.cpu.w & self.mask
     def __str__(self):
         L=strflag(self.latch,"l")
         E=strflag(self.enable,"e")
@@ -90,7 +97,7 @@ class PC(Register):
 
 class IR(StdRegister):
     def tick(self):
-        if self.cpu.flags['CLR'] == 1:
+        if self.cpu.flags['CLR'].value == 1:
             self.value = 0
         if self.enable == 1:
             self.cpu.w = self.value & 0xF
@@ -133,11 +140,11 @@ class ALU(StdRegister):
     def update(self):
         if self.sub == 1:
             self.value = (self.cpu.a.value - self.cpu.b.value)
-            self.cpu.conditions['CARRY']['VALUE'] = int(self.cpu.b.value > self.cpu.a.value)
+            self.cpu.conditions['CARRY'].value = int(self.cpu.b.value > self.cpu.a.value)
         else:
             self.value = (self.cpu.a.value + self.cpu.b.value)
-            self.cpu.conditions['CARRY']['VALUE'] = int(self.value > self.mask)
-        self.cpu.conditions['ZERO']['VALUE'] = int(self.value == 0)
+            self.cpu.conditions['CARRY'].value = int(self.value > self.mask)
+        self.cpu.conditions['ZERO'].value = int(self.value == 0)
         self.value &= self.mask
     def tick(self):
         self.update()
@@ -156,48 +163,44 @@ class CtlSeq():
         self.CROM    = CROM
         self.Tstep   = 1
         self.micro   = self.CROM[0]
-        self.masks   = {
-            'CLR':{'POS':14,'BITS':0x4000},
-            'HLT':{'POS':15,'BITS':0x8000}
-        }
     def __str__(self):
         return '{}'.format(self.Tstep)
     def getConditions(self):
         result = 0
         for condition in self.cpu.conditions.keys():
-            result |= (self.cpu.conditions[condition]['BITS'] & self.cpu.conditions[condition]['VALUE'])
+            result |= (self.cpu.conditions[condition].mask & self.cpu.conditions[condition].value)
         return result
     def decode(self):
-        if self.cpu.flags['CLR']:
-            self.micro = self.CROM[0] | self.masks['CLR']['BITS']
+        if self.cpu.flags['CLR'].value == 1:
+            self.micro = self.CROM[0] | self.cpu.flags['CLR'].mask
         else:
             if self.Tstep <= 0x2:
                 self.micro = self.CROM[self.Tstep]
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
                 self.micro = self.CROM[self.AROM[self.getConditions()][instr]+(self.Tstep-3)]
-        for F in self.masks.keys():
-            self.cpu.flags[F] =   (self.micro & self.masks[F]['BITS']) >> self.masks[F]['POS']
-        self.cpu.b.enable     =   (self.micro & 0x2000) >> 13
-        self.cpu.ram.latch    =   (self.micro & 0x1000) >> 12
-        self.cpu.pc.latch     =   (self.micro &  0x800) >> 11
-        self.cpu.pc.enable    =   (self.micro &  0x400) >> 10
-        self.cpu.mar.latch    = ~((self.micro &  0x200) >>  9) & 1 
-        self.cpu.ram.enable   = ~((self.micro &  0x100) >>  8) & 1
-        self.cpu.ir.latch     = ~((self.micro &   0x80) >>  7) & 1
-        self.cpu.ir.enable    = ~((self.micro &   0x40) >>  6) & 1
-        self.cpu.a.latch      = ~((self.micro &   0x20) >>  5) & 1
-        self.cpu.a.enable     =   (self.micro &   0x10) >>  4
-        self.cpu.alu.sub      =   (self.micro &    0x8) >>  3
-        self.cpu.alu.enable   =   (self.micro &    0x4) >>  2
-        self.cpu.b.latch      = ~((self.micro &    0x2) >>  1) & 1
-        self.cpu.out.latch    = ~((self.micro &    0x1)      ) & 1
+        for F in self.cpu.flags.keys():
+            self.cpu.flags[F].value =   (self.micro & self.cpu.flags[F].mask) >> self.cpu.flags[F].pos
+        self.cpu.b.enable           =   (self.micro & 0x2000) >> 13
+        self.cpu.ram.latch          =   (self.micro & 0x1000) >> 12
+        self.cpu.pc.latch           =   (self.micro &  0x800) >> 11
+        self.cpu.pc.enable          =   (self.micro &  0x400) >> 10
+        self.cpu.mar.latch          = ~((self.micro &  0x200) >>  9) & 1 
+        self.cpu.ram.enable         = ~((self.micro &  0x100) >>  8) & 1
+        self.cpu.ir.latch           = ~((self.micro &   0x80) >>  7) & 1
+        self.cpu.ir.enable          = ~((self.micro &   0x40) >>  6) & 1
+        self.cpu.a.latch            = ~((self.micro &   0x20) >>  5) & 1
+        self.cpu.a.enable           =   (self.micro &   0x10) >>  4
+        self.cpu.alu.sub            =   (self.micro &    0x8) >>  3
+        self.cpu.alu.enable         =   (self.micro &    0x4) >>  2
+        self.cpu.b.latch            = ~((self.micro &    0x2) >>  1) & 1
+        self.cpu.out.latch          = ~((self.micro &    0x1)      ) & 1
     def clock(self):
         # Parse the subinstruction
         self.decode()
         #print("T:{} MICRO: Bin={v:016b} Hex={v:04X} Dec={v:05d}".format(self.Tstep,v=self.micro))
         #print("{}".format(self.cpu))
-        if self.cpu.flags['HLT'] == 1:
+        if self.cpu.flags['HLT'].value == 1:
             return
         # enable to bus
         for component in self.cpu.components:
@@ -206,8 +209,8 @@ class CtlSeq():
         for component in self.cpu.components:
             component.tock()
         # Increment the RingCounter
-        if self.cpu.flags['CLR'] != 0:
-            self.cpu.flags['CLR'] = 0
+        if self.cpu.flags['CLR'].value != 0:
+            self.cpu.flags['CLR'].value = 0
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
             self.Tstep = 1
@@ -215,7 +218,6 @@ class CtlSeq():
             self.Tstep += 1
             if self.Tstep > 5:
                 self.Tstep = 1
-
 
 class pySAP1():
     def __init__(self,AROM,CROM,FirstRAM,bits=8,addrlen=4):
@@ -231,10 +233,13 @@ class pySAP1():
         self.ctlseq     = CtlSeq(self,AROM,CROM)
         self.alu        = ALU(self)
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
-        self.flags      = { 'CLR':1, 'HLT':0 }
         self.conditions = {
-            'CARRY':{'POS':0, 'BITS':0b01, 'VALUE':0},
-            'ZERO': {'POS':1, 'BITS':0b10, 'VALUE':0}
+            'CARRY':      Bit(0),
+            'ZERO':       Bit(1)
+        }
+        self.flags      = {
+            'CLR':        Bit(14,1),
+            'HLT':        Bit(15)
         }
     def clock(self):
         self.ctlseq.clock()
