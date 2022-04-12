@@ -17,10 +17,10 @@ class CtlLine():
 
 
 class CtlSeq():
-    def __init__(self,cpu,AROM,CROM,Tlimit=5):
+    def __init__(self,cpu,rom,Tlimit=5):
         self.cpu     = cpu
-        self.AROM    = AROM
-        self.CROM    = CROM
+        self.AROM    = rom.addr
+        self.CROM    = rom.ctl
         self.Tstep   = 1
         self.micro   = self.CROM[0]
         self.Tlimit  = Tlimit
