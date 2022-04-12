@@ -37,7 +37,9 @@ class CtlSeq():
                 self.micro = self.CROM[self.Tstep]
             else:
                 instr = (self.cpu.ir.value & 0xF0) >> self.cpu.addrlen
-                self.micro = self.CROM[self.AROM[self.iflags()][instr]+(self.Tstep-3)]
+                conditions = self.iflags()
+                microaddr = (self.AROM[conditions][instr]) + (self.Tstep-3)
+                self.micro = self.CROM[microaddr]
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
     def clock(self):

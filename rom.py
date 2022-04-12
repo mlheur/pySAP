@@ -1,5 +1,3 @@
-
-
 from ctl import CtlLine as CtlLine
 
 
@@ -16,7 +14,18 @@ class ROM(object):
             else:
                 word |= self.oflags[f].mask
         return word
-        
+    def addinstr(self,instr,micro):
+        if type(micro) is list:
+            for condition,value in enumerate(micro):
+                if not condition in self.addr:
+                    self.addr[condition] = dict()
+                self.addr[condition][self.ASM[instr]] = value
+        elif type(micro) is int:
+            for condition in range(2**len(self.iflags)):
+                if not condition in self.addr:
+                    self.addr[condition] = dict()
+                self.addr[condition][self.ASM[instr]] = micro
+
 
 class SAP1rom(ROM):
     NOP = 0x043E3
@@ -56,49 +65,44 @@ class SAP1rom(ROM):
             self.mkctl(['Ei','La','Rt'])                                                        # 0x11 LDI : IR->A, NOP
         ]
 
-
         self.iflags = {
             'CARRY':      CtlLine(0),
             'ZERO':       CtlLine(1)
         }
 
-        # ISAv3 - now with conditional flags
-        self.addr = [
-            [ # conditions == 0b00
-                0x03,    #   LDA 0x0 Addr
-                0x05,    #   ADD 0x1 Addr
-                0x08,    #   SUB 0x2 Addr
-                0x0D,    #   STA 0x3 Addr
-                0x0F,    #   RST 0x4*
-                0x00,    #   NOP 0x5*
-                0x10,    #   JMP 0x6 Addr
-                0x11,    #   LDI 0x7 Value
-                0x00,    #   JC  0x8 Addr | do NOP when all conditions are off
-                0x00,    #   JZ  0x9 Addr | do NOP when all conditions are off
-                0x10,    #   JNZ 0xA Addr | do JMP when all conditions are off
-                0xFF,
-                0xFF,
-                0xFF,
-                0x0B,    #   OUT 0xB*
-                0x0C     #   HLT 0xC*
-            ]
-        ]
-        # copy the base addr ROM across all conditions
-        for condition in range(1,4):
-            self.addr.append([])
-            for v in self.addr[0]:
-                self.addr[condition].append(v)
-        # override the base when conditions warrant
-        # ToDo: generalize this.
-        self.addr[0b01][0x8] = 0x10 # JC  0x8 Addr | do JMP when Carry condition is on
-        self.addr[0b11][0x8] = 0x10 # JC  0x8 Addr | do JMP when Carry condition is on
-        self.addr[0b10][0x9] = 0x10 # JZ  0x9 Addr | do JMP when Zero condition is on
-        self.addr[0b11][0x9] = 0x10 # JZ  0x9 Addr | do JMP when Zero condition is on
-        self.addr[0b10][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
-        self.addr[0b11][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
+        self.ASM = {
+            'LDA': 0x0,
+            'ADD': 0x1,
+            'SUB': 0x2,
+            'STA': 0x3,
+            'RST': 0x4,
+            'NOP': 0x5,
+            'JMP': 0x6,
+            'LDI': 0x7,
+            'JC':  0x8,
+            'JZ':  0x9,
+            'JNZ': 0xA,
+            'OUT': 0xE,
+            'HLT': 0xF
+        }
 
+        self.addr = {}
+        self.addinstr('LDA',0x03)
+        self.addinstr('ADD',0x05)
+        self.addinstr('SUB',0x08)
+        self.addinstr('STA',0x0D)
+        self.addinstr('RST',0x0F)
+        self.addinstr('NOP',0x00)
+        self.addinstr('JMP',0x10)
+        self.addinstr('LDI',0x11)
+        self.addinstr('OUT',0x0B)
+        self.addinstr('HLT',0x0C)
+        self.addinstr('JC', [0x00,0x10,0x00,0x10])
+        self.addinstr('JZ', [0x00,0x00,0x10,0x10])
+        self.addinstr('JNZ',[0x10,0x10,0x00,0x00])
 
 if __name__ == "__main__":
     rom = SAP1rom()
     for i,word in enumerate(rom.ctl):
         print("addr=[{i:02x}] word=[{v:020b} {v:05x} {v:08d}]".format(i=i,v=word))
+    print("rom.addr = [{}]".format(rom.addr))
