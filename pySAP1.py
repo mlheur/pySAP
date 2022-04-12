@@ -9,10 +9,12 @@ from alu import ALU as ALU
 from ctl import CtlLine as CtlLine
 from ctl import CtlSeq as CtlSeq
 from rom import SAP1rom as ROM
+from cpu import CPU as CPU
 
 
-class pySAP1():
+class pySAP1(CPU):
     def __init__(self,rom,FirstRAM,bits=8,addrlen=4):
+        super().__init__()
         self.bits       = bits
         self.addrlen    = addrlen
         self.iflags = {
@@ -61,8 +63,10 @@ if __name__ == "__main__":
         0x09,0x01,0x55,0x55,0x55,0x55,0x55,0xF5
     ]
     
-    rom = ROM()
-    Clock(pySAP1(rom,Count),1000).run()
-    Clock(pySAP1(rom,Fib),1000).run()
+    cpu = pySAP1(ROM(),Count)
+    clk = Clock(1000)
+    clk.run(cpu)
+    clk.run(cpu,Fib)
     Count[8] = 0
-    Clock(pySAP1(rom,Count),-1).run()
+    cpu.setram(Count)
+    Clock(-1).run(cpu)
