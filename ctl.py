@@ -15,13 +15,13 @@ class CtlLine():
 
 
 class CtlSeq():
-    def __init__(self,cpu,arom,crom,Tlimit=5):
+    def __init__(self,cpu,arom,crom,ResetT):
         self.cpu     = cpu
         self.AROM    = arom
         self.CROM    = crom
         self.Tstep   = 1
         self.micro   = self.CROM[0]
-        self.Tlimit  = Tlimit
+        self.ResetT  = cpu.oflags[ResetT]
     def __str__(self):
         return '{}'.format(self.Tstep)
     def iflags(self):
@@ -43,8 +43,9 @@ class CtlSeq():
     def clock(self):
         # Parse the subinstruction
         self.decode()
-        #print("T:{} MICRO: Bin={v:016b} Hex={v:04X} Dec={v:05d}".format(self.Tstep,v=self.micro))
-        #print("{}".format(self.cpu))
+#        print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
+#        for f in self.cpu.oflags:
+#            print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
         if self.cpu.oflags['HLT'].istrue():
             return
         # enable to bus
@@ -53,14 +54,30 @@ class CtlSeq():
         # latch from bus
         for component in self.cpu.components:
             component.tock()
+
+#        print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(
+#            self.cpu.a.value,
+#            self.cpu.b.value,
+#            self.cpu.out.value,
+#            self.cpu.ir.value,
+#            self.cpu.pc.value,
+#            self.cpu.mar.value,
+#            self.cpu.alu.value
+#        ))
+
         # Increment the RingCounter
         if self.cpu.oflags['CLR'].istrue():
             self.cpu.oflags['CLR'].settruth(False)
+#            print("CLR:    old={}".format(self.Tstep))
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
+#            print("NOP:    old={}".format(self.Tstep))
+            self.Tstep = 1
+        elif self.ResetT.istrue():
+#            print("ResetT: old={}".format(self.Tstep))
             self.Tstep = 1
         else:
+#            print("IncT:   old={}".format(self.Tstep))
             self.Tstep += 1
-            if self.Tstep > self.Tlimit:
-                self.Tstep = 1
+
 

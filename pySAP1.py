@@ -26,7 +26,7 @@ class pySAP1(CPU):
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',FirstRAM)       
-        self.ctlseq     = CtlSeq(self,list(rom.addr),list(rom.ctl))
+        self.ctlseq     = CtlSeq(self,list(rom.addr),list(rom.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self):
@@ -44,8 +44,9 @@ if __name__ == "__main__":
     ]
     
     cpu = pySAP1(ROM(),Fib)
-    clk = Clock(400)
+    clk = Clock(100)
     clk.run(cpu)
+
     clk.run(cpu,Count)
     Count[8] = 0
     cpu.setram(Count)

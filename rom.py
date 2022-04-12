@@ -37,22 +37,23 @@ class SAP1rom(ROM):
             'Lr':         CtlLine(12),       # Latch RAM
             'Eb':         CtlLine(13),       # Enable B
             'CLR':        CtlLine(14,inv=1), # CLR
-            'HLT':        CtlLine(15)        # HLT
+            'HLT':        CtlLine(15),       # HLT
+            'Rt':         CtlLine(16)        # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
         }
         self.mask = (2**len(self.oflags))-1
 
         self.ctl = [
-            self.mkctl(),                                                                  # 0x00 NOP : NOP
-            self.mkctl(['Ep','Lm']),self.mkctl(['Cp','CE','Li']),                          # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
-            self.mkctl(['Ei','Lm']),self.mkctl(['CE','La']),self.NOP,                      # 0x03 LDA : IR->MAR, RAM->A, NOP
-            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','La']),       # 0x06 ADD : IR->MAR, RAM->B, ALU->A
-            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','Su','La']),  # 0x09 SUB : IR->MAR, RAM->B, ALU->A w/ SUB
-            self.mkctl(['Ea','Lo']),self.NOP,                                              # 0x0C OUT : A->OUT, NOP
-            self.mkctl(['HLT']),                                                           # 0x0E HLT : NOP w/ HLT
-            self.mkctl(['Ei','Lm']),self.mkctl(['Ea','Lr']),self.NOP,                      # 0x0F STA : IR->MAR, A->RAM, NOP
-            self.mkctl(['CLR']),                                                           # 0x12 RST : NOP w/ CLR
-            self.mkctl(['Ei','Cp','Ep']),self.NOP,                                         # 0x13 JMP : IR->PC, NOP
-            self.mkctl(['Ei','La']),self.NOP                                               # 0x15 LDI : IR->A, NOP
+            self.mkctl(),                                                                       # 0x00 NOP : NOP
+            self.mkctl(['Ep','Lm']),self.mkctl(['Cp','CE','Li']),                               # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','La','Rt']),                               # 0x03 LDA : IR->MAR, RAM->A, NOP
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','La','Rt']),       # 0x05 ADD : IR->MAR, RAM->B, ALU->A
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','Su','La','Rt']),  # 0x08 SUB : IR->MAR, RAM->B, ALU->A w/ SUB
+            self.mkctl(['Ea','Lo','Rt']),                                                       # 0x0B OUT : A->OUT, NOP
+            self.mkctl(['HLT']),                                                                # 0x0C HLT : NOP w/ HLT
+            self.mkctl(['Ei','Lm']),self.mkctl(['Ea','Lr','Rt']),                               # 0x0D STA : IR->MAR, A->RAM, NOP
+            self.mkctl(['CLR']),                                                                # 0x0F RST : NOP w/ CLR
+            self.mkctl(['Ei','Cp','Ep','Rt']),                                                  # 0x10 JMP : IR->PC, NOP
+            self.mkctl(['Ei','La','Rt'])                                                        # 0x11 LDI : IR->A, NOP
         ]
 
 
@@ -65,21 +66,21 @@ class SAP1rom(ROM):
         self.addr = [
             [ # conditions == 0b00
                 0x03,    #   LDA 0x0 Addr
-                0x06,    #   ADD 0x1 Addr
-                0x09,    #   SUB 0x2 Addr
-                0x0F,    #   STA 0x3 Addr
-                0x12,    #   RST 0x4*
+                0x05,    #   ADD 0x1 Addr
+                0x08,    #   SUB 0x2 Addr
+                0x0D,    #   STA 0x3 Addr
+                0x0F,    #   RST 0x4*
                 0x00,    #   NOP 0x5*
-                0x13,    #   JMP 0x6 Addr
-                0x15,    #   LDI 0x7 Value
+                0x10,    #   JMP 0x6 Addr
+                0x11,    #   LDI 0x7 Value
                 0x00,    #   JC  0x8 Addr | do NOP when all conditions are off
                 0x00,    #   JZ  0x9 Addr | do NOP when all conditions are off
-                0x13,    #   JNZ 0xA Addr | do JMP when all conditions are off
+                0x10,    #   JNZ 0xA Addr | do JMP when all conditions are off
                 0xFF,
                 0xFF,
                 0xFF,
-                0x0C,    #   OUT 0xE*
-                0x0E     #   HLT 0xF*
+                0x0B,    #   OUT 0xB*
+                0x0C     #   HLT 0xC*
             ]
         ]
         # copy the base addr ROM across all conditions
@@ -89,10 +90,10 @@ class SAP1rom(ROM):
                 self.addr[condition].append(v)
         # override the base when conditions warrant
         # ToDo: generalize this.
-        self.addr[0b01][0x8] = 0x13 # JC  0x8 Addr | do JMP when Carry condition is on
-        self.addr[0b11][0x8] = 0x13 # JC  0x8 Addr | do JMP when Carry condition is on
-        self.addr[0b10][0x9] = 0x13 # JZ  0x9 Addr | do JMP when Zero condition is on
-        self.addr[0b11][0x9] = 0x13 # JZ  0x9 Addr | do JMP when Zero condition is on
+        self.addr[0b01][0x8] = 0x10 # JC  0x8 Addr | do JMP when Carry condition is on
+        self.addr[0b11][0x8] = 0x10 # JC  0x8 Addr | do JMP when Carry condition is on
+        self.addr[0b10][0x9] = 0x10 # JZ  0x9 Addr | do JMP when Zero condition is on
+        self.addr[0b11][0x9] = 0x10 # JZ  0x9 Addr | do JMP when Zero condition is on
         self.addr[0b10][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
         self.addr[0b11][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
 
@@ -100,4 +101,4 @@ class SAP1rom(ROM):
 if __name__ == "__main__":
     rom = SAP1rom()
     for i,word in enumerate(rom.ctl):
-        print("addr=[{i:04x}] word=[{v:020b} {v:04x} {v:06d}]".format(i=i,v=word))
+        print("addr=[{i:02x}] word=[{v:020b} {v:05x} {v:08d}]".format(i=i,v=word))
