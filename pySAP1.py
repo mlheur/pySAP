@@ -17,28 +17,8 @@ class pySAP1(CPU):
         super().__init__()
         self.bits       = bits
         self.addrlen    = addrlen
-        self.iflags = {
-            'CARRY':      CtlLine(0),
-            'ZERO':       CtlLine(1)
-        }
-        self.oflags = {
-            'Lo':         CtlLine(0,inv=1),
-            'Lb':         CtlLine(1,inv=1),
-            'Eu':         CtlLine(2),
-            'Su':         CtlLine(3),
-            'Ea':         CtlLine(4),
-            'La':         CtlLine(5,inv=1),
-            'Ei':         CtlLine(6,inv=1),
-            'Li':         CtlLine(7,inv=1),
-            'CE':         CtlLine(8,inv=1),
-            'Lm':         CtlLine(9,inv=1),
-            'Ep':         CtlLine(10),
-            'Cp':         CtlLine(11),
-            'Lr':         CtlLine(12),
-            'Eb':         CtlLine(13),
-            'CLR':        CtlLine(14,inv=1),
-            'HLT':        CtlLine(15)
-        }
+        self.iflags     = dict(rom.iflags)
+        self.oflags     = dict(rom.oflags)
         self.a          = StdRegister(self,'La','Ea')
         self.b          = StdRegister(self,'Lb','Eb')
         self.out        = OUT(self,'Lo')
@@ -46,7 +26,7 @@ class pySAP1(CPU):
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',FirstRAM)       
-        self.ctlseq     = CtlSeq(self,rom)
+        self.ctlseq     = CtlSeq(self,list(rom.addr),list(rom.ctl))
         self.alu        = ALU(self,self.a,self.b,'Eu','Su')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self):
@@ -63,10 +43,10 @@ if __name__ == "__main__":
         0x09,0x01,0x55,0x55,0x55,0x55,0x55,0xF5
     ]
     
-    cpu = pySAP1(ROM(),Count)
-    clk = Clock(1000)
+    cpu = pySAP1(ROM(),Fib)
+    clk = Clock(400)
     clk.run(cpu)
-    clk.run(cpu,Fib)
+    clk.run(cpu,Count)
     Count[8] = 0
     cpu.setram(Count)
     Clock(-1).run(cpu)

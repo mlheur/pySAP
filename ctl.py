@@ -12,15 +12,13 @@ class CtlLine():
         else: self.value = int(not truth)
     def istrue(self):
         return not self.value == self.inv
-    def __str__(self):
-        return "{}".format(self.value)
 
 
 class CtlSeq():
-    def __init__(self,cpu,rom,Tlimit=5):
+    def __init__(self,cpu,arom,crom,Tlimit=5):
         self.cpu     = cpu
-        self.AROM    = rom.addr
-        self.CROM    = rom.ctl
+        self.AROM    = arom
+        self.CROM    = crom
         self.Tstep   = 1
         self.micro   = self.CROM[0]
         self.Tlimit  = Tlimit

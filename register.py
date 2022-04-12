@@ -6,23 +6,22 @@ class Register():
         self.cpu        = cpu
         self.mask       = (2**bits) - 1      # ToDo: validate host architecture is more than bits.
         self.value      = 0
-        if latch is not None: self.latch  = self.cpu.oflags[latch]
-        else: self.latch = None
-        if enable is not None: self.enable = self.cpu.oflags[enable]
-        else: self.enable = None
+        if latch is not None and latch in self.cpu.oflags:
+            self.latch  = self.cpu.oflags[latch]
+        else:
+            self.latch = None
+        if enable is not None and enable in self.cpu.oflags:
+            self.enable = self.cpu.oflags[enable]
+        else:
+            self.enable = None
     def tick(self):
-        if self.cpu.oflags['CLR'].istrue(): self.value  = 0
-        if self.enable is not None and self.enable.istrue(): self.cpu.w  = self.value & self.mask
+        if self.cpu.oflags['CLR'].istrue():
+            self.value  = 0
+        if self.enable is not None and self.enable.istrue():
+            self.cpu.w  = self.value & self.mask
     def tock(self):
         if self.latch is not None and self.latch.istrue():
             self.value  = self.cpu.w & self.mask
-    def __str__(self):
-        if self.latch is not None: L=strflag(self.latch.istrue(),"l")
-        else: L=""
-        if self.enable is not None: E=strflag(self.enable.istrue(),"e")
-        else: E=""
-        V='{self.value:02X}'.format(self=self)
-        return '{L}{E}{V:02X}'.format(L=L,E=E,V=self.value)
 
 
 class StdRegister(Register):

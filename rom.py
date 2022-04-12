@@ -1,6 +1,66 @@
 
-class SAP1rom(object):
+
+from ctl import CtlLine as CtlLine
+
+
+class ROM(object):
+    NOP = 0
+    def mkctl(self,flags=[]):
+        word = self.NOP
+        for f in flags:
+            if f not in self.oflags:
+                print("unknown control flag: [{}]".format(f))
+                continue
+            if self.oflags[f].inv == 1:
+                word &= ~self.oflags[f].mask
+            else:
+                word |= self.oflags[f].mask
+        return word
+        
+
+class SAP1rom(ROM):
+    NOP = 0x043E3
     def __init__(self):
+        self.oflags = {
+            'Lo':         CtlLine(0,inv=1),  # Latch OUT
+            'Lb':         CtlLine(1,inv=1),  # Latch B
+            'Eu':         CtlLine(2),        # Enable ALU
+            'Su':         CtlLine(3),        # Subtract
+            'Ea':         CtlLine(4),        # Enable A
+            'La':         CtlLine(5,inv=1),  # Latch A
+            'Ei':         CtlLine(6,inv=1),  # Enable IR
+            'Li':         CtlLine(7,inv=1),  # Latch IR
+            'CE':         CtlLine(8,inv=1),  # Chip Enable RAM
+            'Lm':         CtlLine(9,inv=1),  # Latch MAR
+            'Ep':         CtlLine(10),       # Enable PC
+            'Cp':         CtlLine(11),       # Clock PC
+            'Lr':         CtlLine(12),       # Latch RAM
+            'Eb':         CtlLine(13),       # Enable B
+            'CLR':        CtlLine(14,inv=1), # CLR
+            'HLT':        CtlLine(15)        # HLT
+        }
+        self.mask = (2**len(self.oflags))-1
+
+        self.ctl = [
+            self.mkctl(),                                                                  # 0x00 NOP : NOP
+            self.mkctl(['Ep','Lm']),self.mkctl(['Cp','CE','Li']),                          # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','La']),self.NOP,                      # 0x03 LDA : IR->MAR, RAM->A, NOP
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','La']),       # 0x06 ADD : IR->MAR, RAM->B, ALU->A
+            self.mkctl(['Ei','Lm']),self.mkctl(['CE','Lb']),self.mkctl(['Eu','Su','La']),  # 0x09 SUB : IR->MAR, RAM->B, ALU->A w/ SUB
+            self.mkctl(['Ea','Lo']),self.NOP,                                              # 0x0C OUT : A->OUT, NOP
+            self.mkctl(['HLT']),                                                           # 0x0E HLT : NOP w/ HLT
+            self.mkctl(['Ei','Lm']),self.mkctl(['Ea','Lr']),self.NOP,                      # 0x0F STA : IR->MAR, A->RAM, NOP
+            self.mkctl(['CLR']),                                                           # 0x12 RST : NOP w/ CLR
+            self.mkctl(['Ei','Cp','Ep']),self.NOP,                                         # 0x13 JMP : IR->PC, NOP
+            self.mkctl(['Ei','La']),self.NOP                                               # 0x15 LDI : IR->A, NOP
+        ]
+
+
+        self.iflags = {
+            'CARRY':      CtlLine(0),
+            'ZERO':       CtlLine(1)
+        }
+
         # ISAv3 - now with conditional flags
         self.addr = [
             [ # conditions == 0b00
@@ -36,17 +96,8 @@ class SAP1rom(object):
         self.addr[0b10][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
         self.addr[0b11][0xA] = 0x00 # JNZ 0xA Addr | do NOP when Zero condition is on
 
-        self.ctl = [
-            0x043E3,                                  # 0x00 NOP : NOP
-            0b00100010111100011,0b00100101001100011,  # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
-            0x041A3,0x042C3,0x043E3,                  # 0x03 LDA : IR->MAR, RAM->A, NOP
-            0x041A3,0x042E1,0x143C7,                  # 0x06 ADD : IR->MAR, RAM->B, ALU->A
-            0x041A3,0x042E1,0x143CF,                  # 0x09 SUB : IR->MAR, RAM->B, ALU->A w/ SUB
-            0x043F2,0x043E3,                          # 0x0C OUT : A->OUT, NOP
-            0x0C3E3,                                  # 0x0E HLT : NOP w/ HLT
-            0x041A3,0x053F3,0x043E3,                  # 0x0F STA : IR->MAR, A->RAM, NOP
-            0x003E3,                                  # 0x12 RST : NOP w/ CLR
-            0x04FA3,0x043E3,                          # 0x13 JMP : IR->PC, NOP
-            0x04383,0x043E3                           # 0x15 LDI : IR->A, NOP
-        ]
 
+if __name__ == "__main__":
+    rom = SAP1rom()
+    for i,word in enumerate(rom.ctl):
+        print("addr=[{i:04x}] word=[{v:020b} {v:04x} {v:06d}]".format(i=i,v=word))
