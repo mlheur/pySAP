@@ -30,6 +30,25 @@ class ROM(object):
 class SAP1rom(ROM):
     NOP = 0x043E3
     def __init__(self):
+        self.ASM = {
+            'LDA': 0x0,
+            'ADD': 0x1,
+            'SUB': 0x2,
+            'STA': 0x3,
+            'RST': 0x4,
+            'NOP': 0x5,
+            'JMP': 0x6,
+            'LDI': 0x7,
+            'JC':  0x8,
+            'JZ':  0x9,
+            'JNZ': 0xA,
+            'OUT': 0xE,
+            'HLT': 0xF
+        }
+        self.iflags = {
+            'CARRY':      CtlLine(0),
+            'ZERO':       CtlLine(1)
+        }
         self.oflags = {
             'Lo':         CtlLine(0,inv=1),  # Latch OUT
             'Lb':         CtlLine(1,inv=1),  # Latch B
@@ -50,7 +69,6 @@ class SAP1rom(ROM):
             'Rt':         CtlLine(16)        # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
         }
         self.mask = (2**len(self.oflags))-1
-
         self.ctl = [
             self.mkctl(),                                                                       # 0x00 NOP : NOP
             self.mkctl(['Ep','Lm']),self.mkctl(['Cp','CE','Li']),                               # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
@@ -64,28 +82,6 @@ class SAP1rom(ROM):
             self.mkctl(['Ei','Cp','Ep','Rt']),                                                  # 0x10 JMP : IR->PC, NOP
             self.mkctl(['Ei','La','Rt'])                                                        # 0x11 LDI : IR->A, NOP
         ]
-
-        self.iflags = {
-            'CARRY':      CtlLine(0),
-            'ZERO':       CtlLine(1)
-        }
-
-        self.ASM = {
-            'LDA': 0x0,
-            'ADD': 0x1,
-            'SUB': 0x2,
-            'STA': 0x3,
-            'RST': 0x4,
-            'NOP': 0x5,
-            'JMP': 0x6,
-            'LDI': 0x7,
-            'JC':  0x8,
-            'JZ':  0x9,
-            'JNZ': 0xA,
-            'OUT': 0xE,
-            'HLT': 0xF
-        }
-
         self.addr = {}
         self.addinstr('LDA',0x03)
         self.addinstr('ADD',0x05)
