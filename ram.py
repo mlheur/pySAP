@@ -10,10 +10,9 @@ class RAM(StdRegister):
 
     def set(self,newram):
         if len(newram) > 0:
-            print("Loading RAM: {}".format(newram))
-            self.value = []
-            for v in newram:
-                self.value.append(v)
+            self.value = [0xF] * (2**self.cpu.addrlen)
+            for i,v in enumerate(newram):
+                self.value[i] = v
                 
     def tick(self):
         if self.enable.istrue():

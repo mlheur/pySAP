@@ -34,20 +34,23 @@ class pySAP1(CPU):
 
 
 if __name__ == "__main__":
-    Fib = [
-        0x71,0x3E,0x70,0x3F,0xE5,0x0E,0x1F,0x3E,
-        0xE5,0x0F,0x1E,0x8D,0x63,0xF5,0x55,0x55
-    ]
-    Count = [
-        0x08,0xE5,0x29,0xE5,0xA2,0x6F,0x55,0x55,
-        0x09,0x01,0x55,0x55,0x55,0x55,0x55,0xF5
-    ]
-    
-    cpu = pySAP1(ROM(),Fib)
+    rom = ROM()
+    fib = []
+    fib.append(rom.assemble('LDI',0x1))
+    fib.append(rom.assemble('STA',0xE))
+    fib.append(rom.assemble('LDI',0x0))
+    fib.append(rom.assemble('STA',0xF))
+    fib.append(rom.assemble('OUT'))
+    fib.append(rom.assemble('LDA',0xE))
+    fib.append(rom.assemble('ADD',0xF))
+    fib.append(rom.assemble('STA',0xE))
+    fib.append(rom.assemble('OUT'))
+    fib.append(rom.assemble('STA',0xF))
+    fib.append(rom.assemble('ADD',0xE))
+    fib.append(rom.assemble('JC', 0xD))
+    fib.append(rom.assemble('JMP',0x3))
+    fib.append(rom.assemble('HLT'))
+    cpu = pySAP1(rom,fib)
     clk = Clock(100)
     clk.run(cpu)
 
-    clk.run(cpu,Count)
-    Count[8] = 0
-    cpu.setram(Count)
-    Clock(-1).run(cpu)

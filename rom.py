@@ -25,6 +25,9 @@ class ROM(object):
                 if not condition in self.addr:
                     self.addr[condition] = dict()
                 self.addr[condition][self.ASM[instr]] = micro
+    def assemble(self,instr,data=0xF):
+        if instr in self.ASM:
+            return (self.ASM[instr] << 4) | data
 
 
 class SAP1rom(ROM):
