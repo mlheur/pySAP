@@ -42,7 +42,7 @@ class CtlSeq():
                 self.micro = self.CROM[microaddr]
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
-    def clock(self):
+    def clock(self,components):
         # Parse the subinstruction
         self.decode()
 #        print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
@@ -51,10 +51,10 @@ class CtlSeq():
         if self.cpu.oflags['HLT'].istrue():
             return
         # enable to bus
-        for component in self.cpu.components:
+        for component in components:
             component.tick()
         # latch from bus
-        for component in self.cpu.components:
+        for component in components:
             component.tock()
 
 #        print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(

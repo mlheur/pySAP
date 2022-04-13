@@ -27,6 +27,9 @@ class SAP1rom(ROM):
             'JC':  0x8,
             'JZ':  0x9,
             'JNZ': 0xA,
+
+
+
             'OUT': 0xE,
             'HLT': 0xF
         }
@@ -99,9 +102,8 @@ class pySAP1(CPU):
         self.ram        = RAM(self,'Lr','CE',FirstRAM)       
         self.ctlseq     = CtlSeq(self,dict(rom.addr),list(rom.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su')
-        self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self):
-        self.ctlseq.clock()
+        self.ctlseq.clock([self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram])
 
 
 if __name__ == "__main__":
