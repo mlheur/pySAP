@@ -70,16 +70,12 @@ class CtlSeq():
         # Increment the RingCounter
         if self.cpu.oflags['CLR'].istrue():
             self.cpu.oflags['CLR'].settruth(False)
-#            print("CLR:    old={}".format(self.Tstep))
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
-#            print("NOP:    old={}".format(self.Tstep))
             self.Tstep = 1
         elif self.ResetT.istrue():
-#            print("ResetT: old={}".format(self.Tstep))
             self.Tstep = 1
         else:
-#            print("IncT:   old={}".format(self.Tstep))
             self.Tstep += 1
 
 

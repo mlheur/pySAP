@@ -123,7 +123,17 @@ if __name__ == "__main__":
     fib.append(rom.assemble('JC', 0xD))
     fib.append(rom.assemble('JMP',0x3))
     fib.append(rom.assemble('HLT'))
-    cpu = pySAP1(rom,fib)
+
+
+    count = []
+    count.append(rom.assemble("LDA",0x4))
+    count.append(rom.assemble("SUB",0x5))
+    count.append(rom.assemble("OUT"))
+    count.append(rom.assemble("HLT"))
+    count.append(0x5)
+    count.append(0x4)
+
+    cpu = pySAP1(rom,count)
     clk = Clock(100)
     clk.run(cpu)
 
