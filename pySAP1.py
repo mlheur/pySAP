@@ -109,20 +109,22 @@ class pySAP1(CPU):
 if __name__ == "__main__":
     rom = SAP1rom()
     fib = []
-    fib.append(rom.assemble('LDI',0x1))
-    fib.append(rom.assemble('STA',0xE))
-    fib.append(rom.assemble('LDI',0x0))
-    fib.append(rom.assemble('STA',0xF))
-    fib.append(rom.assemble('OUT'))
-    fib.append(rom.assemble('LDA',0xE))
-    fib.append(rom.assemble('ADD',0xF))
-    fib.append(rom.assemble('STA',0xE))
-    fib.append(rom.assemble('OUT'))
-    fib.append(rom.assemble('STA',0xF))
-    fib.append(rom.assemble('ADD',0xE))
-    fib.append(rom.assemble('JC', 0xD))
-    fib.append(rom.assemble('JMP',0x3))
-    fib.append(rom.assemble('HLT'))
+    fib.append(rom.assemble('LDI',0x1)) # 0
+    fib.append(rom.assemble('STA',0xE)) # 1
+    fib.append(rom.assemble('LDI',0x0)) # 2
+    fib.append(rom.assemble('STA',0xF)) # 3
+    fib.append(rom.assemble('OUT'))     # 4
+    fib.append(rom.assemble('LDA',0xE)) # 5
+    fib.append(rom.assemble('ADD',0xF)) # 6
+    fib.append(rom.assemble('STA',0xE)) # 7
+    fib.append(rom.assemble('OUT'))     # 8
+    fib.append(rom.assemble('LDA',0xF)) # 9
+    fib.append(rom.assemble('ADD',0xE)) # A
+    fib.append(rom.assemble('JC', 0xD)) # B
+    fib.append(rom.assemble('JMP',0x3)) # C
+    fib.append(rom.assemble('HLT'))     # D
+    #  Var 1                            # E
+    #  Var 2                            # F
 
 
     count = []
@@ -133,7 +135,7 @@ if __name__ == "__main__":
     count.append(0x5)
     count.append(0x4)
 
-    cpu = pySAP1(rom,count)
+    cpu = pySAP1(rom,fib)
     clk = Clock(100)
     clk.run(cpu)
 
