@@ -102,8 +102,9 @@ class pySAP1(CPU):
         self.ram        = RAM(self,'Lr','CE',FirstRAM)       
         self.ctlseq     = CtlSeq(self,dict(rom.addr),list(rom.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su')
+        self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self):
-        self.ctlseq.clock([self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram])
+        self.ctlseq.clock(self.components)
 
 
 if __name__ == "__main__":
