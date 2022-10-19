@@ -16,8 +16,8 @@ class gui_layout_manager():
     
     def get_col_width(self,bits=None):
         if bits is None:
-            bits = self.bits
-        return (bits+1 * self.BORDER) + (bits * self.PPB)
+            bits = self.maxbits
+        return ((bits+1) * self.BORDER) + (bits * self.PPB)
     
     def get_row_yoffset(self,row):
         return ((row+1) * self.BORDER) + (row * self.get_row_height())
@@ -33,7 +33,9 @@ class gui_layout_manager():
         return x1,y1,x2,y2
     
     def get_canvas_size(self):
-        return (2*self.)
+        width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
+        height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
+        return height,width
   
 
 class gui_register():
@@ -47,17 +49,16 @@ class gui_register():
         self.canvas = canvas
         self.name = name
         self.glm = glm
-
-        self.bgID = self.canvas.create_rectangle(self.glm.get_coords(row,col),fill=self.COLOR_BG)
+        self.coords = self.glm.get_coords(row,col)
+        self.bgID = self.canvas.create_rectangle(self.coords,fill=self.COLOR_BG)
 
         self.bits = list()
         for bitpos in range(self.reg.bits):
-            x1 = self.topleft_x + gui_layout.BORDER + ( (self.reg.bits-1-bitpos) * ( gui_layout.PPB + gui_layout.BORDER ) )
-            x2 = x1 + gui_layout.PPB
-            y1 = self.topleft_y + gui_layout.BORDER
-            y2 = y1 + gui_layout.PPB
-            coord = x1, y1, x2, y2
-            self.bits.append(self.canvas.create_oval(coord,fill=self.COLOR_OFF))
+            x1 = self.coords[0] + self.glm.BORDER + ( (self.reg.bits-1-bitpos) * ( self.glm.PPB + self.glm.BORDER ) )
+            x2 = x1 + self.glm.PPB
+            y1 = self.coords[1] + self.glm.BORDER
+            y2 = y1 + self.glm.PPB
+            self.bits.append(self.canvas.create_oval(x1, y1, x2, y2, fill=self.COLOR_OFF))
         self.redraw()
 
     def redraw(self):
@@ -72,6 +73,14 @@ class gui_register():
                 fill = self.COLOR_OFF
             self.canvas.itemconfigure(bitID,fill=fill)
 
+class gui_tstep(gui_register):
+    def __init__(self, ctlseq, row, col, canvas, name, glm):
+        self.COLOR_ON = "#3030FF"
+        self.COLOR_OFF = "#303060"
+        self.COLOR_BG = "#202020"
+        super().__init__(reg, row, col, canvas, name, glm)
+
+
 class guiSAP1():
     def __init__(self,cpu,clk):
         self.cpu = cpu
@@ -80,17 +89,18 @@ class guiSAP1():
 
         self.main_wnd = Tk()
         self.main_wnd.title("SAP1")
-        self.canvas = Canvas(self.main_wnd, bg = "#000000", height = 130, width = 265)
+        height,width = self.glm.get_canvas_size()
+        self.canvas = Canvas(self.main_wnd, bg = "#000000", height = height, width = width)
 
         self.components = list()
-        self.components.append(gui_register(self.cpu.pc,  0, 1, self.canvas, "PC"))
-        self.components.append(gui_register(self.cpu.mar, 1, 0, self.canvas, "MAR"))
-        self.components.append(gui_register(self.cpu.a,   1, 1, self.canvas, "A"))
-        self.components.append(gui_register(self.cpu.ram, 2, 0, self.canvas, "RAM"))
-        self.components.append(gui_register(self.cpu.alu, 2, 1, self.canvas, "ALU"))
-        self.components.append(gui_register(self.cpu.ir,  3, 0, self.canvas, "IR"))
-        self.components.append(gui_register(self.cpu.b,   3, 1, self.canvas, "B"))
-        self.components.append(gui_register(self.cpu.out, 4, 1, self.canvas, "OUT"))
+        self.components.append(gui_register(self.cpu.pc,  0, 1, self.canvas, "PC",  self.glm))
+        self.components.append(gui_register(self.cpu.mar, 1, 0, self.canvas, "MAR", self.glm))
+        self.components.append(gui_register(self.cpu.a,   1, 1, self.canvas, "A",   self.glm))
+        self.components.append(gui_register(self.cpu.ram, 2, 0, self.canvas, "RAM", self.glm))
+        self.components.append(gui_register(self.cpu.alu, 2, 1, self.canvas, "ALU", self.glm))
+        self.components.append(gui_register(self.cpu.ir,  3, 0, self.canvas, "IR",  self.glm))
+        self.components.append(gui_register(self.cpu.b,   3, 1, self.canvas, "B",   self.glm))
+        self.components.append(gui_register(self.cpu.out, 4, 1, self.canvas, "OUT", self.glm))
 
         self.canvas.pack()
 
