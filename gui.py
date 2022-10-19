@@ -1,45 +1,61 @@
 from tkinter import *
 
-class gui_layout():
-    PIXELS_BORDER = 5
-    PIXELS_PER_BIT = 10
-    GRID = {
-        "row_y_offset": {
-            0: 5,
-            1: 30,
-            2: 55,
-            3: 80,
-            4: 105,
-            5: 130
-        },
-        "col_x_offset": {
-            0: 5,
-            1: 135
-        }
-    }
+class gui_layout_manager():
+    BORDER     = 5
+    PPB        = 10
+
+    def __init__(self,maxbits,rows,cols):
+        self.maxbits = maxbits
+        self.rows = rows
+        self.cols = cols
+        self.BORDER = gui_layout_manager.BORDER
+        self.PPB = gui_layout_manager.PPB
+
+    def get_row_height(self):
+        return (2 * self.BORDER) + self.PPB
+    
+    def get_col_width(self,bits=None):
+        if bits is None:
+            bits = self.bits
+        return (bits+1 * self.BORDER) + (bits * self.PPB)
+    
+    def get_row_yoffset(self,row):
+        return ((row+1) * self.BORDER) + (row * self.get_row_height())
+    
+    def get_col_xoffset(self,col):
+        return ((col+1) * self.BORDER) + (col * self.get_col_width())
+    
+    def get_coords(self,row,col):
+        x1 = self.get_col_xoffset(col)
+        x2 = x1 + self.get_col_width()
+        y1 = self.get_row_yoffset(row)
+        y2 = y1 + self.get_row_height()
+        return x1,y1,x2,y2
+    
+    def get_canvas_size(self):
+        return (2*self.)
+  
 
 class gui_register():
     COLOR_ON = "#30FF30"
     COLOR_OFF = "#306030"
-    COLOR_BG = "#101010"
-    def __init__(self,reg,row,col,canvas,name):
+    COLOR_BG = "#202020"
+    def __init__(self,reg,row,col,canvas,name,glm):
         self.reg = reg
         self.row = row
         self.col = col
         self.canvas = canvas
         self.name = name
+        self.glm = glm
+
+        self.bgID = self.canvas.create_rectangle(self.glm.get_coords(row,col),fill=self.COLOR_BG)
 
         self.bits = list()
-        self.topleft_x = gui_layout.GRID["col_x_offset"][col]
-        self.topleft_y = gui_layout.GRID["row_y_offset"][row]
-        self.width = ( self.reg.bits * gui_layout.PIXELS_PER_BIT ) + ( ( self.reg.bits + 1 ) * gui_layout.PIXELS_BORDER )
-        self.height = (2*gui_layout.PIXELS_BORDER)+gui_layout.PIXELS_PER_BIT
-        self.bgID = self.canvas.create_rectangle(self.topleft_x,self.topleft_y,self.topleft_x+self.width,self.topleft_y+self.height,fill=self.COLOR_BG)
         for bitpos in range(self.reg.bits):
-            x1 = self.topleft_x + gui_layout.PIXELS_BORDER + ( (self.reg.bits-1-bitpos) * ( gui_layout.PIXELS_PER_BIT + gui_layout.PIXELS_BORDER ) )
-            x2 = x1 + gui_layout.PIXELS_PER_BIT
-            y1 = self.topleft_y + gui_layout.PIXELS_BORDER
-            y2 = y1 + gui_layout.PIXELS_PER_BIT
+            x1 = self.topleft_x + gui_layout.BORDER + ( (self.reg.bits-1-bitpos) * ( gui_layout.PPB + gui_layout.BORDER ) )
+            x2 = x1 + gui_layout.PPB
+            y1 = self.topleft_y + gui_layout.BORDER
+            y2 = y1 + gui_layout.PPB
             coord = x1, y1, x2, y2
             self.bits.append(self.canvas.create_oval(coord,fill=self.COLOR_OFF))
         self.redraw()
@@ -57,10 +73,13 @@ class gui_register():
             self.canvas.itemconfigure(bitID,fill=fill)
 
 class guiSAP1():
-    def __init__(self,cpu):
+    def __init__(self,cpu,clk):
         self.cpu = cpu
+        clk.subscribe(self)
+        self.glm = gui_layout_manager(self.cpu.bits,5,2)
 
         self.main_wnd = Tk()
+        self.main_wnd.title("SAP1")
         self.canvas = Canvas(self.main_wnd, bg = "#000000", height = 130, width = 265)
 
         self.components = list()
@@ -80,6 +99,9 @@ class guiSAP1():
             comp.redraw()
         self.main_wnd.update_idletasks()
         self.main_wnd.update()
+    
+    def wait_for_close(self):
+        self.main_wnd.mainloop()
 
 
 
@@ -108,7 +130,6 @@ if __name__ == "__main__":
     cpu = CPU(rom,fib)
     from clock import Clock as Clock
     clk = Clock(10)
-    g = guiSAP1(cpu)
-    clk.subscribe(g)
+    g = guiSAP1(cpu,clk)
     clk.run(cpu)
     g.main_wnd.mainloop()

@@ -108,6 +108,7 @@ class pySAP1(CPU):
 
 
 if __name__ == "__main__":
+
     rom = SAP1rom()
     fib = []
     fib.append(rom.assemble('LDI',0x1)) # 0
@@ -136,7 +137,14 @@ if __name__ == "__main__":
     count.append(0x5)
     count.append(0x4)
 
+
+
     cpu = pySAP1(rom,fib)
     clk = Clock(100)
+
+    from gui import guiSAP1 as GUI
+    gui = GUI(cpu,clk)
+
     clk.run(cpu)
+    gui.wait_for_close()
 
