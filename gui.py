@@ -1,15 +1,26 @@
 from tkinter import *
 
-class gui_layout_manager():
-    BORDER     = 5
-    PPB        = 10
+class guimgr():
+    BORDER      = 5
+    PPB         = 15
+    LED_RED_ON  = "#FF3030"
+    LED_RED_OFF = "#603030"
+    LED_GRN_ON  = "#30FF30"
+    LED_GRN_OFF = "#306030"
+    LED_BLU_ON  = "#3030FF"
+    LED_BLU_OFF = "#303060"
+    LED_YLW_ON  = "#FFFF30"
+    LED_YLW_OFF = "#606030"
+    LED_WHT_ON  = "#FFFFFF"
+    LED_WHT_OFF = "#606060"
+    LED_BG      = "#202020"
 
     def __init__(self,maxbits,rows,cols):
         self.maxbits = maxbits
         self.rows = rows
         self.cols = cols
-        self.BORDER = gui_layout_manager.BORDER
-        self.PPB = gui_layout_manager.PPB
+        self.BORDER = guimgr.BORDER
+        self.PPB = guimgr.PPB
 
     def get_row_height(self):
         return (2 * self.BORDER) + self.PPB
@@ -37,70 +48,87 @@ class gui_layout_manager():
         height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
         return height,width
   
-
-class gui_register():
-    COLOR_ON = "#30FF30"
-    COLOR_OFF = "#306030"
-    COLOR_BG = "#202020"
-    def __init__(self,reg,row,col,canvas,name,glm):
-        self.reg = reg
+class gui_bitfield():
+    def __init__(self,row,col,canvas,name,glm,bitlen):
         self.row = row
         self.col = col
         self.canvas = canvas
         self.name = name
-        self.glm = glm
-        self.coords = self.glm.get_coords(row,col)
+        self.gm = glm
+        self.coords = self.gm.get_coords(row,col)
         self.bgID = self.canvas.create_rectangle(self.coords,fill=self.COLOR_BG)
-
         self.bits = list()
-        for bitpos in range(self.reg.bits):
-            x1 = self.coords[0] + self.glm.BORDER + ( (self.reg.bits-1-bitpos) * ( self.glm.PPB + self.glm.BORDER ) )
-            x2 = x1 + self.glm.PPB
-            y1 = self.coords[1] + self.glm.BORDER
-            y2 = y1 + self.glm.PPB
+        for bitpos in range(bitlen):
+            x1 = self.coords[0] + self.gm.BORDER + ( (bitlen-1-bitpos) * ( self.gm.PPB + self.gm.BORDER ) )
+            x2 = x1 + self.gm.PPB
+            y1 = self.coords[1] + self.gm.BORDER
+            y2 = y1 + self.gm.PPB
             self.bits.append(self.canvas.create_oval(x1, y1, x2, y2, fill=self.COLOR_OFF))
-        self.redraw()
 
-    def redraw(self):
+    def redraw(self,value):
         for bitpos,bitID in enumerate(self.bits):
-            value = self.reg.value
-            if self.name == "RAM":
-                value = self.reg.value[self.reg.cpu.mar.value]
-#           print("NAME=[{}]: bitpos={}, bitID={}".format(self.name,bitpos,bitID))
             bitval = 0b1 & (value >> bitpos)
             fill = self.COLOR_ON
             if bitval == 0:
                 fill = self.COLOR_OFF
             self.canvas.itemconfigure(bitID,fill=fill)
 
-class gui_tstep(gui_register):
-    def __init__(self, ctlseq, row, col, canvas, name, glm):
-        self.COLOR_ON = "#3030FF"
-        self.COLOR_OFF = "#303060"
-        self.COLOR_BG = "#202020"
-        super().__init__(reg, row, col, canvas, name, glm)
+class gui_register(gui_bitfield):
+    COLOR_ON  = guimgr.LED_GRN_ON
+    COLOR_OFF = guimgr.LED_GRN_OFF
+    COLOR_BG  = guimgr.LED_BG
+    def __init__(self,reg,row,col,canvas,name,glm):
+        self.reg = reg
+        super().__init__(row, col, canvas, name, glm, self.reg.bits)
+        self.redraw()
+    def redraw(self):
+        return super().redraw(self.reg.value)
 
+class gui_tstep(gui_bitfield):
+    def __init__(self, ctlseq, row, col, canvas, name, glm):
+        self.COLOR_ON  = guimgr.LED_BLU_ON
+        self.COLOR_OFF = guimgr.LED_BLU_OFF
+        self.COLOR_BG  = guimgr.LED_BG
+        self.ctlseq = ctlseq
+        super().__init__(row, col, canvas, name, glm, 5)
+    def redraw(self):
+        return super().redraw(self.ctlseq.Tstep)
+
+class gui_ram(gui_bitfield):
+    def __init__(self, cpu, row, col, canvas, name, glm):
+        self.COLOR_ON  = guimgr.LED_RED_ON
+        self.COLOR_OFF = guimgr.LED_RED_OFF
+        self.COLOR_BG  = guimgr.LED_BG
+        self.cpu = cpu
+        super().__init__(row, col, canvas, name, glm, self.cpu.ram.bits)
+    def redraw(self):
+        return super().redraw(self.cpu.ram.value[self.cpu.mar.value])
 
 class guiSAP1():
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self)
-        self.glm = gui_layout_manager(self.cpu.bits,5,2)
+        self.gm = guimgr(self.cpu.bits,5,2)
 
         self.main_wnd = Tk()
         self.main_wnd.title("SAP1")
-        height,width = self.glm.get_canvas_size()
+        height,width = self.gm.get_canvas_size()
         self.canvas = Canvas(self.main_wnd, bg = "#000000", height = height, width = width)
 
         self.components = list()
-        self.components.append(gui_register(self.cpu.pc,  0, 1, self.canvas, "PC",  self.glm))
-        self.components.append(gui_register(self.cpu.mar, 1, 0, self.canvas, "MAR", self.glm))
-        self.components.append(gui_register(self.cpu.a,   1, 1, self.canvas, "A",   self.glm))
-        self.components.append(gui_register(self.cpu.ram, 2, 0, self.canvas, "RAM", self.glm))
-        self.components.append(gui_register(self.cpu.alu, 2, 1, self.canvas, "ALU", self.glm))
-        self.components.append(gui_register(self.cpu.ir,  3, 0, self.canvas, "IR",  self.glm))
-        self.components.append(gui_register(self.cpu.b,   3, 1, self.canvas, "B",   self.glm))
-        self.components.append(gui_register(self.cpu.out, 4, 1, self.canvas, "OUT", self.glm))
+        self.components.append(gui_register(self.cpu.pc,  0, 1, self.canvas, "PC",  self.gm))
+        self.components.append(gui_register(self.cpu.mar, 1, 0, self.canvas, "MAR", self.gm))
+        self.components.append(gui_register(self.cpu.a,   1, 1, self.canvas, "A",   self.gm))
+        self.components.append(     gui_ram(self.cpu,     2, 0, self.canvas, "RAM", self.gm))
+        self.components.append(gui_register(self.cpu.alu, 2, 1, self.canvas, "ALU", self.gm))
+        self.components[4].COLOR_ON  = guimgr.LED_YLW_ON
+        self.components[4].COLOR_OFF = guimgr.LED_YLW_OFF
+        self.components.append(gui_register(self.cpu.ir,  3, 0, self.canvas, "IR",  self.gm))
+        self.components.append(gui_register(self.cpu.b,   3, 1, self.canvas, "B",   self.gm))
+        self.components.append(gui_register(self.cpu.out, 4, 1, self.canvas, "OUT", self.gm))
+        self.components[7].COLOR_ON  = guimgr.LED_WHT_ON
+        self.components[7].COLOR_OFF = guimgr.LED_WHT_OFF
+        self.components.append(gui_tstep(self.cpu.ctlseq, 0, 0, self.canvas, "T",   self.gm))
 
         self.canvas.pack()
 

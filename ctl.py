@@ -22,13 +22,16 @@ class CtlSeq():
         self.Tstep   = 1
         self.micro   = self.CROM[0]
         self.ResetT  = cpu.oflags[ResetT]
+    
     def __str__(self):
         return '{}'.format(self.Tstep)
+
     def iflags(self):
         result = 0
         for f in self.cpu.iflags:
             result |= ((self.cpu.iflags[f].mask & (self.cpu.iflags[f].value) << self.cpu.iflags[f].pos))
         return result
+
     def decode(self):
         if self.cpu.oflags['CLR'].istrue():
             self.micro = self.CROM[0] & ~(self.cpu.oflags['CLR'].mask)
@@ -42,6 +45,7 @@ class CtlSeq():
                 self.micro = self.CROM[microaddr]
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
+            
     def clock(self,components):
         # Parse the subinstruction
         self.decode()
