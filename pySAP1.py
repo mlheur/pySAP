@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
 
     cpu = pySAP1(rom,fib)
-    clk = Clock(5)
+    clk = Clock(10)
 
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
