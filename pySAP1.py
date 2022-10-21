@@ -128,23 +128,31 @@ if __name__ == "__main__":
     #  Var 1                            # E
     #  Var 2                            # F
 
+    countdown = []
+    countdown.append(rom.assemble("LDA",0xF))
+    countdown.append(rom.assemble("SUB",0xE))
+    countdown.append(rom.assemble("OUT"))
+    countdown.append(rom.assemble("JC", 0x5))
+    countdown.append(rom.assemble("JNZ",0x1))
+    countdown.append(rom.assemble("JMP",0xD))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("NOP"))
+    countdown.append(rom.assemble("HLT"))
+    countdown.append(0xA)
+    countdown.append(0xFF)
 
-    count = []
-    count.append(rom.assemble("LDA",0x4))
-    count.append(rom.assemble("SUB",0x5))
-    count.append(rom.assemble("OUT"))
-    count.append(rom.assemble("HLT"))
-    count.append(0x5)
-    count.append(0x4)
-
-
-
-    cpu = pySAP1(rom,fib)
-    clk = Clock(10)
+    cpu = pySAP1(rom,countdown)
+    clk = Clock(50)
 
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
 
     clk.run(cpu)
+    clk.run(cpu,fib)
     gui.wait_for_close()
 
