@@ -1,7 +1,7 @@
 from tkinter import *
 from guimgr import guimgr as guimgr
 
-class gui_bitfield():
+class gui_bitfield(object):
     def __init__(self, gm, name, row, col, color, justify = "right"):
         self.gm = gm
         self.name = name
@@ -60,7 +60,7 @@ class gui_flags(gui_bitfield):
 
 
 
-class guiSAP1():
+class guiSAP1(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self)

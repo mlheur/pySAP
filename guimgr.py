@@ -1,18 +1,22 @@
 from tkinter import *
+from tkinter.font import *
 
-class guimgr():
-    BORDER      = 5
-    PPB         = 20
-    LABEL_WIDTH = 80
+class guimgr(object):
+    BORDER       = 5
+    PPB          = 20
+    LABEL_WIDTH  = 80
+    LABEL_HEIGHT = ((2*BORDER)+PPB)
     LED = {
-        "RED":     {"ON":"#F33", "OFF":"#633"},
-        "GREEN":   {"ON":"#3F3", "OFF":"#363"},
-        "BLUE":    {"ON":"#33F", "OFF":"#336"},
-        "YELLOW":  {"ON":"#FF3", "OFF":"#663"},
-        "MAGENTA": {"ON":"#F3F", "OFF":"#636"},
-        "CYAN":    {"ON":"#3FF", "OFF":"#366"},
+        "RED":     {"ON":"#F22", "OFF":"#622"},
+        "GREEN":   {"ON":"#2F2", "OFF":"#262"},
+        "BLUE":    {"ON":"#22F", "OFF":"#226"},
+        "YELLOW":  {"ON":"#FF2", "OFF":"#662"},
+        "MAGENTA": {"ON":"#F2F", "OFF":"#626"},
+        "CYAN":    {"ON":"#2FF", "OFF":"#266"},
         "WHITE":   {"ON":"#FFF", "OFF":"#666"},
-        "BG": "#222"
+        "BG":      "#444",
+        "TEXT_BG": "#222",
+        "TEXT_FG": "#ffb"
     }
 
     def __init__(self,bitlen,rows,cols,title = "guimgr"):
@@ -24,11 +28,21 @@ class guimgr():
         self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
         self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
         self.canvas = Canvas(self.tkwnd, bg = "#000000", height = self.height, width = self.width)
+        self.font = Font(family='Misc Fixed Wide', size = 24, weight = 'bold')
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)
         print("name={}:coords={}".format(bf.name,coords))
         self.canvas.create_rectangle(coords, fill=self.LED["BG"])
+        text_width = self.font.measure(bf.name)
+        x1 = coords[0] - self.BORDER - self.LABEL_WIDTH
+        x2 = x1 + self.LABEL_WIDTH
+        y1 = coords[1]
+        y2 = coords[3]
+        self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.LED["TEXT_BG"])
+        x1 = coords[0] - (self.BORDER) - text_width
+        y1 = coords[1] + (self.LABEL_HEIGHT / 2)
+        self.canvas.create_text(x1, y1, text = bf.name, fill = self.LED["TEXT_FG"], anchor = "w", justify = 'right', font = self.font)
         return coords
 
     def draw_bit(self,bf,bitpos):
@@ -66,13 +80,6 @@ class guimgr():
             xoff += (2 * self.BORDER) + ((self.bitlen) * (self.PPB + self.BORDER)) + (self.LABEL_WIDTH + self.BORDER)
             col -= 1
         return (xoff)
-
-    def get_label_coords(self,row,col):
-        x1 = self.get_col_x1(col)
-        x2 = x1 + self.LABEL_WIDTH
-        y1 = self.get_row_y1(row)
-        y2 = y1 + self.get_row_height()
-        return x1,y1,x2,y2
 
     def get_bitfield_coords(self,bf):
         x1 = self.get_col_x1(bf.col) + self.LABEL_WIDTH + self.BORDER
