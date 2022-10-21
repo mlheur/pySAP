@@ -11,10 +11,13 @@ from ctl import CtlSeq as CtlSeq
 from rom import ROM as ROM
 from cpu import CPU as CPU
 
-
 class SAP1rom(ROM):
+    # Hard coding which control lines are on or off during NOP operation.
+    # The value is tightly coupled with self.oflags sequencing.
     NOP = 0x043E3
+
     def __init__(self):
+        # This array assigns binary mnemonics for each string of ASM code. 
         self.ASM = {
             'LDA': 0x0,
             'ADD': 0x1,
@@ -33,10 +36,14 @@ class SAP1rom(ROM):
             'OUT': 0xE,
             'HLT': 0xF
         }
+        # The iflags are control bits set by other components, and used in the
+        # instruction decoder to take different actions depending on these conditions.
         self.iflags = {
             'CARRY':      CtlLine(0),
             'ZERO':       CtlLine(1)
         }
+        # The oflags are the control lines set by the instruction decoder for enabling
+        # various latches and operations on the next clock clock cyckle.
         self.oflags = {
             'Lo':         CtlLine(0,inv=1),  # Latch OUT
             'Lb':         CtlLine(1,inv=1),  # Latch B
@@ -56,7 +63,10 @@ class SAP1rom(ROM):
             'HLT':        CtlLine(15),       # HLT
             'Rt':         CtlLine(16)        # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
         }
+        # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
+        # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
+        # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
         self.ctl = [
             self.mkctl(),                                                                       # 0x00 NOP : NOP
             self.mkctl(['Ep','Lm']),self.mkctl(['Cp','CE','Li']),                               # 0x01 T1,T2 : PC->MAR, IncPC and RAM->IR
@@ -70,7 +80,10 @@ class SAP1rom(ROM):
             self.mkctl(['Ei','Cp','Ep','Rt']),                                                  # 0x10 JMP : IR->PC, NOP
             self.mkctl(['Ei','La','Rt'])                                                        # 0x11 LDI : IR->A, NOP
         ]
+        # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
+        # The decoder knows all instructions share the same T1,T2 to fetch the actual instruction from RAM.
         self.addr = {}
+        # These assembly instructions have the same microcode regardless of the flag (self.iflag) values
         self.addinstr('LDA',0x03)
         self.addinstr('ADD',0x05)
         self.addinstr('SUB',0x08)
@@ -81,11 +94,15 @@ class SAP1rom(ROM):
         self.addinstr('LDI',0x11)
         self.addinstr('OUT',0x0B)
         self.addinstr('HLT',0x0C)
+        # More complex instructions, e.g. conditional branching, will enter
+        # at different microinstructions depending on flag value, so all
+        # possible outcomes are listed in the addinstr parameters.
         self.addinstr('JC', [0x00,0x10,0x00,0x10])
         self.addinstr('JZ', [0x00,0x00,0x10,0x10])
         self.addinstr('JNZ',[0x10,0x10,0x00,0x00])
 
-
+# The CPU itself is a simple collection of components.  It's the clock and
+# controller/sequencer that do all the work, with help from the ROM.
 class pySAP1(CPU):
     def __init__(self,rom,FirstRAM,bits=8,addrlen=4):
         super().__init__()
@@ -152,7 +169,9 @@ if __name__ == "__main__":
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
 
+    print("running countdown program")
     clk.run(cpu)
+    print("running fibonacci program")
     clk.run(cpu,fib)
     gui.wait_for_close()
 
