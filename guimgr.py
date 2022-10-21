@@ -3,8 +3,9 @@ from tkinter.font import *
 
 class guimgr(object):
     BORDER       = 5
-    PPB          = 20
-    LABEL_WIDTH  = 80
+    PPB          = 16
+    LABEL_WIDTH  = 60
+    FONT_SIZE    = 20
     LABEL_HEIGHT = ((2*BORDER)+PPB)
     LED = {
         "RED":     {"ON":"#F22", "OFF":"#622"},
@@ -13,7 +14,9 @@ class guimgr(object):
         "YELLOW":  {"ON":"#FF2", "OFF":"#662"},
         "MAGENTA": {"ON":"#F2F", "OFF":"#626"},
         "CYAN":    {"ON":"#2FF", "OFF":"#266"},
-        "WHITE":   {"ON":"#FFF", "OFF":"#666"},
+        "WHITE":   {"ON":"#FFF", "OFF":"#666"}
+    }
+    COLORS = {
         "BG":      "#444",
         "TEXT_BG": "#222",
         "TEXT_FG": "#ffb"
@@ -28,21 +31,21 @@ class guimgr(object):
         self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
         self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
         self.canvas = Canvas(self.tkwnd, bg = "#000000", height = self.height, width = self.width)
-        self.font = Font(family='Misc Fixed Wide', size = 24, weight = 'bold')
+        self.font = Font(family='Misc Fixed Wide', size = self.FONT_SIZE, weight = 'bold')
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)
-        print("name={}:coords={}".format(bf.name,coords))
-        self.canvas.create_rectangle(coords, fill=self.LED["BG"])
+        #print("name={}:coords={}".format(bf.name,coords))
+        self.canvas.create_rectangle(coords, fill=self.COLORS["BG"])
         text_width = self.font.measure(bf.name)
         x1 = coords[0] - self.BORDER - self.LABEL_WIDTH
         x2 = x1 + self.LABEL_WIDTH
         y1 = coords[1]
         y2 = coords[3]
-        self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.LED["TEXT_BG"])
+        self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.COLORS["TEXT_BG"])
         x1 = coords[0] - (self.BORDER) - text_width
         y1 = coords[1] + (self.LABEL_HEIGHT / 2)
-        self.canvas.create_text(x1, y1, text = bf.name, fill = self.LED["TEXT_FG"], anchor = "w", justify = 'right', font = self.font)
+        self.canvas.create_text(x1, y1, text = bf.name, fill = self.COLORS["TEXT_FG"], anchor = "w", justify = 'right', font = self.font)
         return coords
 
     def draw_bit(self,bf,bitpos):
