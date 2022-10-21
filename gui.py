@@ -1,6 +1,9 @@
 from tkinter import *
 from guimgr import guimgr as guimgr
 
+# Generic class for handling any kind of bitfield.
+# This should be subclassed by a component that has
+# some kind of binary value to display.
 class gui_bitfield(object):
     def __init__(self, gm, name, row, col, color, justify = "right"):
         self.gm = gm
@@ -20,6 +23,7 @@ class gui_bitfield(object):
             bitval = 0b1 & (value >> bitpos)
             self.gm.update_bit(self,bitID,bitval)
 
+# Display which T step the controller/sequencer is on.
 class gui_tstep(gui_bitfield):
     def __init__(self, gm, ctlseq, name = "T", row = 0, col = 0, color = "BLUE"):
         self.ctlseq = ctlseq
@@ -28,6 +32,7 @@ class gui_tstep(gui_bitfield):
     def redraw(self):
         return super().redraw(self.ctlseq.Tstep)
 
+# Display any standard register (aka CPU word) value.
 class gui_register(gui_bitfield):
     def __init__(self, gm, reg, name, row, col, color = "GREEN"):
         self.reg = reg
@@ -37,6 +42,8 @@ class gui_register(gui_bitfield):
     def redraw(self):
         return super().redraw(self.reg.value)
 
+# RAM is a special kind of array of registers, and we
+# display one value based on the pointer in the Memory Address Register (MAR)
 class gui_ram(gui_bitfield):
     def __init__(self, gm, cpu, name, row, col, color = "RED"):
         self.cpu = cpu
@@ -45,11 +52,13 @@ class gui_ram(gui_bitfield):
     def redraw(self):
         return super().redraw(self.cpu.ram.value[self.cpu.mar.value])
 
+# Flags are different than registers because it's a list of bits rather than a word.
 class gui_flags(gui_bitfield):
     def __init__(self, gm, flags, name, row, col, color = "CYAN", justify = "right"):
         self.flags = flags
         self.bitlen = len(self.flags)
         super().__init__(gm, name, row, col, color, justify = justify)
+        # ToDo: draw the flag name over its LED.
     def redraw(self):
         result = 0
         for fname in (self.flags.keys()):
@@ -59,11 +68,11 @@ class gui_flags(gui_bitfield):
         return super().redraw(result)
 
 
-
+# The collection of gui components specific to pySAP1 cpu type.
 class guiSAP1(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
-        clk.subscribe(self)
+        clk.subscribe(self) # Ask the clock to notify us on each pulse.
         self.gm = guimgr(bitlen = self.cpu.bits, rows = 6, cols = 2, title = "SAP1")
 
         self.components = list()
@@ -80,10 +89,12 @@ class guiSAP1(object):
         self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL", row = 5, col = 0, color = "MAGENTA", justify = "left"))
         self.gm.pack()
 
+    # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
     def clock(self):
         for comp in self.components:
             comp.redraw()
         self.gm.redraw()
 
+    # Tk nuance.
     def wait_for_close(self):
         self.gm.wait_for_close()
