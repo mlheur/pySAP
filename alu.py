@@ -17,10 +17,10 @@ class ALU(StdRegister):
         self.update()
         if self.enable.istrue():
             if self.sub.istrue():
-                self.cpu.iflags['CARRY'].settruth(self.B.value > self.A.value)
+                self.cpu.iflags['CF'].settruth(self.B.value > self.A.value)
             else:
-                self.cpu.iflags['CARRY'].settruth(self.value > self.mask)
-            self.cpu.iflags['ZERO'].settruth(self.value == 0)
+                self.cpu.iflags['CF'].settruth(self.value > self.mask)
+            self.cpu.iflags['ZF'].settruth(self.value == 0)
             self.cpu.w = self.value
     def tock(self):
         self.update()
