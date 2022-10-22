@@ -59,7 +59,12 @@ class gui_flags(gui_bitfield):
         self.bitlen = len(self.flags)
         super().__init__(gm, name, row, col, color, justify = justify)
         for fname in self.flags.keys():
-            gm.draw_bit_label(self, self.flags[fname].pos, fname)
+            label = fname
+            label_color = "#000"
+            if self.flags[fname].inv == 1:
+                label = "-{}-".format(fname)
+                label_color = "#fff"
+            gm.draw_bit_label(self, self.flags[fname].pos, label, label_color)
     def redraw(self):
         result = 0
         for fname in (self.flags.keys()):

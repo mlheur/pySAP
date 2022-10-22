@@ -169,9 +169,9 @@ if __name__ == "__main__":
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
 
-    print("running countdown program")
-    clk.run(cpu)
     print("running fibonacci program")
     clk.run(cpu,fib)
+    print("running countdown program")
+    clk.run(cpu,countdown)
     gui.wait_for_close()
 

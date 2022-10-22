@@ -57,11 +57,11 @@ class guimgr(object):
         y2 = y1 + self.PPB
         return(self.canvas.create_oval(x1, y1, x2, y2, fill = self.LED[bf.color]["OFF"]))
 
-    def draw_bit_label(self,bf,bitpos,bitname):
+    def draw_bit_label(self,bf,bitpos,bitname,color):
         coords = self.get_bitfield_coords(bf)
         x1 = coords[0] + ( self.BORDER + ( (bf.bitlen-1-bitpos) * ( self.PPB + self.BORDER ) ) ) + (self.PPB/2)
         y1 = coords[1] + self.BORDER + (self.PPB/2) - 2
-        self.canvas.create_text(x1, y1, text = bitname, fill = "#000", font = self.flag_font)
+        self.canvas.create_text(x1, y1, text = bitname, fill = color, font = self.flag_font)
 
     def update_bit(self,bf,bitID,bitval):
         fill = self.LED[bf.color]["ON"]
