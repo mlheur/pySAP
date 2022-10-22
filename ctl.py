@@ -73,7 +73,10 @@ class CtlSeq():
 
         # Increment the RingCounter
         if self.cpu.oflags['CLR'].istrue():
-            self.cpu.oflags['CLR'].settruth(False)
+            for f in self.cpu.iflags.values():
+                f.settruth(False)
+            for f in self.cpu.oflags.values():
+                f.settruth(False)
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
             self.Tstep = 1
