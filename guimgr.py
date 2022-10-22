@@ -87,7 +87,6 @@ class guimgr(object):
     def get_col_x1(self,col):
         xoff = self.BORDER
         while(col > 0):
-            #xoff += (3+self.bitlen * self.BORDER) + ( self.bitlen * self.PPB )
             xoff += (2 * self.BORDER) + ((self.bitlen) * (self.PPB + self.BORDER)) + (self.LABEL_WIDTH + self.BORDER)
             col -= 1
         return (xoff)
