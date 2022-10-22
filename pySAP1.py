@@ -39,8 +39,8 @@ class SAP1rom(ROM):
         # The iflags are control bits set by other components, and used in the
         # instruction decoder to take different actions depending on these conditions.
         self.iflags = {
-            'CARRY':      CtlLine(0),
-            'ZERO':       CtlLine(1)
+            'CF':      CtlLine(0),
+            'ZF':       CtlLine(1)
         }
         # The oflags are the control lines set by the instruction decoder for enabling
         # various latches and operations on the next clock clock cyckle.
@@ -160,11 +160,11 @@ if __name__ == "__main__":
     countdown.append(rom.assemble("NOP"))
     countdown.append(rom.assemble("NOP"))
     countdown.append(rom.assemble("HLT"))
+    countdown.append(0x1)
     countdown.append(0xA)
-    countdown.append(0xFF)
 
     cpu = pySAP1(rom,countdown)
-    clk = Clock(50)
+    clk = Clock(3)
 
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
