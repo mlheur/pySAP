@@ -2,10 +2,11 @@ from tkinter import *
 from tkinter.font import *
 
 class guimgr(object):
-    BORDER       = 5
-    PPB          = 16
-    LABEL_WIDTH  = 60
-    FONT_SIZE    = 20
+    BORDER          = 4
+    PPB             = 32
+    LABEL_WIDTH     = 60
+    FONT_LABEL_SIZE = 24
+    FONT_FLAG_SIZE  = 10
     LABEL_HEIGHT = ((2*BORDER)+PPB)
     LED = {
         "RED":     {"ON":"#F22", "OFF":"#622"},
@@ -31,13 +32,14 @@ class guimgr(object):
         self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
         self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
         self.canvas = Canvas(self.tkwnd, bg = "#000000", height = self.height, width = self.width)
-        self.font = Font(family='Misc Fixed Wide', size = self.FONT_SIZE, weight = 'bold')
+        self.label_font = Font(family='Courier', size = self.FONT_LABEL_SIZE, weight = 'bold')
+        self.flag_font = Font(family='Courier', size = self.FONT_FLAG_SIZE, weight = 'bold')
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)
         #print("name={}:coords={}".format(bf.name,coords))
         self.canvas.create_rectangle(coords, fill=self.COLORS["BG"])
-        text_width = self.font.measure(bf.name)
+        text_width = self.label_font.measure(bf.name)
         x1 = coords[0] - self.BORDER - self.LABEL_WIDTH
         x2 = x1 + self.LABEL_WIDTH
         y1 = coords[1]
@@ -45,7 +47,7 @@ class guimgr(object):
         self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.COLORS["TEXT_BG"])
         x1 = coords[0] - (self.BORDER) - text_width
         y1 = coords[1] + (self.LABEL_HEIGHT / 2)
-        self.canvas.create_text(x1, y1, text = bf.name, fill = self.COLORS["TEXT_FG"], anchor = "w", justify = 'right', font = self.font)
+        self.canvas.create_text(x1, y1, text = bf.name, fill = self.COLORS["TEXT_FG"], anchor = "w", justify = 'right', font = self.label_font)
         return coords
 
     def draw_bit(self,bf,bitpos):
@@ -54,6 +56,12 @@ class guimgr(object):
         y1 = bf.coords[1] + self.BORDER
         y2 = y1 + self.PPB
         return(self.canvas.create_oval(x1, y1, x2, y2, fill = self.LED[bf.color]["OFF"]))
+
+    def draw_bit_label(self,bf,bitpos,bitname):
+        coords = self.get_bitfield_coords(bf)
+        x1 = coords[0] + ( self.BORDER + ( (bf.bitlen-1-bitpos) * ( self.PPB + self.BORDER ) ) ) + (self.PPB/2)
+        y1 = coords[1] + self.BORDER + (self.PPB/2) - 2
+        self.canvas.create_text(x1, y1, text = bitname, fill = "#000", font = self.flag_font)
 
     def update_bit(self,bf,bitID,bitval):
         fill = self.LED[bf.color]["ON"]
