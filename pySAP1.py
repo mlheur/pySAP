@@ -163,14 +163,32 @@ if __name__ == "__main__":
     countdown.append(0x1)
     countdown.append(0xA)
 
-    cpu = pySAP1(rom,countdown)
-    clk = Clock(3)
+    countup = []
+    # Code
+    DataAddr = 0x4
+    countup.append(rom.assemble("LDI",0x0))
+    countup.append(rom.assemble("ADD",DataAddr))
+    countup.append(rom.assemble("JNZ",0x1))
+    countup.append(rom.assemble("HLT"))
+    # Data
+    countup.append(0x01)
+
+    cpu = pySAP1(rom,countup)
+    clk = Clock(200)
 
     from gui import guiSAP1 as GUI
     gui = GUI(cpu,clk)
 
-    print("running fibonacci program")
-    clk.run(cpu,fib)
+    from time import sleep as sleep
+    #print("ROM microinstructions dump")
+    #print("{}".format(rom))
+    print("countup listing")
+    print("{}".format(countup))
+    print("running countup program")
+    clk.run(cpu)
+    #print("running fibonacci program")
+    #clk.run(cpu,fib)
+    sleep(2)
     print("running countdown program")
     clk.run(cpu,countdown)
     gui.wait_for_close()
