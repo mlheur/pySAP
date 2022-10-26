@@ -3,8 +3,8 @@ from tkinter.font import *
 
 class guimgr(object):
     BORDER          = 4
-    PPB             = 32
-    LABEL_WIDTH     = 60
+    PPB             = 36
+    LABEL_WIDTH     = 70
     FONT_LABEL_SIZE = 24
     FONT_FLAG_SIZE  = 10
     LABEL_HEIGHT = ((2*BORDER)+PPB)
@@ -31,7 +31,7 @@ class guimgr(object):
         self.tkwnd.title(title)
         self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
         self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
-        self.canvas = Canvas(self.tkwnd, bg = "#000000", height = self.height, width = self.width)
+        self.canvas = Canvas(self.tkwnd, bg = "#000", height = self.height, width = self.width)
         self.label_font = Font(family='Courier', size = self.FONT_LABEL_SIZE, weight = 'bold')
         self.flag_font = Font(family='Courier', size = self.FONT_FLAG_SIZE, weight = 'bold')
 
@@ -45,7 +45,7 @@ class guimgr(object):
         y1 = coords[1]
         y2 = coords[3]
         self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.COLORS["TEXT_BG"])
-        x1 = coords[0] - (self.BORDER) - text_width
+        x1 = coords[0] - (2*self.BORDER) - text_width
         y1 = coords[1] + (self.LABEL_HEIGHT / 2)
         self.canvas.create_text(x1, y1, text = bf.name, fill = self.COLORS["TEXT_FG"], anchor = "w", justify = 'right', font = self.label_font)
         return coords
