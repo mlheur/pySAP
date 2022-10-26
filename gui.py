@@ -44,7 +44,7 @@ class gui_register(gui_bitfield):
 
 # RAM is a special kind of array of registers, and we
 # display one value based on the pointer in the Memory Address Register (MAR)
-class gui_ram(gui_bitfield):
+class gui_ram_register(gui_bitfield):
     def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left"):
         self.cpu = cpu
         self.bitlen = cpu.bits
@@ -82,17 +82,17 @@ class guiSAP1(object):
         self.gm = guimgr(bitlen = self.cpu.bits, rows = 6, cols = 2, title = "SAP1")
 
         self.components = list()
-        self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq,               row = 0, col = 0, justify = "left"))
-        self.components.append(gui_register(self.gm, self.cpu.mar,    name = "MAR", row = 1, col = 0, justify = "right"))
-        self.components.append(gui_ram(     self.gm, self.cpu,        name = "RAM", row = 2, col = 0))
-        self.components.append(gui_register(self.gm, self.cpu.ir,     name = "IR",  row = 3, col = 0))
-        self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG", row = 4, col = 0, justify = "right"))
-        self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",  row = 0, col = 1, justify = "right"))
-        self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",   row = 1, col = 1))
-        self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU", row = 2, col = 1, color = "YELLOW"))
-        self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",   row = 3, col = 1))
-        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT", row = 4, col = 1, color = "WHITE"))
-        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL", row = 5, col = 1, color = "MAGENTA", justify = "right"))
+        self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
+        self.components.append(gui_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
+        self.components.append(gui_ram_register(self.gm, self.cpu,    name = "RAM",  row = 2, col = 0))
+        self.components.append(gui_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
+        self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "right"))
+        self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 1, justify = "right"))
+        self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 1))
+        self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 1, color = "YELLOW"))
+        self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 1))
+        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 4, col = 1, color = "WHITE"))
+        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 5, col = 1, color = "MAGENTA", justify = "right"))
         self.gm.pack()
 
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
