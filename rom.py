@@ -41,3 +41,9 @@ class ROM(object):
     def assemble(self,instr,data=0xF):
         if instr in self.ASM:
             return (self.ASM[instr] << 4) | data
+    def __str__(self) -> str:
+        ret = ""
+        for cond in self.addr:
+            for i,asm in enumerate(self.addr[cond]):
+                ret = "{}\naddress=[0x{:02X}] condition=[0b{:02b}] asm=[0x{:02X}] microinstruction=[0x{:02X}]".format(ret,i,cond,asm,self.addr[cond][asm])
+        return ret
