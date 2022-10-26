@@ -45,12 +45,15 @@ class gui_register(gui_bitfield):
 # RAM is a special kind of array of registers, and we
 # display one value based on the pointer in the Memory Address Register (MAR)
 class gui_ram_register(gui_bitfield):
-    def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left"):
+    def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left", address = None):
         self.cpu = cpu
         self.bitlen = cpu.bits
+        self.address = address
         super().__init__(gm, name, row, col, color, justify = justify)
     def redraw(self):
-        return super().redraw(self.cpu.ram.value[self.cpu.mar.value])
+        addr = self.address
+        if addr is None: addr = self.cpu.mar.value
+        return super().redraw(self.cpu.ram.value[addr])
 
 # Flags are different than registers because it's a list of bits rather than a word.
 class gui_flags(gui_bitfield):
