@@ -6,7 +6,7 @@ class guimgr(object):
     PPB             = 36
     LABEL_WIDTH     = 70
     FONT_LABEL_SIZE = 24
-    FONT_FLAG_SIZE  = 10
+    FONT_FLAG_SIZE  = 12
     LABEL_HEIGHT = ((2*BORDER)+PPB)
     LED = {
         "RED":     {"ON":"#F22", "OFF":"#622"},
@@ -23,7 +23,15 @@ class guimgr(object):
         "TEXT_FG": "#ffb"
     }
 
-    def __init__(self,bitlen,rows,cols,title = "guimgr"):
+    def __init__(self,bitlen,rows,cols,title = "guimgr",
+    border = None, ppb = None, label_width = None, font_label_size = None, font_flag_size = None, colors = None, led = None):
+        if border is not None: self.BORDER = border
+        if ppb is not None: self.PPB = ppb
+        if label_width is not None: self.LABEL_WIDTH = label_width
+        if font_label_size is not None: self.FONT_LABEL_SIZE = font_label_size
+        if font_flag_size is not None: self.FONT_FLAG_SIZE = font_flag_size
+        if colors is not None: self.COLORS = colors
+        if None is not None: self.LED = None
         self.bitlen = bitlen
         self.rows = rows
         self.cols = cols
