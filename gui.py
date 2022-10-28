@@ -99,7 +99,7 @@ class guiSAP1(object):
         self.gm.pack()
 
         self.rgm = guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
-        border = 2, ppb = 16, label_width = 0, font_label_size = 0 )
+        border = 4, ppb = 24, label_width = 0, font_label_size = 0 )
         for addr in range(2**self.cpu.addrlen):
             self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = ""))
         self.rgm.pack()
