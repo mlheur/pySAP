@@ -76,8 +76,9 @@ class SAP2rom(ROM):
             self.mkctl(['CE','Lb']),           # 0x0A     : RAM->B
             self.mkctl(['Eu','La','Rt']),      # 0x0B     : ALU->A Next
 
-            self.mkctl(['Ep','Lm']),           # 0x0C STA : PC->MAR
-            self.mkctl(['Cp','Lr','Ea','Rt']), # 0x0D     : IncPC RAM->A Next
+            self.mkctl(['CLR']),               # 0x0C RST : CLR
+
+            self.mkctl(['Ea','Lo','Rt']),      # 0x0D OUT : A->OUT Next
 
             self.mkctl(['Ep','Lm']),           # 0x0E LDA : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x0F     : IncPC RAM->MAR
@@ -93,9 +94,9 @@ class SAP2rom(ROM):
             self.mkctl(['CE','Lb']),           # 0x14     : RAM->B
             self.mkctl(['Su','Eu','La','Rt']), # 0x15     : Sub ALU->A Next
 
-            self.mkctl(['CLR']),               # 0x16 RST : CLR
-
-            self.mkctl(['Ea','Lo','Rt']),      # 0x17 OUT : A->OUT Next
+            self.mkctl(['Ep','Lm']),           # 0x16 STA : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      # 0x17     : IncPC RAM->MAR
+            self.mkctl(['Lr','Ea','Rt']),      # 0x18     : RAM->A Next
 
             None
         ]
@@ -110,11 +111,11 @@ class SAP2rom(ROM):
             'JNZ': 0x5,
             'LDI': 0x6,
             'ADD': 0x7,
-            'STA': 0x8,
-            'LDA': 0x9,
-            'SUB': 0xA,
-            'RST': 0xB,
-            'OUT': 0xC
+            'RST': 0x8,
+            'OUT': 0x9,
+            'LDA': 0xA,
+            'SUB': 0xB,
+            'STA': 0xC
         }
 
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
@@ -130,11 +131,11 @@ class SAP2rom(ROM):
         self.addinstr('JNZ',[0x04,0x04,0x11,0x11])
         self.addinstr('LDI',0x06)
         self.addinstr('ADD',0x08)
-        self.addinstr('STA',0x0C)
+        self.addinstr('RST',0x0C)
+        self.addinstr('OUT',0x0D)
         self.addinstr('LDA',0x0E)
         self.addinstr('SUB',0x12)
-        self.addinstr('RST',0x16)
-        self.addinstr('OUT',0x17)
+        self.addinstr('STA',0x16)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -175,10 +176,29 @@ if __name__ == "__main__":
     countup.append(0x01)
 
     cpu = pySAP2(rom,countup)
-    clk = Clock(100000)
+    clk = Clock(10)
 
     from gui import guiSAP2 as GUI
     gui = GUI(cpu,clk)
+
+    DataAddr = 0x19
+    fib = []
+    fib.extend(rom.assemble('LDI',0x1))        # 00,01
+    fib.extend(rom.assemble('STA',DataAddr))   # 02,03
+    fib.extend(rom.assemble('LDI',0x0))        # 04,05
+    fib.extend(rom.assemble('STA',DataAddr+1)) # 06,07
+    fib.extend(rom.assemble('OUT'))            # 08
+    fib.extend(rom.assemble('LDA',DataAddr))   # 09,0a
+    fib.extend(rom.assemble('ADD',DataAddr+1)) # 0b,0c
+    fib.extend(rom.assemble('STA',DataAddr))   # 0d,0e
+    fib.extend(rom.assemble('OUT'))            # 0f
+    fib.extend(rom.assemble('LDA',DataAddr+1)) # 10,11
+    fib.extend(rom.assemble('ADD',DataAddr))   # 12,13
+    fib.extend(rom.assemble('JC', 0x18))       # 14,15
+    fib.extend(rom.assemble('JMP',0x06))       # 16,17
+    fib.extend(rom.assemble('HLT'))            # 18
+    #  Var 1                                   # 19
+    #  Var 2                                   # 1A
 
     #from time import sleep as sleep
     #print("ROM microinstructions dump")
@@ -186,6 +206,6 @@ if __name__ == "__main__":
     #print("countup listing")
     #print("{}".format(countup))
     #print("running countup program")
-    clk.run(cpu,countup)
+    clk.run(cpu,fib)
     gui.wait_for_close()
 
