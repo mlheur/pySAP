@@ -8,7 +8,6 @@ from ctl import CtlLine as CtlLine
 # to set the various Enable and Latch lines on the components.
 
 class ROM(object):
-    NOP = 0
     # mkctl generates control words that are bitwise representations
     # for the control lines, stored in CPU.oflags.
     def mkctl(self,flags=[]):
@@ -38,9 +37,11 @@ class ROM(object):
                 self.addr[condition][self.ASM[instr]] = micro
     # At runtime, we can assemble a new program into machine code,
     # usually those will get stored back into RAM for later execution.
-    def assemble(self,instr,data=0xF):
+    def assemble(self,instr,data=None):
         if instr in self.ASM:
-            return (self.ASM[instr] << 4) | data
+            if data is not None:
+                return [self.ASM[instr],data]
+            return [self.ASM[instr]]
     def __str__(self) -> str:
         ret = ""
         for cond in self.addr:

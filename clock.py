@@ -25,7 +25,5 @@ class Clock():
                 wait = last_pulse + self.freq - time()
                 if wait > 0:
                     sleep(wait)
-            cpu.clock()
-            for subscriber in self.subscribers:
-                subscriber.clock()
+            cpu.clock(self.subscribers)
             last_pulse = time()

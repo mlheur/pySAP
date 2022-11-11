@@ -3,6 +3,7 @@ from ctl import CtlLine as CtlLine
 
 class CPU(object):
     def __init__(self):
+        self.w = 0
         self.oflags = {
             'HLT': CtlLine(0),
             'CLR': CtlLine(1)

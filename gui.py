@@ -42,6 +42,16 @@ class gui_register(gui_bitfield):
     def redraw(self):
         return super().redraw(self.reg.value)
 
+# Display any standard register (aka CPU word) value.
+class gui_bus(gui_bitfield):
+    def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left"):
+        self.cpu = cpu
+        self.bitlen = self.cpu.bits
+        super().__init__(gm, name, row, col, color, justify = justify)
+        self.redraw()
+    def redraw(self):
+        return super().redraw(self.cpu.w)
+
 # RAM is a special kind of array of registers, and we
 # display one value based on the pointer in the Memory Address Register (MAR)
 class gui_ram_register(gui_bitfield):
@@ -78,11 +88,11 @@ class gui_flags(gui_bitfield):
 
 
 # The collection of gui components specific to pySAP1 cpu type.
-class guiSAP1(object):
+class guiSAP2(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self) # Ask the clock to notify us on each pulse.
-        self.gm = guimgr(bitlen = self.cpu.bits, rows = 6, cols = 2, title = "SAP1")
+        self.gm = guimgr(bitlen = self.cpu.bits, rows = 6, cols = 3, title = "SAP1")
 
         self.components = list()
         self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
@@ -90,16 +100,17 @@ class guiSAP1(object):
         self.components.append(gui_ram_register(self.gm, self.cpu,                   row = 2, col = 0))
         self.components.append(gui_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
         self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "right"))
-        self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 1, justify = "right"))
-        self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 1))
-        self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 1, color = "YELLOW"))
-        self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 1))
-        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 4, col = 1, color = "WHITE"))
-        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 5, col = 1, color = "MAGENTA", justify = "right"))
+        self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 2, justify = "right"))
+        self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
+        self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
+        self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 2))
+        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 4, col = 2, color = "WHITE"))
+        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 5, col = 2, color = "MAGENTA", justify = "right"))
+        self.components.append(gui_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
         self.gm.pack()
 
         self.rgm = guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
-        border = 4, ppb = 24, label_width = 0, font_label_size = 0 )
+        border = 0, ppb = 4, label_width = 0, font_label_size = 0 )
         for addr in range(2**self.cpu.addrlen):
             self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = ""))
         self.rgm.pack()

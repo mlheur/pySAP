@@ -5,7 +5,7 @@ class RAM(StdRegister):
 
     def __init__(self,cpu,latch,enable,FirstRAM = []):
         super().__init__(cpu,latch,enable)
-        self.value = [0xF]*(2**cpu.addrlen) # default to HLT instruction
+        self.value = [0x0]*(2**cpu.addrlen) # default to HLT instruction
         self.set(FirstRAM)
 
     def set(self,newram):
