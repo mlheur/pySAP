@@ -88,6 +88,11 @@ class SAP2rom(ROM):
             # the CPU read the next instruction.
             self.mkctl(['Cp','Rt']),           # 0x11 *** : IncPC Next
 
+            self.mkctl(['Ep','Lm']),           # 0x12 SUB : PC->MAR,
+            self.mkctl(['Cp','CE','Lm']),      # 0x13     : IncPC RAM->MAR
+            self.mkctl(['CE','Lb']),           # 0x14     : RAM->B
+            self.mkctl(['Su','Eu','La','Rt']), # 0x15     : Sub ALU->A Next
+
             None
         ]
         
@@ -102,7 +107,8 @@ class SAP2rom(ROM):
             'LDI': 0x6,
             'ADD': 0x7,
             'STA': 0x8,
-            'LDA': 0x9
+            'LDA': 0x9,
+            'SUB': 0xA
         }
 
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
@@ -120,6 +126,7 @@ class SAP2rom(ROM):
         self.addinstr('ADD',0x08)
         self.addinstr('STA',0x0C)
         self.addinstr('LDA',0x0E)
+        self.addinstr('SUB',0x12)
 
         # ToDo: SUB, RST, OUT
 
@@ -153,15 +160,15 @@ if __name__ == "__main__":
     countup = []
     # Code
     DataAddr = 0x7
-    countup.extend(rom.assemble("LDI",0))
-    countup.extend(rom.assemble("ADD",DataAddr))
+    countup.extend(rom.assemble("LDI",0x20))
+    countup.extend(rom.assemble("SUB",DataAddr))
     countup.extend(rom.assemble("JNZ",0x2))
     countup.extend(rom.assemble("HLT"))
     # Data
     countup.append(0x01)
 
     cpu = pySAP2(rom,countup)
-    clk = Clock(1000)
+    clk = Clock(100000)
 
     from gui import guiSAP2 as GUI
     gui = GUI(cpu,clk)
