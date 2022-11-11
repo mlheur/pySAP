@@ -142,6 +142,7 @@ class SAP2rom(ROM):
 class pySAP2(CPU):
     def __init__(self,rom,FirstRAM,bits=8,addrlen=8):
         super().__init__()
+        self.rom        = rom
         self.bits       = bits
         self.addrlen    = addrlen
         self.iflags     = dict(rom.iflags)
