@@ -65,18 +65,18 @@ class SAP2rom(ROM):
 
             self.mkctl(['HLT']),               # 0x03 HLT : HLT
 
-            self.mkctl(['Ep','Lm']),           # 0x04 JMP : PC->MAR,
+            self.mkctl(['Ep','Lm']),           # 0x04 JMP : PC->MAR
             self.mkctl(['Cp','Ep','CE','Rt']), # 0x05     : RAM->PC Next
 
-            self.mkctl(['Ep','Lm']),           # 0x06 LDI : PC->MAR,
+            self.mkctl(['Ep','Lm']),           # 0x06 LDI : PC->MAR
             self.mkctl(['Cp','CE','La','Rt']), # 0x07     : IncPC RAM->A Next
 
-            self.mkctl(['Ep','Lm']),           # 0x08 ADD : PC->MAR,
+            self.mkctl(['Ep','Lm']),           # 0x08 ADD : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x09     : IncPC RAM->MAR
             self.mkctl(['CE','Lb']),           # 0x0A     : RAM->B
             self.mkctl(['Eu','La','Rt']),      # 0x0B     : ALU->A Next
 
-            self.mkctl(['Ep','Lm']),           # 0x0C STA : PC->MAR,
+            self.mkctl(['Ep','Lm']),           # 0x0C STA : PC->MAR
             self.mkctl(['Cp','Lr','Ea','Rt']), # 0x0D     : IncPC RAM->A Next
 
             self.mkctl(['Ep','Lm']),           # 0x0E LDA : PC->MAR
@@ -88,10 +88,14 @@ class SAP2rom(ROM):
             # the CPU read the next instruction.
             self.mkctl(['Cp','Rt']),           # 0x11 *** : IncPC Next
 
-            self.mkctl(['Ep','Lm']),           # 0x12 SUB : PC->MAR,
+            self.mkctl(['Ep','Lm']),           # 0x12 SUB : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x13     : IncPC RAM->MAR
             self.mkctl(['CE','Lb']),           # 0x14     : RAM->B
             self.mkctl(['Su','Eu','La','Rt']), # 0x15     : Sub ALU->A Next
+
+            self.mkctl(['CLR']),               # 0x16 RST : CLR
+
+            self.mkctl(['Ea','Lo','Rt']),      # 0x17 OUT : A->OUT Next
 
             None
         ]
@@ -108,7 +112,9 @@ class SAP2rom(ROM):
             'ADD': 0x7,
             'STA': 0x8,
             'LDA': 0x9,
-            'SUB': 0xA
+            'SUB': 0xA,
+            'RST': 0xB,
+            'OUT': 0xC
         }
 
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
@@ -127,8 +133,8 @@ class SAP2rom(ROM):
         self.addinstr('STA',0x0C)
         self.addinstr('LDA',0x0E)
         self.addinstr('SUB',0x12)
-
-        # ToDo: SUB, RST, OUT
+        self.addinstr('RST',0x16)
+        self.addinstr('OUT',0x17)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -159,9 +165,10 @@ if __name__ == "__main__":
 
     countup = []
     # Code
-    DataAddr = 0x7
+    DataAddr = 0x8
     countup.extend(rom.assemble("LDI",0x20))
     countup.extend(rom.assemble("SUB",DataAddr))
+    countup.extend(rom.assemble("OUT"))
     countup.extend(rom.assemble("JNZ",0x2))
     countup.extend(rom.assemble("HLT"))
     # Data
