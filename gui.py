@@ -110,9 +110,9 @@ class guiSAP2(object):
         self.gm.pack()
 
         self.rgm = guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
-        border = 0, ppb = 4, label_width = 0, font_label_size = 0 )
+        border = 1, ppb = 16, label_width = 120, font_label_size = 12 )
         for addr in range(2**self.cpu.addrlen):
-            self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = ""))
+            self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02x}".format(addr)))
         self.rgm.pack()
 
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.

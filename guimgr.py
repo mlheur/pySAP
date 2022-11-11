@@ -7,7 +7,6 @@ class guimgr(object):
     LABEL_WIDTH     = 70
     FONT_LABEL_SIZE = 24
     FONT_FLAG_SIZE  = 12
-    LABEL_HEIGHT = ((2*BORDER)+PPB)
     LED = {
         "RED":     {"ON":"#F22", "OFF":"#622"},
         "GREEN":   {"ON":"#2F2", "OFF":"#262"},
@@ -32,6 +31,7 @@ class guimgr(object):
         if font_flag_size is not None: self.FONT_FLAG_SIZE = font_flag_size
         if colors is not None: self.COLORS = colors
         if None is not None: self.LED = None
+        self.LABEL_HEIGHT = ((2*self.BORDER)+self.PPB)
         self.bitlen = bitlen
         self.rows = rows
         self.cols = cols
@@ -47,13 +47,13 @@ class guimgr(object):
         coords = self.get_bitfield_coords(bf)
         #print("name={}:coords={}".format(bf.name,coords))
         self.canvas.create_rectangle(coords, fill=self.COLORS["BG"])
-        text_width = self.label_font.measure(bf.name)
+        text_width = self.label_font.measure(bf.name,self.tkwnd)
         x1 = coords[0] - self.BORDER - self.LABEL_WIDTH
         x2 = x1 + self.LABEL_WIDTH
         y1 = coords[1]
         y2 = coords[3]
         self.canvas.create_rectangle(x1,y1,x2,y2, fill=self.COLORS["TEXT_BG"])
-        x1 = coords[0] - (2*self.BORDER) - text_width
+        x1 = coords[0] - (2*self.BORDER) - (text_width)
         y1 = coords[1] + (self.LABEL_HEIGHT / 2)
         self.canvas.create_text(x1, y1, text = bf.name, fill = self.COLORS["TEXT_FG"], anchor = "w", justify = 'right', font = self.label_font)
         return coords
