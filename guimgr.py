@@ -117,3 +117,32 @@ class guimgr(object):
 
     def pack(self):
         self.canvas.pack()
+    
+class scrolling_guimgr(guimgr):
+    def __init__(self, bitlen, rows, cols, title="guimgr", border=None, ppb=None, label_width=None, font_label_size=None, font_flag_size=None, colors=None, led=None):
+        super().__init__(bitlen, rows, cols, title, border, ppb, label_width, font_label_size, font_flag_size, colors, led)
+        # The canvas is currently drawn in the main window frame.
+
+        # we need to create a new subframe,
+        self.scrollbar_width = 20
+        self.subwindow = Frame(self.tkwnd,width=self.width+self.scrollbar_width,height=min(self.height,768))
+        self.subwindow.pack(expand=True, fill=BOTH)
+
+        # then move the canvas into the subfram,
+        self.canvas.destroy()
+        self.canvas = Canvas(self.subwindow, bg = "#000", height = self.height, width = self.width)
+
+        # then add scrollbars to the subframe,
+        self.hbar=Scrollbar(self.canvas,orient=HORIZONTAL)
+        self.hbar.pack(side=BOTTOM,fill=X)
+        self.hbar.config(command=self.canvas.xview)
+        self.vbar=Scrollbar(self.canvas,orient=VERTICAL)
+        self.vbar.pack(side=RIGHT,fill=Y)
+        self.vbar.config(command=self.canvas.yview)
+
+        # associate reactions to scroll changes
+        self.canvas.config(width=self.width,height=min(self.height,768))
+        self.canvas.config(xscrollcommand=self.hbar.set, yscrollcommand=self.vbar.set)
+
+        # and repack it all.
+        self.canvas.pack(side=LEFT,expand=True,fill=BOTH)

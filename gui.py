@@ -1,5 +1,6 @@
 from tkinter import *
 from guimgr import guimgr as guimgr
+from guimgr import scrolling_guimgr as scrolling_guimgr
 
 # Generic class for handling any kind of bitfield.
 # This should be subclassed by a component that has
@@ -109,7 +110,7 @@ class guiSAP2(object):
         self.components.append(gui_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
         self.gm.pack()
 
-        self.rgm = guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
+        self.rgm = scrolling_guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
         border = 1, ppb = 16, label_width = 120, font_label_size = 12 )
         for addr in range(2**self.cpu.addrlen):
             self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02x}".format(addr)))
