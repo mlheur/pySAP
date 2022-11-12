@@ -119,7 +119,7 @@ class guimgr(object):
         self.canvas.pack()
     
 class scrolling_guimgr(guimgr):
-    def __init__(self, bitlen, rows, cols, title="guimgr", border=None, ppb=None, label_width=None, font_label_size=None, font_flag_size=None, colors=None, led=None):
+    def __init__(self, bitlen, rows, cols, title="scrolling_guimgr", border=None, ppb=None, label_width=None, font_label_size=None, font_flag_size=None, colors=None, led=None):
         super().__init__(bitlen, rows, cols, title, border, ppb, label_width, font_label_size, font_flag_size, colors, led)
         # The canvas is currently drawn in the main window frame.
 
