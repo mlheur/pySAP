@@ -151,3 +151,5 @@ class scrolling_guimgr(guimgr):
 
         # and repack it all.
         self.canvas.pack(side=LEFT,expand=True,fill=BOTH)
+
+        self.tkwnd.geometry("{}x{}".format(w,h))
