@@ -93,7 +93,7 @@ class guiSAP2(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self) # Ask the clock to notify us on each pulse.
-        self.gm = guimgr(bitlen = self.cpu.bits, rows = 6, cols = 3, title = "SAP2")
+        self.gm = guimgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP2")
 
         self.components = list()
         self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
@@ -105,8 +105,8 @@ class guiSAP2(object):
         self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
         self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
         self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 2))
-        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 4, col = 2, color = "WHITE"))
-        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 5, col = 2, color = "MAGENTA", justify = "right"))
+        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 3, col = 1, color = "WHITE"))
+        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 4, col = 2, color = "MAGENTA", justify = "right"))
         self.components.append(gui_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
         self.gm.pack()
 
