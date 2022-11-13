@@ -168,7 +168,7 @@ if __name__ == "__main__":
     countup = []
     # Code
     DataAddr = 0x8
-    countup.extend(rom.assemble("LDI",0x20))
+    countup.extend(rom.assemble("LDI",0xFF))
     countup.extend(rom.assemble("SUB",DataAddr))
     countup.extend(rom.assemble("OUT"))
     countup.extend(rom.assemble("JNZ",0x2))
@@ -207,6 +207,6 @@ if __name__ == "__main__":
     #print("countup listing")
     #print("{}".format(countup))
     #print("running countup program")
-    clk.run(cpu,fib)
+    clk.run(cpu,countup)
     gui.wait_for_close()
 
