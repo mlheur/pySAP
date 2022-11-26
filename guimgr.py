@@ -128,7 +128,7 @@ class scrolling_guimgr(guimgr):
         self.scrollbar_width = 20
         w = self.width+self.scrollbar_width
         h = min(self.height,768)
-        print("h={},w={}".format(h,w))
+        #print("h={},w={}".format(h,w))
         self.subwindow = Frame(self.tkwnd,width=w,height=h)
         self.subwindow.pack(expand=True, fill=BOTH)
 
@@ -152,4 +152,4 @@ class scrolling_guimgr(guimgr):
         # and repack it all.
         self.canvas.pack(side=LEFT,expand=True,fill=BOTH)
 
-        self.tkwnd.geometry("{}x{}".format(w,h))
+        self.tkwnd.geometry("{}x{}+0+0".format(w+self.scrollbar_width,h+self.scrollbar_width))
