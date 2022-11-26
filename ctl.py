@@ -51,14 +51,14 @@ class CtlSeq():
         #print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
         #for f in self.cpu.oflags:
         #    print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
-        if self.cpu.oflags['HLT'].istrue():
-            return
         # enable to bus
         for component in components:
             component.tick()
         # Update GUI
         for subscriber in subscribers:
                 subscriber.clock()
+        if self.cpu.oflags['HLT'].istrue():
+            return
         # latch from bus
         for component in components:
             component.tock()
