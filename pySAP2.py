@@ -176,7 +176,7 @@ if __name__ == "__main__":
     countup.append(0x01)
 
     cpu = pySAP2(rom,countup)
-    clk = Clock(100)
+    clk = Clock(3)
 
     from gui import guiSAP2 as GUI
     gui = GUI(cpu,clk)

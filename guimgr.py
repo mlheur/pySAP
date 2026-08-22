@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.font import *
 
 class guimgr(object):
+    FIXEDFONT       = 'monospace'
     BORDER          = 4
     PPB             = 36
     LABEL_WIDTH     = 70
@@ -40,8 +41,8 @@ class guimgr(object):
         self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
         self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
         self.canvas = Canvas(self.tkwnd, bg = "#000", height = self.height, width = self.width)
-        self.label_font = Font(family='Courier', size = self.FONT_LABEL_SIZE, weight = 'bold')
-        self.flag_font = Font(family='Courier', size = self.FONT_FLAG_SIZE, weight = 'bold')
+        self.label_font = Font(family=self.FIXEDFONT, size = self.FONT_LABEL_SIZE, weight = 'bold')
+        self.flag_font = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE, weight = 'bold')
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)

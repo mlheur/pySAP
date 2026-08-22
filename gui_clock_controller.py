@@ -49,27 +49,33 @@ class gui_clock_controller(object):
         )
         self.btn_pulse = tk.Button(
             self.tkwnd,
-            text="Pulse the Clock",
+            text="Manual\nClock\nTrigger",
             command=self.pulse_clk,
             anchor="w"
         )
         self.btn_pulse.configure(
-            width=80,
-            height=20,
+            width=4,
+            height=3,
             activebackground="lightgrey",
             relief="raised",
         )
+        self.update_btn_pulse()
         self.canvas.create_window(
-            15,5,
+            150,50,
             window=self.btn_pulse
         )
         # Finally update window
         self.canvas.pack()
 
+    def update_btn_pulse(self):
+        self.btn_pulse.configure(state = "active" if (self.clk.Hz==0) else "disabled" )
+
     def modify_clk(self):
         self.clk.modify(int(self.hz_tracker.get()))
+        self.update_btn_pulse()
 
     def pulse_clk(self):
+        #print("pulse the clock from GUI")
         self.clk.pulse()
 
     def redraw(self):

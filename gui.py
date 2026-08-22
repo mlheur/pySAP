@@ -119,6 +119,11 @@ class guiSAP2(object):
             self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
         self.rgm.pack()
 
+    def redraw(self):
+        self.gm.redraw()
+        self.rgm.redraw()
+        self.clk_ctl.redraw()
+
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
     def clock(self):
         for comp in self.components:

@@ -50,7 +50,7 @@ class CtlSeq():
         self.decode()
         #print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
         #for f in self.cpu.oflags:
-        #    print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
+        #    #print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
         # enable to bus
         for component in components:
             component.tick()
@@ -63,7 +63,7 @@ class CtlSeq():
         for component in components:
             component.tock()
 
-#        print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(
+#        #print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(
 #            self.cpu.a.value,
 #            self.cpu.b.value,
 #            self.cpu.out.value,
