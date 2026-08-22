@@ -1,6 +1,7 @@
 from tkinter import *
-from guimgr import guimgr as guimgr
-from guimgr import scrolling_guimgr as scrolling_guimgr
+from guimgr import guimgr
+from guimgr import scrolling_guimgr
+from gui_clock_controller import gui_clock_controller
 
 # Generic class for handling any kind of bitfield.
 # This should be subclassed by a component that has
@@ -95,6 +96,8 @@ class guiSAP2(object):
         clk.subscribe(self) # Ask the clock to notify us on each pulse.
         self.gm = guimgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP2")
 
+        self.clk_ctl = gui_clock_controller(clk,self.gm)
+
         self.components = list()
         self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
         self.components.append(gui_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
@@ -121,7 +124,9 @@ class guiSAP2(object):
         for comp in self.components:
             comp.redraw()
         self.gm.redraw()
+        self.clk_ctl.redraw()
 
     # Tk nuance.
     def wait_for_close(self):
         self.gm.wait_for_close()
+        self.clk_ctl.wait_for_close()

@@ -11,9 +11,8 @@ from ctl import CtlSeq as CtlSeq
 from rom import ROM as ROM
 from cpu import CPU as CPU
 
+
 class SAP2rom(ROM):
-    # Hard coding which control lines are on or off during NOP operation.
-    # The value is tightly coupled with self.oflags sequencing.
 
     def __init__(self):
         # The iflags are control bits set by other components, and used in the
@@ -23,7 +22,7 @@ class SAP2rom(ROM):
             'ZF':      CtlLine(1)
         }
         # The oflags are the control lines set by the instruction decoder for enabling
-        # various latches and operations on the next clock clock cyckle.
+        # various latches and operations on the next clock cycle.
         self.oflags = {
             'Lo':         CtlLine(0,inv=1),  # Latch OUT
             'Lb':         CtlLine(1,inv=1),  # Latch B
@@ -177,7 +176,7 @@ if __name__ == "__main__":
     countup.append(0x01)
 
     cpu = pySAP2(rom,countup)
-    clk = Clock(10)
+    clk = Clock(100)
 
     from gui import guiSAP2 as GUI
     gui = GUI(cpu,clk)
@@ -207,6 +206,7 @@ if __name__ == "__main__":
     #print("countup listing")
     #print("{}".format(countup))
     #print("running countup program")
+    gui.clock() # to refresh with RAM contents
     clk.run(cpu,countup)
     gui.wait_for_close()
 
