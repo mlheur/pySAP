@@ -19,29 +19,35 @@ class Clock():
             if (self.has_enter == False or self.Hz == 0) and f'{key}' == "Key.enter":
                 self.has_enter = True
         kbd.Listener(on_press=keyhandler).start()
+        self.cyclehistory = list()
 
     def subscribe(self,subscriber):
         self.subscribers.append(subscriber)
 
     def modify(self,Hz):
-        oHz = self.Hz
-        oFreq = self.freq
-        self.freq = 0
         self.Hz = Hz
         self.freq = Hz if Hz == 0 else 1/Hz
-        self.last_pulse = time() - self.freq
+        self.last_pulse = max(self.last_pulse, time() - self.freq)
 
     def pulse(self):
         time_delta = time() - self.last_pulse
         while (self.Hz != 0) and (time_delta < self.freq) and (not(self.cpu.oflags['HLT'].istrue())):
             sleep(Clock.NoTime)
             time_delta = time() - self.last_pulse
-        self.cpu.clock(self.subscribers)
         self.last_pulse = time()
+        self.cpu.clock(self.subscribers)
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
 
-    def run(self,cpu,ram=None):
+    def redraw(self):
+        for subby in self.subscribers:
+            if hasattr(subby,'redraw'):
+                subby.redraw()
+
+    def run(self,cpu,ram=None,Hz=None):
+        if Hz is not None:
+            self.Hz = Hz
+        self.redraw()
         self.cpu = cpu
         if ram is not None:
             cpu.setram(ram)
@@ -51,13 +57,10 @@ class Clock():
             print("Press [Enter] to pulse the clock.")
         while (not self.cpu.oflags['HLT'].istrue()):
             if self.Hz == 0:
-                for subby in self.subscribers:
-                    if hasattr(subby,'redraw'):
-                        subby.redraw()
+                self.redraw()
                 if self.has_enter:
                     self.has_enter = False
                     self.pulse()
                 sleep(Clock.NoTime)
             else:
                 self.pulse()
-

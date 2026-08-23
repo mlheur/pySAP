@@ -98,6 +98,9 @@ class SAP2rom(ROM):
             self.mkctl(['Cp','CE','Lm']),      # 0x17     : IncPC RAM->MAR
             self.mkctl(['Lr','Ea','Rt']),      # 0x18     : RAM->A Next
 
+            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHR : A->shift->ALU->A Next
+            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHL : A->shift->ALU->A Next
+
             None
         ]
 
@@ -115,7 +118,9 @@ class SAP2rom(ROM):
             'OUT': 0x9,
             'LDA': 0xA,
             'SUB': 0xB,
-            'STA': 0xC
+            'STA': 0xC,
+            'SHR': 0XD,
+            'SHL': 0xE,
         }
 
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
@@ -136,6 +141,8 @@ class SAP2rom(ROM):
         self.addinstr('LDA',0x0E)
         self.addinstr('SUB',0x12)
         self.addinstr('STA',0x16)
+        self.addinstr('SHR',0x19)
+        self.addinstr('SHL',0x1A)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -153,7 +160,7 @@ class pySAP2(CPU):
         self.ir         = IR(self,'Li','Ei')
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
-        self.ram        = RAM(self,'Lr','CE',FirstRAM)       
+        self.ram        = RAM(self,'Lr','CE',FirstRAM)
         self.ctlseq     = CtlSeq(self,dict(rom.addr),list(rom.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
@@ -201,15 +208,63 @@ if __name__ == "__main__":
     #  Var 1                                   # 19
     #  Var 2                                   # 1A
 
+
+    shifter = []
+    shifter.extend(rom.assemble('LDI',0b10101010))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('LDI',0x0F))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHL'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('SHR'))
+    shifter.extend(rom.assemble('HLT'))
+
+    def FlushRam():
+        for i in range(256+13):
+            if i >= 13 and i <= 268: cpu.ram.value[i-13] = 0b00000000
+            if i >= 12 and i <= 267: cpu.ram.value[i-12] = 0b11111111
+            if i >= 11 and i <= 266: cpu.ram.value[i-11] = 0b10101010
+            if i >= 10 and i <= 265: cpu.ram.value[i-10] = 0b01010101
+            if i >=  9 and i <= 264: cpu.ram.value[i- 9] = 0b10101010
+            if i >=  8 and i <= 263: cpu.ram.value[i- 8] = 0b01010101
+            if i >=  7 and i <= 262: cpu.ram.value[i- 7] = 0b10101010
+            if i >=  6 and i <= 261: cpu.ram.value[i- 6] = 0b01010101
+            if i >=  5 and i <= 260: cpu.ram.value[i- 5] = 0b11111111
+            if i >=  4 and i <= 259: cpu.ram.value[i- 4] = 0b00100100
+            if i >=  3 and i <= 258: cpu.ram.value[i- 3] = 0b10000001
+            if i >=  2 and i <= 257: cpu.ram.value[i- 2] = 0b01000010
+            if i >=  1 and i <= 256: cpu.ram.value[i- 1] = 0b00100100
+            if i >=  0 and i <= 255: cpu.ram.value[i- 0] = 0b00011000
+            gui.clock()
+
     #from time import sleep as sleep
     #print("ROM microinstructions dump")
     #print("{}".format(rom))
     #print("countup listing")
     #print("{}".format(countup))
     #print("running countup program")
-    gui.clock() # to refresh with RAM contents
+    clk.run(cpu,shifter,Hz=0)
+    sleep(1)
+    FlushRam()
+    sleep(1)
     clk.run(cpu,fib)
-    sleep(5)
+    sleep(1)
+    FlushRam()
+    sleep(1)
     clk.run(cpu,countup)
     gui.wait_for_close()
 

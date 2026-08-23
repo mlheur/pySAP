@@ -43,6 +43,9 @@ class CtlSeq():
             else:
                 conditions = self.iflags()
                 microaddr = (self.AROM[conditions][self.cpu.ir.value]) + (self.Tstep-3)
+                #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
+                #print(f'AROM={self.AROM[conditions]}')
+                #print(f'CROM={self.CROM}')
                 self.micro = self.CROM[microaddr]
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
@@ -58,7 +61,7 @@ class CtlSeq():
             component.tick()
         # Update GUI
         for subscriber in subscribers:
-                subscriber.clock()
+            subscriber.clock()
         if self.cpu.oflags['HLT'].istrue():
             return
         # latch from bus
