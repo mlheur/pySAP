@@ -1,9 +1,9 @@
 from ctl import CtlLine
 
 
-# The ROM class is where the microinstructions are figured out
+# The class is where the microinstructions are figured out
 # for the instruction decoder.  This implementation of SAP CPU
-# is using a lookup table, for each instruction, for each t-step
+# is using a lookup table: for each instruction, for each t-step
 # in those instructions, what is the bitwise representation of
 # the various control lines that have to be pulled high and low
 # to set the various Enable and Latch lines on the components.
