@@ -10,7 +10,6 @@ from ctl import CtlLine
 from ctl import CtlSeq
 from instruction_set import instruction_set as ISA
 from cpu import CPU
-from time import sleep
 
 
 class SAPisa(ISA):
@@ -55,6 +54,26 @@ class SAPisa(ISA):
         for f in self.oflags:
             self.NOP = self.NOP | (self.oflags[f].inv << self.oflags[f].pos)
 
+        # This array assigns binary mnemonics for each string of ASM code.
+        self.ASM = {
+            'NOP': 0x0,
+            'HLT': 0x1,
+            'JMP': 0x2,
+            'JC':  0x3,
+            'JNC': 0x4,
+            'JZ':  0x5,
+            'JNZ': 0x6,
+            'LDI': 0x7,
+            'ADD': 0x8,
+            'RST': 0x9,
+            'OUT': 0xA,
+            'LDA': 0xB,
+            'SUB': 0xC,
+            'STA': 0xD,
+            'SHL': 0xE,
+            'SHR': 0XF,
+        }
+
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
         # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
         self.ctl = [
@@ -98,30 +117,11 @@ class SAPisa(ISA):
             self.mkctl(['Cp','CE','Lm']),      # 0x17     : IncPC RAM->MAR
             self.mkctl(['Lr','Ea','Rt']),      # 0x18     : RAM->A Next
 
-            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHR : A->shift->ALU->A Next
-            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHL : A->shift->ALU->A Next
+            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHL : A->shift->ALU->A Next
+            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHR : A->shift->ALU->A Next
 
             None
         ]
-
-        # This array assigns binary mnemonics for each string of ASM code. 
-        self.ASM = {
-            'NOP': 0x0,
-            'HLT': 0x1,
-            'JMP': 0x2,
-            'JC':  0x3,
-            'JZ':  0x4,
-            'JNZ': 0x5,
-            'LDI': 0x6,
-            'ADD': 0x7,
-            'RST': 0x8,
-            'OUT': 0x9,
-            'LDA': 0xA,
-            'SUB': 0xB,
-            'STA': 0xC,
-            'SHR': 0XD,
-            'SHL': 0xE,
-        }
 
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
         # The decoder knows all instructions share the same T1,T2 to fetch the actual instruction from RAM.
@@ -132,6 +132,7 @@ class SAPisa(ISA):
         # at different microinstructions depending on flag value, so all
         # possible outcomes are listed in the addinstr parameters.
         self.addinstr('JC', [0x11,0x04,0x11,0x04])
+        self.addinstr('JNC',[0x04,0x11,0x04,0x11])
         self.addinstr('JZ', [0x11,0x11,0x04,0x04])
         self.addinstr('JNZ',[0x04,0x04,0x11,0x11])
         self.addinstr('LDI',0x06)
@@ -147,7 +148,7 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa,FirstRAM,bits=8,addrlen=8):
+    def __init__(self,isa=None,FirstRAM=None,bits=8,addrlen=8):
         super().__init__()
         self.isa        = isa
         self.bits       = bits
@@ -162,7 +163,7 @@ class pySAP(CPU):
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',FirstRAM)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt')
-        self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh')
+        self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh','CF')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self,subscribers):
         self.ctlseq.clock(self.components,subscribers)
@@ -171,19 +172,15 @@ class pySAP(CPU):
 if __name__ == "__main__":
 
     isa = SAPisa()
-    ram = isa.assemble_file("./code/countdown.sap")
-    cpu = pySAP(isa,ram)
-    clk = Clock()
+    sap = pySAP(isa=isa)
+    clk = Clock(cpu=sap)
 
     from guiSAP import guiSAP as GUI
-    gui = GUI(cpu,clk)
+    gui = GUI(sap,clk)
 
-    clk.run(cpu)
-
-    clk.run(cpu,isa.assemble_file("./code/shifter.sap"),Hz=1)
-    cpu.FlushRam()
-    clk.run(cpu,isa.assemble_file("./code/fib.sap"),Hz=20)
-    cpu.FlushRam()
-    clk.run(cpu,countup)
+    clk.run(ram=isa.assemble_file("./code/shifter.sap"),   Hz=1)
+    clk.run(ram=isa.assemble_file("./code/fib.sap"),       Hz=20)
+    clk.run(ram=isa.assemble_file("./code/countdown.sap"), Hz=20)
+    clk.run(ram=isa.assemble_file("./code/cylon.sap"),     Hz=20)
     gui.wait_for_close()
 

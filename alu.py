@@ -2,19 +2,20 @@ from register import StdRegister
 
 
 class ALU(StdRegister):
-    def __init__(self,cpu,A,B,enable,sub,shift):
+    def __init__(self,cpu,A,B,enable,sub,shift,carry):
         super().__init__(cpu,enable=enable)
         self.A     = A
         self.B     = B
         self.sub   = self.cpu.oflags[sub]
         self.shift = self.cpu.oflags[shift]
+        self.carry = self.cpu.iflags[carry]
         self.update()
     def update(self):
         if self.shift.istrue():
             if self.sub.istrue():
-                self.value = ((self.A.value<<1) & self.mask)
+                self.value = ((self.A.value<<1) & self.mask) + (0x01 if self.carry.istrue() else 0)
             else:
-                self.value = ((self.A.value>>1) & self.mask)
+                self.value = ((self.A.value>>1) & self.mask) + (0x80 if self.carry.istrue() else 0)
         elif self.sub.istrue():
             self.value = ((self.A.value & self.mask) - (self.B.value & self.mask)) & self.mask
         else:

@@ -1,16 +1,18 @@
 from register import StdRegister
+from random import randint
 
 
 class RAM(StdRegister):
 
-    def __init__(self,cpu,latch,enable,FirstRAM = []):
+    def __init__(self,cpu,latch,enable,FirstRAM):
         super().__init__(cpu,latch,enable)
-        self.value = [0x0]*(2**cpu.addrlen) # default to HLT instruction
+        self.value = []
+        for addr in range(0,1+2**cpu.bits):
+            self.value.append(randint(0,0x100))
         self.set(FirstRAM)
 
     def set(self,newram):
-        if len(newram) > 0:
-            self.value = [self.cpu.isa.ASM["NOP"]] * (2**self.cpu.addrlen)
+        if newram is not None and len(newram) > 0:
             for i,v in enumerate(newram):
                 self.value[i] = v
 

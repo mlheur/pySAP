@@ -1,11 +1,11 @@
-
+from random import randint
 
 class Register():
     def __init__(self,cpu,bits,latch=None,enable=None):
         self.cpu        = cpu
         self.bits       = bits
         self.mask       = (2**bits) - 1      # ToDo: validate host architecture is more than bits.
-        self.value      = 0
+        self.value      = randint(0,1+2**bits)
         if latch is not None and latch in self.cpu.oflags:
             self.latch  = self.cpu.oflags[latch]
         else:

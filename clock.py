@@ -7,26 +7,24 @@ class Clock():
 
     NoTime = 0.000001
 
-    def __init__(self,Hz=0):
-        self.Hz         = Hz # 0:manual
-        self.freq       = 0
-        if self.Hz > 0: self.freq = 1/self.Hz
+    def __init__(self,cpu=None,Hz=0):
+        self.cpu         = cpu
+        self.last_pulse  = 0
+        self.modify(Hz)
         self.subscribers = list()
-        self.pulse_lock  = False
 
         self.has_enter = False
         def keyhandler(key):
             if (self.has_enter == False or self.Hz == 0) and f'{key}' == "Key.enter":
                 self.has_enter = True
         kbd.Listener(on_press=keyhandler).start()
-        self.cyclehistory = list()
 
     def subscribe(self,subscriber):
         self.subscribers.append(subscriber)
 
     def modify(self,Hz):
-        self.Hz = Hz
-        self.freq = Hz if Hz == 0 else 1/Hz
+        self.Hz         = Hz
+        self.freq       = Hz if Hz == 0 else 1/Hz
         self.last_pulse = max(self.last_pulse, time() - self.freq)
 
     def pulse(self):
@@ -44,15 +42,16 @@ class Clock():
             if hasattr(subby,'redraw'):
                 subby.redraw()
 
-    def run(self,cpu,ram=None,Hz=None):
+    def run(self,cpu=None,ram=None,Hz=None):
+        if cpu is not None:
+            self.cpu = cpu
         if Hz is not None:
-            self.Hz = Hz
-        self.redraw()
-        self.cpu = cpu
+            self.modify(Hz)
         if ram is not None:
-            cpu.setram(ram)
+            self.cpu.setram(ram)
         self.cpu.reset()
         self.last_pulse = time() - self.freq
+        self.redraw()
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
         while (not self.cpu.oflags['HLT'].istrue()):

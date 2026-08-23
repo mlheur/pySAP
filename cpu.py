@@ -1,3 +1,4 @@
+from time import sleep
 from ctl import CtlLine
 
 
@@ -13,7 +14,7 @@ class CPU(object):
     def reset(self):
         self.oflags['HLT'].settruth(False)
         self.oflags['CLR'].settruth(True)
-    def FlushRam(self):
+    def FlushRam(self,gui=None):
         sleep(1)
         for i in range(256+13):
             if i >= 13 and i <= 268: self.ram.value[i-13] = 0b00000000
@@ -30,5 +31,6 @@ class CPU(object):
             if i >=  2 and i <= 257: self.ram.value[i- 2] = 0b01000010
             if i >=  1 and i <= 256: self.ram.value[i- 1] = 0b00100100
             if i >=  0 and i <= 255: self.ram.value[i- 0] = 0b00011000
-            gui.clock()
+            if gui is not None:
+                gui.clock()
 
