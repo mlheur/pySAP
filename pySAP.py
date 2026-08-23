@@ -41,7 +41,11 @@ class SAPisa(ISA):
             'CLR':        CtlLine(14,inv=1), # CLR
             'HLT':        CtlLine(15),       # HLT
             'Rt':         CtlLine(16),       # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
-            'Sh':         CtlLine(17)        # ALU Shift Left; [Sh+Su] = ALU Shift Right.
+            'Sh':         CtlLine(17),       # ALU Shift Left; [Sh+Su] = ALU Shift Right.
+            'CC':         CtlLine(18),       # Clear the Carry Flag
+            'SC':         CtlLine(19,inv=1), # Set the Carry Flag
+            'CZ':         CtlLine(20),       # Clear the Zero Flag
+            'SZ':         CtlLine(21,inv=1), # Set the Zero Flag
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
@@ -56,22 +60,26 @@ class SAPisa(ISA):
 
         # This array assigns binary mnemonics for each string of ASM code.
         self.ASM = {
-            'NOP': 0x0,
-            'HLT': 0x1,
-            'JMP': 0x2,
-            'JC':  0x3,
-            'JNC': 0x4,
-            'JZ':  0x5,
-            'JNZ': 0x6,
-            'LDI': 0x7,
-            'ADD': 0x8,
-            'RST': 0x9,
-            'OUT': 0xA,
-            'LDA': 0xB,
-            'SUB': 0xC,
-            'STA': 0xD,
-            'SHL': 0xE,
-            'SHR': 0XF,
+            'NOP': 0x00,
+            'HLT': 0x01,
+            'JMP': 0x02,
+            'JC':  0x03,
+            'JNC': 0x04,
+            'JZ':  0x05,
+            'JNZ': 0x06,
+            'LDI': 0x07,
+            'ADD': 0x08,
+            'RST': 0x09,
+            'OUT': 0x0A,
+            'LDA': 0x0B,
+            'SUB': 0x0C,
+            'STA': 0x0D,
+            'SHL': 0x0E,
+            'SHR': 0X0F,
+            'CCF': 0X10,
+            'SCF': 0X11,
+            'CZF': 0X12,
+            'SZF': 0X13,
         }
 
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
@@ -120,6 +128,11 @@ class SAPisa(ISA):
             self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHL : A->shift->ALU->A Next
             self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHR : A->shift->ALU->A Next
 
+            self.mkctl(['CC','Rt']),           # 0x1B CCF
+            self.mkctl(['SC','Rt']),           # 0x1C SCF
+            self.mkctl(['CZ','Rt']),           # 0x1D CZF
+            self.mkctl(['SZ','Rt']),           # 0x1E SZF
+
             None
         ]
 
@@ -144,6 +157,10 @@ class SAPisa(ISA):
         self.addinstr('STA',0x16)
         self.addinstr('SHR',0x19)
         self.addinstr('SHL',0x1A)
+        self.addinstr('CCF',0x1B)
+        self.addinstr('SCF',0x1C)
+        self.addinstr('CZF',0x1D)
+        self.addinstr('SZF',0x1E)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -178,9 +195,9 @@ if __name__ == "__main__":
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    clk.run(ram=isa.assemble_file("./code/shifter.sap"),   Hz=1)
+    clk.run(ram=isa.assemble_file("./code/shifter.sap"),   Hz=5)
     clk.run(ram=isa.assemble_file("./code/fib.sap"),       Hz=20)
-    clk.run(ram=isa.assemble_file("./code/countdown.sap"), Hz=20)
-    clk.run(ram=isa.assemble_file("./code/cylon.sap"),     Hz=20)
+    clk.run(ram=isa.assemble_file("./code/countdown.sap"), Hz=10)
+    clk.run(ram=isa.assemble_file("./code/cylon.sap"),     Hz=50)
     gui.wait_for_close()
 

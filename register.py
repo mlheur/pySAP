@@ -47,5 +47,3 @@ class IR(StdRegister):
     def tick(self):
         if self.cpu.oflags['CLR'].istrue(): self.value = 0
         if self.enable.istrue(): self.cpu.w = ( self.value & self.mask )
-
-

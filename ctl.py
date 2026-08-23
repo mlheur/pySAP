@@ -60,13 +60,23 @@ class CtlSeq():
         for component in components:
             component.tick()
         # Update GUI
-        for subscriber in subscribers:
-            subscriber.clock()
+#        T0 = perf_counter()
+        for i in range(len(subscribers)):
+            subscribers[i].clock()
+#        T1 = perf_counter()
+#        print(f'REAL: T1-T0 = {T1-T0:.5f}')
         if self.cpu.oflags['HLT'].istrue():
             return
         # latch from bus
         for component in components:
             component.tock()
+        # update flags if Clear|Set Carry|Zero were asserted.
+        for FLG in "CZ":
+            for CMD in "SC":
+                oCTL = f'{CMD}{FLG}'
+                iCTL = f'{FLG}F'
+                if self.cpu.oflags[oCTL].istrue():
+                    self.cpu.iflags[iCTL].settruth(True if CMD == "S" else False)
 
 #        #print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(
 #            self.cpu.a.value,
@@ -91,5 +101,3 @@ class CtlSeq():
             self.Tstep = 1
         else:
             self.Tstep += 1
-
-

@@ -10,9 +10,10 @@ class Clock():
     def __init__(self,cpu=None,Hz=0):
         self.cpu         = cpu
         self.last_pulse  = 0
-        self.modify(Hz)
         self.subscribers = list()
-
+        self.modify(Hz)
+        # Spawn a thread that listens for keyboard events to have non-blocking
+        # I/O waiting for manual clock pulse from either the console or the GUI.
         self.has_enter = False
         def keyhandler(key):
             if (self.has_enter == False or self.Hz == 0) and f'{key}' == "Key.enter":

@@ -102,7 +102,7 @@ class guiSAP(object):
         self.components.append(gui_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
         self.components.append(gui_ram_register(self.gm, self.cpu,                   row = 2, col = 0))
         self.components.append(gui_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
-        self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "right"))
+        self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "left"))
         self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 2, justify = "right"))
         self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
         self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
