@@ -10,6 +10,7 @@ from ctl import CtlLine
 from ctl import CtlSeq
 from rom import ROM
 from cpu import CPU
+from time import sleep
 
 
 class SAP2rom(ROM):
@@ -45,7 +46,7 @@ class SAP2rom(ROM):
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
-        
+
         # initialize the final ROM address space
         self.addr = dict()
 
@@ -99,7 +100,7 @@ class SAP2rom(ROM):
 
             None
         ]
-        
+
         # This array assigns binary mnemonics for each string of ASM code. 
         self.ASM = {
             'NOP': 0x0,
@@ -207,6 +208,8 @@ if __name__ == "__main__":
     #print("{}".format(countup))
     #print("running countup program")
     gui.clock() # to refresh with RAM contents
+    clk.run(cpu,fib)
+    sleep(5)
     clk.run(cpu,countup)
     gui.wait_for_close()
 

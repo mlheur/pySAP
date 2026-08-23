@@ -3,12 +3,12 @@ from tkinter.font import *
 
 
 class guimgr(object):
-    FIXEDFONT       = 'monospace'
+    FIXEDFONT       = 'courier10pitch'
     BORDER          = 4
-    PPB             = 36
-    LABEL_WIDTH     = 70
-    FONT_LABEL_SIZE = 24
-    FONT_FLAG_SIZE  = 12
+    PPB             = 24
+    LABEL_WIDTH     = 65
+    FONT_LABEL_SIZE = 16
+    FONT_FLAG_SIZE  = 8
     LED = {
         "RED":     {"ON":"#F22", "OFF":"#622"},
         "GREEN":   {"ON":"#2F2", "OFF":"#262"},
@@ -32,18 +32,22 @@ class guimgr(object):
         if font_label_size is not None: self.FONT_LABEL_SIZE = font_label_size
         if font_flag_size is not None: self.FONT_FLAG_SIZE = font_flag_size
         if colors is not None: self.COLORS = colors
-        if None is not None: self.LED = None
         self.LABEL_HEIGHT = ((2*self.BORDER)+self.PPB)
-        self.bitlen = bitlen
-        self.rows = rows
-        self.cols = cols
-        self.tkwnd = Tk()
+        self.bitlen       = bitlen
+        self.rows         = rows
+        self.cols         = cols
+        self.tkwnd        = Tk()
         self.tkwnd.title(title)
-        self.width = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
-        self.height = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
-        self.canvas = Canvas(self.tkwnd, bg = "#000", height = self.height, width = self.width)
-        self.label_font = Font(family=self.FIXEDFONT, size = self.FONT_LABEL_SIZE, weight = 'bold')
-        self.flag_font = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE, weight = 'bold')
+        self.width        = ((self.cols+1)*self.BORDER) + (self.cols * self.get_col_width())
+        self.height       = ((self.rows+1)*self.BORDER) + (self.rows * self.get_row_height())
+        self.canvas       = Canvas(
+            self.tkwnd,
+            bg            = "#000",
+            height        = self.height,
+            width         = self.width
+        )
+        self.label_font   = Font(family=self.FIXEDFONT, size = self.FONT_LABEL_SIZE, weight = 'bold')
+        self.flag_font    = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE, weight = 'bold')
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)
@@ -70,7 +74,7 @@ class guimgr(object):
     def draw_bit_label(self,bf,bitpos,bitname,color):
         coords = self.get_bitfield_coords(bf)
         x1 = coords[0] + ( self.BORDER + ( (bf.bitlen-1-bitpos) * ( self.PPB + self.BORDER ) ) ) + (self.PPB/2)
-        y1 = coords[1] + self.BORDER + (self.PPB/2) - 2
+        y1 = coords[1] + self.BORDER + (self.PPB/2) - 0
         self.canvas.create_text(x1, y1, text = bitname, fill = color, font = self.flag_font)
 
     def update_bit(self,bf,bitID,bitval):
@@ -81,19 +85,19 @@ class guimgr(object):
 
     def get_row_height(self):
         return (2 * self.BORDER) + self.PPB
-    
+
     def get_col_width(self,bitlen=None):
         if bitlen is None:
             bitlen = self.bitlen
         return (self.LABEL_WIDTH + self.BORDER) + ((bitlen+1) * self.BORDER) + (bitlen * self.PPB)
-    
+
     def get_row_y1(self,row):
         yoff = self.BORDER
         while(row > 0):
             yoff += (3 * self.BORDER) + self.PPB
             row -= 1
         return yoff
-    
+
     def get_col_x1(self,col):
         xoff = self.BORDER
         while(col > 0):
@@ -109,7 +113,7 @@ class guimgr(object):
         y1 = self.get_row_y1(bf.row)
         y2 = y1 + self.get_row_height()
         return x1,y1,x2,y2
-    
+
     def redraw(self):
         self.tkwnd.update_idletasks()
         self.tkwnd.update()
@@ -119,7 +123,7 @@ class guimgr(object):
 
     def pack(self):
         self.canvas.pack()
-    
+
 class scrolling_guimgr(guimgr):
     def __init__(self, bitlen, rows, cols, title="scrolling_guimgr", border=None, ppb=None, label_width=None, font_label_size=None, font_flag_size=None, colors=None, led=None):
         super().__init__(bitlen, rows, cols, title, border, ppb, label_width, font_label_size, font_flag_size, colors, led)
