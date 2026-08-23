@@ -1,4 +1,4 @@
-from ctl import CtlLine as CtlLine
+from ctl import CtlLine
 
 
 class CPU(object):

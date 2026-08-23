@@ -3,6 +3,7 @@ from guimgr import guimgr
 from guimgr import scrolling_guimgr
 from gui_clock_controller import gui_clock_controller
 
+
 # Generic class for handling any kind of bitfield.
 # This should be subclassed by a component that has
 # some kind of binary value to display.

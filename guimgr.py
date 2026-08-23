@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.font import *
 
+
 class guimgr(object):
     FIXEDFONT       = 'monospace'
     BORDER          = 4

@@ -1,6 +1,5 @@
 
 
-
 class Register():
     def __init__(self,cpu,bits,latch=None,enable=None):
         self.cpu        = cpu

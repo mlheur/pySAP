@@ -1,4 +1,4 @@
-from register import StdRegister as StdRegister
+from register import StdRegister
 
 
 class RAM(StdRegister):
@@ -13,7 +13,7 @@ class RAM(StdRegister):
             self.value = [self.cpu.rom.ASM["NOP"]] * (2**self.cpu.addrlen)
             for i,v in enumerate(newram):
                 self.value[i] = v
-                
+
     def tick(self):
         if self.enable.istrue():
             self.cpu.w = self.value[self.cpu.mar.value] & self.mask

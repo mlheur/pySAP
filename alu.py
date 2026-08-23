@@ -1,4 +1,4 @@
-from register import StdRegister as StdRegister
+from register import StdRegister
 
 
 class ALU(StdRegister):

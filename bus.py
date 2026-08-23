@@ -1,6 +1,5 @@
 
 
-
 class Bus(object):
     def __init__(self,width):
         self.value = 0

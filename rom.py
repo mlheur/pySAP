@@ -1,4 +1,4 @@
-from ctl import CtlLine as CtlLine
+from ctl import CtlLine
 
 # The ROM class is where the microinstructions are figured out
 # for the instruction decoder.  This implementation of SAP CPU

@@ -1,15 +1,15 @@
-from clock import Clock as Clock
-from register import Register as Register
-from register import StdRegister as StdRegister
-from register import OUT as OUT
-from register import PC as PC
-from register import IR as IR
-from ram import RAM as RAM
-from alu import ALU as ALU
-from ctl import CtlLine as CtlLine
-from ctl import CtlSeq as CtlSeq
-from rom import ROM as ROM
-from cpu import CPU as CPU
+from clock import Clock
+from register import Register
+from register import StdRegister
+from register import OUT
+from register import PC
+from register import IR
+from ram import RAM
+from alu import ALU
+from ctl import CtlLine
+from ctl import CtlSeq
+from rom import ROM
+from cpu import CPU
 
 
 class SAP2rom(ROM):

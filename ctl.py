@@ -1,3 +1,5 @@
+
+
 class CtlLine():
     def __init__(self,pos,value=0,inv=0):
         self.pos        = pos
@@ -22,7 +24,7 @@ class CtlSeq():
         self.Tstep   = 1
         self.micro   = self.CROM[0]
         self.ResetT  = cpu.oflags[ResetT]
-    
+
     def __str__(self):
         return '{}'.format(self.Tstep)
 
@@ -44,7 +46,7 @@ class CtlSeq():
                 self.micro = self.CROM[microaddr]
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
-            
+
     def clock(self,components,subscribers):
         # Parse the subinstruction
         self.decode()
