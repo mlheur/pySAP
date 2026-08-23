@@ -10,7 +10,7 @@ class RAM(StdRegister):
 
     def set(self,newram):
         if len(newram) > 0:
-            self.value = [self.cpu.rom.ASM["NOP"]] * (2**self.cpu.addrlen)
+            self.value = [self.cpu.isa.ASM["NOP"]] * (2**self.cpu.addrlen)
             for i,v in enumerate(newram):
                 self.value[i] = v
 

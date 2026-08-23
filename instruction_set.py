@@ -7,7 +7,13 @@ from ctl import CtlLine
 # in those instructions, what is the bitwise representation of
 # the various control lines that have to be pulled high and low
 # to set the various Enable and Latch lines on the components.
-class ROM(object):
+class instruction_set(object):
+    def __str__(self) -> str:
+        ret = ""
+        for cond in self.addr:
+            for i,asm in enumerate(self.addr[cond]):
+                ret = "{}\naddress=[0x{:02X}] condition=[0b{:02b}] asm=[0x{:02X}] microinstruction=[0x{:02X}]".format(ret,i,cond,asm,self.addr[cond][asm])
+        return ret
     # mkctl generates control words that are bitwise representations
     # for the control lines, stored in CPU.oflags.
     def mkctl(self,flags=[]):
@@ -42,9 +48,33 @@ class ROM(object):
             if data is not None:
                 return [self.ASM[instr],data]
             return [self.ASM[instr]]
-    def __str__(self) -> str:
-        ret = ""
-        for cond in self.addr:
-            for i,asm in enumerate(self.addr[cond]):
-                ret = "{}\naddress=[0x{:02X}] condition=[0b{:02b}] asm=[0x{:02X}] microinstruction=[0x{:02X}]".format(ret,i,cond,asm,self.addr[cond][asm])
-        return ret
+    def assemble_file(self,sourcefile,verbose=True):
+        #print(f'self.ASM=[{self.ASM}]')
+        def subassembly(word):
+            #print(f'subassembly(word=[{word}])')
+            if word in self.ASM:
+                if verbose:
+                    print(f'ASM: word={word}  data={self.ASM[word]}')
+                asm.append(self.ASM[word])
+            else:
+                try:
+                    data = int(word,16)
+                    if verbose:
+                        print(f'ASM: word={word} data={data}')
+                    asm.append(data)
+                except:
+                    print(f'WARNING: assemble_file encountered unexpected data {word}')
+        asm = []
+        try:
+            with open(sourcefile, encoding="utf-8") as f:
+                for line in f:
+                    line = line.rstrip()
+                    #print(f'assembling line=[{line}]')
+                    if " " in line:
+                        for word in line.split(" "):
+                            subassembly(word)
+                    else:
+                        subassembly(line)
+        except:
+            pass
+        return asm

@@ -6,4 +6,4 @@ if [ ! -f ./venv/bin/python ]; then
     python3 -m venv venv
 fi
 
-./venv/bin/python ./pySAP2.py
+./venv/bin/python ./pySAP.py

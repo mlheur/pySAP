@@ -8,12 +8,12 @@ from ram import RAM
 from alu import ALU
 from ctl import CtlLine
 from ctl import CtlSeq
-from rom import ROM
+from instruction_set import instruction_set as ISA
 from cpu import CPU
 from time import sleep
 
 
-class SAP2rom(ROM):
+class SAPisa(ISA):
 
     def __init__(self):
         # The iflags are control bits set by other components, and used in the
@@ -146,14 +146,14 @@ class SAP2rom(ROM):
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
-class pySAP2(CPU):
-    def __init__(self,rom,FirstRAM,bits=8,addrlen=8):
+class pySAP(CPU):
+    def __init__(self,isa,FirstRAM,bits=8,addrlen=8):
         super().__init__()
-        self.rom        = rom
+        self.isa        = isa
         self.bits       = bits
         self.addrlen    = addrlen
-        self.iflags     = dict(rom.iflags)
-        self.oflags     = dict(rom.oflags)
+        self.iflags     = dict(isa.iflags)
+        self.oflags     = dict(isa.oflags)
         self.a          = StdRegister(self,'La','Ea')
         self.b          = StdRegister(self,'Lb','Eb')
         self.out        = OUT(self,'Lo')
@@ -161,7 +161,7 @@ class pySAP2(CPU):
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',FirstRAM)
-        self.ctlseq     = CtlSeq(self,dict(rom.addr),list(rom.ctl),'Rt')
+        self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self,subscribers):
@@ -170,101 +170,20 @@ class pySAP2(CPU):
 
 if __name__ == "__main__":
 
-    rom = SAP2rom()
+    isa = SAPisa()
+    ram = isa.assemble_file("./code/countdown.sap")
+    cpu = pySAP(isa,ram)
+    clk = Clock()
 
-    countup = []
-    # Code
-    DataAddr = 0x8
-    countup.extend(rom.assemble("LDI",0xFF))
-    countup.extend(rom.assemble("SUB",DataAddr))
-    countup.extend(rom.assemble("OUT"))
-    countup.extend(rom.assemble("JNZ",0x2))
-    countup.extend(rom.assemble("HLT"))
-    # Data
-    countup.append(0x01)
-
-    cpu = pySAP2(rom,countup)
-    clk = Clock(3)
-
-    from gui import guiSAP2 as GUI
+    from guiSAP import guiSAP as GUI
     gui = GUI(cpu,clk)
 
-    DataAddr = 0x19
-    fib = []
-    fib.extend(rom.assemble('LDI',0x1))        # 00,01
-    fib.extend(rom.assemble('STA',DataAddr))   # 02,03
-    fib.extend(rom.assemble('LDI',0x0))        # 04,05
-    fib.extend(rom.assemble('STA',DataAddr+1)) # 06,07
-    fib.extend(rom.assemble('OUT'))            # 08
-    fib.extend(rom.assemble('LDA',DataAddr))   # 09,0a
-    fib.extend(rom.assemble('ADD',DataAddr+1)) # 0b,0c
-    fib.extend(rom.assemble('STA',DataAddr))   # 0d,0e
-    fib.extend(rom.assemble('OUT'))            # 0f
-    fib.extend(rom.assemble('LDA',DataAddr+1)) # 10,11
-    fib.extend(rom.assemble('ADD',DataAddr))   # 12,13
-    fib.extend(rom.assemble('JC', 0x18))       # 14,15
-    fib.extend(rom.assemble('JMP',0x06))       # 16,17
-    fib.extend(rom.assemble('HLT'))            # 18
-    #  Var 1                                   # 19
-    #  Var 2                                   # 1A
+    clk.run(cpu)
 
-
-    shifter = []
-    shifter.extend(rom.assemble('LDI',0b10101010))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('LDI',0x0F))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHL'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('SHR'))
-    shifter.extend(rom.assemble('HLT'))
-
-    def FlushRam():
-        for i in range(256+13):
-            if i >= 13 and i <= 268: cpu.ram.value[i-13] = 0b00000000
-            if i >= 12 and i <= 267: cpu.ram.value[i-12] = 0b11111111
-            if i >= 11 and i <= 266: cpu.ram.value[i-11] = 0b10101010
-            if i >= 10 and i <= 265: cpu.ram.value[i-10] = 0b01010101
-            if i >=  9 and i <= 264: cpu.ram.value[i- 9] = 0b10101010
-            if i >=  8 and i <= 263: cpu.ram.value[i- 8] = 0b01010101
-            if i >=  7 and i <= 262: cpu.ram.value[i- 7] = 0b10101010
-            if i >=  6 and i <= 261: cpu.ram.value[i- 6] = 0b01010101
-            if i >=  5 and i <= 260: cpu.ram.value[i- 5] = 0b11111111
-            if i >=  4 and i <= 259: cpu.ram.value[i- 4] = 0b00100100
-            if i >=  3 and i <= 258: cpu.ram.value[i- 3] = 0b10000001
-            if i >=  2 and i <= 257: cpu.ram.value[i- 2] = 0b01000010
-            if i >=  1 and i <= 256: cpu.ram.value[i- 1] = 0b00100100
-            if i >=  0 and i <= 255: cpu.ram.value[i- 0] = 0b00011000
-            gui.clock()
-
-    #from time import sleep as sleep
-    #print("ROM microinstructions dump")
-    #print("{}".format(rom))
-    #print("countup listing")
-    #print("{}".format(countup))
-    #print("running countup program")
-    clk.run(cpu,shifter,Hz=0)
-    sleep(1)
-    FlushRam()
-    sleep(1)
-    clk.run(cpu,fib)
-    sleep(1)
-    FlushRam()
-    sleep(1)
+    clk.run(cpu,isa.assemble_file("./code/shifter.sap"),Hz=1)
+    cpu.FlushRam()
+    clk.run(cpu,isa.assemble_file("./code/fib.sap"),Hz=20)
+    cpu.FlushRam()
     clk.run(cpu,countup)
     gui.wait_for_close()
 
