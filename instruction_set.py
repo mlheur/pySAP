@@ -49,21 +49,30 @@ class instruction_set(object):
                 return [self.ASM[instr],data]
             return [self.ASM[instr]]
     def assemble_file(self,sourcefile,verbose=True):
+        if verbose:
+            self.addrindex = 0
         #print(f'self.ASM=[{self.ASM}]')
         def subassembly(word):
             #print(f'subassembly(word=[{word}])')
             if word in self.ASM:
                 if verbose:
-                    print(f'ASM: word={word}  data={self.ASM[word]}')
+                    print(f'ASM: addr=0x{self.addrindex:02X} word={word}  data=0x{self.ASM[word]:02X}')
+                    self.addrindex += 1
                 asm.append(self.ASM[word])
             else:
                 try:
                     data = int(word,16)
                     if verbose:
-                        print(f'ASM: word={word} data={data}')
+                        print(f'ASM: addr=0x{self.addrindex:02X} word={word} data=0x{data:02X}')
+                        self.addrindex += 1
                     asm.append(data)
                 except:
+                    if word == "#":
+                        return False
+                    elif word == "":
+                        return True
                     print(f'WARNING: assemble_file encountered unexpected data {word}')
+            return True
         asm = []
         try:
             with open(sourcefile, encoding="utf-8") as f:
@@ -72,9 +81,14 @@ class instruction_set(object):
                     #print(f'assembling line=[{line}]')
                     if " " in line:
                         for word in line.split(" "):
-                            subassembly(word)
+                            if not subassembly(word):
+                                break
                     else:
                         subassembly(line)
-        except:
+        except Exception as E:
+            print(f'FATAL: unable assemble source file: {E}')
             pass
+        if verbose:
+            self.addrindex = None
+            del self.addrindex
         return asm

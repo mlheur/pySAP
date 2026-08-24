@@ -1,0 +1,20 @@
+JMP 0x08 # Jump to start
+0xFF     # Data placeholder: Pointer
+0xFF     # Data placeholder: Value
+LDI 0xA5 # Error Routine: print magic value
+OUT      # Print it
+HLT      # Halt
+LDI 0x00 # Start, get a zero
+STA 0x02 # Save it at our pointer
+STA 0x03 # Save it at our data
+LDI 0x03 # Load the data value address
+STA 0x02 # Into the pointer value
+LDI 0xFF # Get some data
+STM 0x02 # Store the data at the pointer's destination
+LDI 0x00 # Get different data
+LDM 0x02 # Overwrite tht with the data at the pointer's destination
+SUB 0x13 # Subtract the 0xFF from LDI on line 12
+JNZ 0x04 # Quit if those values are different
+LDI 0xFF # Clean ending: write FF
+OUT      # to the printer
+HLT      # and halt

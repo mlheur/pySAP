@@ -80,6 +80,8 @@ class SAPisa(ISA):
             'SCF': 0X11,
             'CZF': 0X12,
             'SZF': 0X13,
+            'STM': 0x14,
+            'LDM': 0x15,
         }
 
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
@@ -123,7 +125,7 @@ class SAPisa(ISA):
 
             self.mkctl(['Ep','Lm']),           # 0x16 STA : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x17     : IncPC RAM->MAR
-            self.mkctl(['Lr','Ea','Rt']),      # 0x18     : RAM->A Next
+            self.mkctl(['Ea','Lr','Rt']),      # 0x18     : A->RAM Next
 
             self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHL : A->shift->ALU->A Next
             self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHR : A->shift->ALU->A Next
@@ -132,6 +134,16 @@ class SAPisa(ISA):
             self.mkctl(['SC','Rt']),           # 0x1C SCF
             self.mkctl(['CZ','Rt']),           # 0x1D CZF
             self.mkctl(['SZ','Rt']),           # 0x1E SZF
+
+            self.mkctl(['Ep','Lm']),           # 0x1F STM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      # 0x20     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           # 0x21     : RAM->MAR
+            self.mkctl(['Ea','Lr','Rt']),      # 0x22     : A->RAM Next
+
+            self.mkctl(['Ep','Lm']),           # 0x23 LDM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      # 0x24     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           # 0x25     : RAM->MAR
+            self.mkctl(['CE','La','Rt']),      # 0x26     : RAM->A Next
 
             None
         ]
@@ -161,6 +173,8 @@ class SAPisa(ISA):
         self.addinstr('SCF',0x1C)
         self.addinstr('CZF',0x1D)
         self.addinstr('SZF',0x1E)
+        self.addinstr('STM',0x1F)
+        self.addinstr('LDM',0x23)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -195,9 +209,11 @@ if __name__ == "__main__":
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    clk.run(ram=isa.assemble_file("./code/shifter.sap"))
-    clk.run(ram=isa.assemble_file("./code/fib.sap"))
-    clk.run(ram=isa.assemble_file("./code/countdown.sap"))
-    clk.run(ram=isa.assemble_file("./code/cylon.sap"))
+    #clk.run(ram=isa.assemble_file("./code/shifter.sap"))
+    #clk.run(ram=isa.assemble_file("./code/fib.sap"))
+    #clk.run(ram=isa.assemble_file("./code/countdown.sap"))
+    #clk.run(ram=isa.assemble_file("./code/cylon.sap"))
+    clk.run(ram=isa.assemble_file("./code/pointers.sap"),Hz=10)
+    #clk.run(ram=isa.assemble_file("./code/memtest.sap"),Hz=1)
     gui.wait_for_close()
 
