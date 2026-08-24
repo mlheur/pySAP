@@ -214,6 +214,6 @@ if __name__ == "__main__":
     #clk.run(ram=isa.assemble_file("./code/countdown.sap"))
     #clk.run(ram=isa.assemble_file("./code/cylon.sap"))
     clk.run(ram=isa.assemble_file("./code/pointers.sap"),Hz=10)
-    #clk.run(ram=isa.assemble_file("./code/memtest.sap"),Hz=1)
+    clk.run(ram=isa.assemble_file("./code/memtest.sap"),Hz=1)
     gui.wait_for_close()
 

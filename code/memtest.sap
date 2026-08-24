@@ -1,0 +1,12 @@
+JMP 0x06 # 0x00,0x01 | Jump to START
+# END                | On completion, inform the user the memory test is complete
+LDI 0xA5 # 0x02,0x03 | Load checkerboard pattern "A5" as a magic number
+OUT      # 0x04      | Print out that magic number
+HLT      # 0x05      | Halt the computer
+# START              | Main program starts here
+LDI 0xFE # 0x06,0x07 | Address 0xFF is our pointer, start testing RAM one below there; put that address in the accumulator.
+STA 0xFF # 0x08,0x09 | Store that address at our pointer address.
+LDI 0xFF # 0x0A,0x0B | First pass, write all ones
+STM 0xFF # 0x0C,0x0D | Store that at the pointer's dereferenced address.
+SUB 0xFF # 0x0C,0x0D
+JNC 0x03 # 0x0E,0x0F | Jmp to address 3 END
