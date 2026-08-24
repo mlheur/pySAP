@@ -26,8 +26,8 @@ class gui_clock_controller(object):
         )
         self.hz_tracker = tk.StringVar(self.tkwnd)
         spinvals = []
-        #for i in (0,1,2,3,4,5,10,25,50,100,250,500,1000,2000,5000):
-        for i in range(0,51):
+        for i in (0,1,2,3,4,5,10,25,50,100,250,500,1000,2000,5000):
+        #for i in range(0,51):
             spinvals.append(str(i))
         self.hz_spinner = tk.Spinbox(
             self.tkwnd,

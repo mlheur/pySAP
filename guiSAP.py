@@ -134,6 +134,8 @@ class guiSAP(object):
 
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
     def clock(self):
+        if self.cpu.oflags['Lr'].istrue():
+            self.rgm.invalidate = True
         for comp in self.components:
             comp.redraw()
         self.gm.redraw()

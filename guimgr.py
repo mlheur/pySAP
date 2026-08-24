@@ -48,6 +48,7 @@ class guimgr(object):
         )
         self.label_font   = Font(family=self.FIXEDFONT, size = self.FONT_LABEL_SIZE, weight = 'bold')
         self.flag_font    = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE, weight = 'bold')
+        self.invalidate   = None
 
     def draw_bitfield(self, bf):
         coords = self.get_bitfield_coords(bf)
@@ -123,8 +124,16 @@ class guimgr(object):
         return x1,y1,x2,y2
 
     def redraw(self):
-        self.tkwnd.update_idletasks()
-        self.tkwnd.update()
+        bDoRedraw = False
+        if self.invalidate is not None:
+            if self.invalidate:
+                bDoRedraw = True
+                self.invalidate = False
+        else:
+            bDoRedraw = True
+        if bDoRedraw:
+            self.tkwnd.update_idletasks()
+            self.tkwnd.update()
 
     def wait_for_close(self):
         self.tkwnd.mainloop()
@@ -167,3 +176,4 @@ class scrolling_guimgr(guimgr):
         self.canvas.pack(side=LEFT,expand=True,fill=BOTH)
 
         self.tkwnd.geometry("{}x{}+0+0".format(w+self.scrollbar_width,h+self.scrollbar_width))
+        self.invalidate = True

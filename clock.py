@@ -8,6 +8,7 @@ class Clock():
     NoTime = 0.000001
 
     def __init__(self,cpu=None,Hz=0):
+        self.reset_performance()
         self.cpu         = cpu
         self.last_pulse  = 0
         self.subscribers = list()
@@ -20,10 +21,25 @@ class Clock():
                 self.has_enter = True
         kbd.Listener(on_press=keyhandler).start()
 
+    def reset_performance(self):
+        self.performance = {
+            'started': None,
+            'current': None,
+            'cycles':  0,
+        }
+
+    def print_performance(self):
+        if self.performance['cycles'] > 1:
+            dT = self.performance['current'] - self.performance['started']
+            aHz = self.performance['cycles'] / dT
+            print(f'Average Performance: {aHz:.2f} Hz, Target: {self.Hz}')
+
     def subscribe(self,subscriber):
         self.subscribers.append(subscriber)
 
     def modify(self,Hz):
+        self.print_performance()
+        self.reset_performance()
         self.Hz         = Hz
         self.freq       = Hz if Hz == 0 else 1/Hz
         self.last_pulse = max(self.last_pulse, time() - self.freq)
@@ -34,6 +50,12 @@ class Clock():
             sleep(Clock.NoTime)
             time_delta = time() - self.last_pulse
         self.last_pulse = time()
+        self.performance['started'] = self.last_pulse if self.performance['started'] is None else self.performance['started']
+        self.performance['current'] = self.last_pulse
+        self.performance['cycles'] += 1
+        if self.performance['cycles'] > 100:
+            self.print_performance()
+            self.reset_performance()
         self.cpu.clock(self.subscribers)
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
@@ -44,6 +66,7 @@ class Clock():
                 subby.redraw()
 
     def run(self,cpu=None,ram=None,Hz=None):
+        self.reset_performance()
         if cpu is not None:
             self.cpu = cpu
         if Hz is not None:
@@ -64,3 +87,4 @@ class Clock():
                 sleep(Clock.NoTime)
             else:
                 self.pulse()
+        self.print_performance()

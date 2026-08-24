@@ -190,14 +190,14 @@ if __name__ == "__main__":
 
     isa = SAPisa()
     sap = pySAP(isa=isa)
-    clk = Clock(cpu=sap)
+    clk = Clock(cpu=sap,Hz=5000)
 
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    clk.run(ram=isa.assemble_file("./code/shifter.sap"),   Hz=5)
-    clk.run(ram=isa.assemble_file("./code/fib.sap"),       Hz=20)
-    clk.run(ram=isa.assemble_file("./code/countdown.sap"), Hz=10)
-    clk.run(ram=isa.assemble_file("./code/cylon.sap"),     Hz=50)
+    clk.run(ram=isa.assemble_file("./code/shifter.sap"))
+    clk.run(ram=isa.assemble_file("./code/fib.sap"))
+    clk.run(ram=isa.assemble_file("./code/countdown.sap"))
+    clk.run(ram=isa.assemble_file("./code/cylon.sap"))
     gui.wait_for_close()
 
