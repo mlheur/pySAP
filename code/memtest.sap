@@ -1,36 +1,63 @@
-JMP [START] # Jump to START
+JMP [START]         # Jump to START
 
-:DATA       #
-0x00        # Data: a zero.
+:ZERO 0x00
+:ONE  0x01
+:ALLA 0xAA
+:ALL5 0x55
 
-:END        # On completion, inform the user the memory test is complete
-LDI 0xA5    # Load checkerboard pattern "A5" as a magic number
-OUT
-LDI 0x5A
-OUT
-LDI 0xA5
-OUT
-LDI 0x5A
-OUT
-LDI 0xA5
+:EXIT               # On completion, inform the user the memory test is complete
+LDI 0xAA OUT
+LDI 0x55 OUT
+LDI 0xAA OUT
+LDI 0x55 OUT
+LDI 0xAA OUT
+HLT
 
-:OUT        #
-OUT         # Print out that magic number
-HLT         # Halt the computer
+:ERR  LDA 0xFF # retrieve the address of most recent use
+:BAIL OUT
+:HALT HLT
 
-:START      # Main program starts here
+:START
+LDI 0xFF STA 0xFF   # We need to test address 0xFF, store all ones a zero there for now.
+# we still have all ones in the A register
+SUB [ALLA]          # Subtract half the bits
+SUB [ALL5]          # Subtract the other half
+JNZ [BAIL]          # Bail if the result is not zero.
+# A register checks out OK
 
-LDI 0x00    # We need to test address 0xFF,
-STA 0xFF    # Store a zero there for now.
-LDI 0xFF    # Put all ones in the A register, invalidate the previous value.
-LDA 0xFF    # Read back the zero we wrote there earlier
-SUB [DATA]  # subtract the zero we have in data
-JNZ [END]   # Print the non-zero and quit if the previous read failed.
-            # otherwise, now do same rigorous testing on 0xFE
-LDI 0x00    #
-STA 0xFE    #
-LDI 0xFF    #
-LDA 0xFE    #
-SUB [DATA]  #
-JNZ [OUT]   #
-JMP [END]   #
+# now test the 0xFF memory cell
+LDA 0xFF
+SUB [ALLA]          # Subtract half the bits
+SUB [ALL5]          # Subtract the other half
+JNZ [BAIL]          # Bail if the result is not zero.
+# 0xFF memory cell checks out, start using it
+
+:SET_FIRST_POINTER
+LDI 0xFE            # The first memory cell to test by indirect pointer is at address 0xFE
+STA 0xFF            # Save that address in our well-known-pointer 0xFF
+
+:TOP_OF_LOOP_EVEN
+LDA [ALLA]  # test even bits
+STM 0xFF    # write even bits to the pointed-at cell whose address is in our well-known-pointer 0xFF
+LDA [ALL5]  # set odd bits
+LDM 0xFF    # read back the even bits
+SUB [ALLA]  # subtract the even bits
+JNZ [ERR]
+:TOP_OF_LOOP_ODD
+LDA [ALL5]
+STM 0xFF
+LDA [ALLA]
+LDM 0xFF
+SUB [ALL5]
+JNZ [ERR]
+:BOTTOM_OF_LOOP
+LDI 0x00
+STM 0xFF
+
+:DECREMENT_ADDRESS
+LDA 0xFF    # Read the pointer value
+SUB [ONE]   # Decrement it
+JZ [EXIT]   # Quit when done
+:SAVE_DECREMENTED_ADDRESS
+STA 0xFF
+JMP [TOP_OF_LOOP_EVEN]
