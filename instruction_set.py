@@ -48,7 +48,7 @@ class instruction_set(object):
             if data is not None:
                 return [self.ASM[instr],data]
             return [self.ASM[instr]]
-    def assemble_file(self,sourcefile,verbose=True):
+    def assemble_file(self,sourcefile,verbose=False):
         if verbose:
             self.addrindex = 0
         #print(f'self.ASM=[{self.ASM}]')

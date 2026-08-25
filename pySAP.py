@@ -202,18 +202,45 @@ class pySAP(CPU):
 
 if __name__ == "__main__":
 
+    from sys import argv
+    assemble_only = False
+    filename = None
+    Hz = None
+    DollarZero = argv.pop(0)
+    while len(argv) > 0:
+        arg = argv.pop(0)
+        if arg[0] == "-":
+            if arg[1] == "f":
+                filename = argv.pop(0)
+                #print(f'filename {filename}')
+                continue
+            elif arg[1] == "a":
+                #print("Assemble Only")
+                assemble_only = True
+                continue
+            elif arg == "-Hz":
+                Hz=int(argv.pop(0))
+                continue
+        raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
+    argv.append(DollarZero)
+
     isa = SAPisa()
+    if assemble_only:
+        if filename is not None:
+            isa.assemble_file(filename,verbose=True)
+        else:
+            raise RuntimeError("assembly needs a source file [-f ./code/source.sap]")
+        from sys import exit
+        exit(0)
+
     sap = pySAP(isa=isa)
-    clk = Clock(cpu=sap,Hz=5000)
+    clk = Clock(cpu=sap,Hz=Hz)
 
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    #clk.run(ram=isa.assemble_file("./code/shifter.sap"))
-    #clk.run(ram=isa.assemble_file("./code/fib.sap"))
-    #clk.run(ram=isa.assemble_file("./code/countdown.sap"))
-    #clk.run(ram=isa.assemble_file("./code/cylon.sap"))
-    clk.run(ram=isa.assemble_file("./code/pointers.sap"),Hz=10)
-    clk.run(ram=isa.assemble_file("./code/memtest.sap"),Hz=1)
+    if filename is None:
+        filename = "./code/cylon.sap"
+        clk.modify(5000)
+    clk.run(ram=isa.assemble_file(filename))
     gui.wait_for_close()
-

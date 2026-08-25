@@ -7,7 +7,9 @@ class Clock():
 
     NoTime = 0.000001
 
-    def __init__(self,cpu=None,Hz=0):
+    def __init__(self,cpu=None,Hz=None):
+        if Hz is None:
+            Hz = 0
         self.reset_performance()
         self.cpu         = cpu
         self.last_pulse  = 0
