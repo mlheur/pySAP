@@ -1,21 +1,36 @@
-JMP 0x07 # 0x00,0x01 | Jump to START
-0x00     # 0x02      | Data: a zero.
-# END                | On completion, inform the user the memory test is complete
-LDI 0xA5 # 0x03,0x04 | Load checkerboard pattern "A5" as a magic number
-OUT      # 0x05      | Print out that magic number
-HLT      # 0x06      | Halt the computer
-# START              | Main program starts here
-LDI 0x00 # 0x07,0x08 | We need to test address 0xFF,
-STA 0xFF # 0x09,0x0A | Store a zero there for now.
-LDI 0xFF # 0x0B,0x0C | Put all ones in the A register, invalidate the previous value.
-LDA 0xFF # 0x0D,0x0E | Read back the zero we wrote there earlier
-SUB 0x02 # 0x0F,0x10 | subtract the zero we have in data
-JNZ 0x04 # 0x11,0x12 | Print the non-zero and quit if the previous read failed.
-#                    | otherwise, now do same rigorous testing on 0xFE
-LDI 0x00 # 0x13,0x14 |
-STA 0xFE # 0x15,0x16 |
-LDI 0xFF # 0x17,0x18 |
-LDA 0xFE # 0x19,0x1A |
-SUB 0x02 # 0x1B,0x1C |
-JNZ 0x05 # 0x1D,0x1E |
-JMP 0x03 # 0x1F,0x20 |
+JMP [START] # Jump to START
+
+:DATA       #
+0x00        # Data: a zero.
+
+:END        # On completion, inform the user the memory test is complete
+LDI 0xA5    # Load checkerboard pattern "A5" as a magic number
+OUT
+LDI 0x5A
+OUT
+LDI 0xA5
+OUT
+LDI 0x5A
+OUT
+LDI 0xA5
+
+:OUT        #
+OUT         # Print out that magic number
+HLT         # Halt the computer
+
+:START      # Main program starts here
+
+LDI 0x00    # We need to test address 0xFF,
+STA 0xFF    # Store a zero there for now.
+LDI 0xFF    # Put all ones in the A register, invalidate the previous value.
+LDA 0xFF    # Read back the zero we wrote there earlier
+SUB [DATA]  # subtract the zero we have in data
+JNZ [END]   # Print the non-zero and quit if the previous read failed.
+            # otherwise, now do same rigorous testing on 0xFE
+LDI 0x00    #
+STA 0xFE    #
+LDI 0xFF    #
+LDA 0xFE    #
+SUB [DATA]  #
+JNZ [OUT]   #
+JMP [END]   #

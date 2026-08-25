@@ -49,31 +49,38 @@ class instruction_set(object):
                 return [self.ASM[instr],data]
             return [self.ASM[instr]]
     def assemble_file(self,sourcefile,verbose=False):
-        if verbose:
-            self.addrindex = 0
         #print(f'self.ASM=[{self.ASM}]')
+        asm = []
+        src = []
+        self._addr = len(asm)
+        self._pointers = dict()
         def subassembly(word):
-            #print(f'subassembly(word=[{word}])')
+            def save(word,data):
+                asm.append(data)
+                src.append(word)
+            self._addr = len(asm)
+            #print(f'subassembly(word={word}) addr=0x{self._addr:02X}')
             if word in self.ASM:
-                if verbose:
-                    print(f'ASM: addr=0x{self.addrindex:02X} word={word}  data=0x{self.ASM[word]:02X}')
-                    self.addrindex += 1
-                asm.append(self.ASM[word])
+                save(word,self.ASM[word])
             else:
                 try:
                     data = int(word,16)
-                    if verbose:
-                        print(f'ASM: addr=0x{self.addrindex:02X} word={word} data=0x{data:02X}')
-                        self.addrindex += 1
-                    asm.append(data)
+                    save(word,data)
                 except:
                     if word == "#":
+                        #print("comment")
                         return False
                     elif word == "":
                         return True
+                    elif word[0] == ":":
+                        ## We have found a label, get this address and save it for later use in search & replace
+                        self._pointers[word[1:]] = self._addr
+                        return True
+                    elif word[0] == "[" and word[-1] == "]":
+                        save(word,word[1:-1])
+                        return True
                     print(f'WARNING: assemble_file encountered unexpected data {word}')
             return True
-        asm = []
         try:
             with open(sourcefile, encoding="utf-8") as f:
                 for line in f:
@@ -85,10 +92,17 @@ class instruction_set(object):
                                 break
                     else:
                         subassembly(line)
+            # Assembly is complete, except labels have to be replaced with values
+            for i in range(len(asm)):
+                if asm[i] in self._pointers:
+                    asm[i] = self._pointers[asm[i]]
+                if verbose:
+                    print(f'ASM: addr=0x{i:02X} data=0x{asm[i]:02X} src={src[i]}')
         except Exception as E:
             print(f'FATAL: unable assemble source file: {E}')
             pass
-        if verbose:
-            self.addrindex = None
-            del self.addrindex
+        self._addr = None
+        del self._addr
+        self._pointers = None
+        del self._pointers
         return asm
