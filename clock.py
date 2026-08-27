@@ -10,10 +10,10 @@ class Clock():
     def __init__(self,cpu=None,Hz=None):
         if Hz is None:
             Hz = 0
-        self.reset_performance()
         self.cpu         = cpu
         self.last_pulse  = 0
         self.subscribers = list()
+        self.reset_performance()
         self.modify(Hz)
         # Spawn a thread that listens for keyboard events to have non-blocking
         # I/O waiting for manual clock pulse from either the console or the GUI.
@@ -25,12 +25,13 @@ class Clock():
 
     def reset_performance(self):
         self.performance = {
-            'started': None,
-            'current': None,
+            'started': self.last_pulse,
+            'current': self.last_pulse,
             'cycles':  0,
         }
 
     def print_performance(self):
+        self.performance['current'] = self.last_pulse
         if self.performance['cycles'] > 1:
             dT = self.performance['current'] - self.performance['started']
             aHz = self.performance['cycles'] / dT
@@ -52,12 +53,9 @@ class Clock():
             sleep(Clock.NoTime)
             time_delta = time() - self.last_pulse
         self.last_pulse = time()
-        self.performance['started'] = self.last_pulse if self.performance['started'] is None else self.performance['started']
-        self.performance['current'] = self.last_pulse
         self.performance['cycles'] += 1
-        if self.performance['cycles'] > 100:
+        if self.performance['cycles'] % 1000 == 0:
             self.print_performance()
-            self.reset_performance()
         self.cpu.clock(self.subscribers)
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
