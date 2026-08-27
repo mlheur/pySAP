@@ -86,12 +86,6 @@ class guimgr(object):
         if fill != oFill:
             self.canvas.itemconfigure(bitID,fill=fill)
 
-    def _update_bit(self,bf,bitID,bitval):
-        fill = self.LED[bf.color]["ON"]
-        if bitval == 0:
-            fill = self.LED[bf.color]["OFF"]
-        self.canvas.itemconfigure(bitID,fill=fill)
-
     def get_row_height(self):
         return (2 * self.BORDER) + self.PPB
 
