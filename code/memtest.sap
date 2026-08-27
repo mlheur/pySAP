@@ -1,4 +1,4 @@
-################################################################################
+# ##############################################################################
 #
 # Purpose:
 # - Test every memory cell in RAM on my SAP CPU computer.
@@ -12,13 +12,13 @@
 #   a whole other beast on the Radically Reduced Instruction Set Computer.  Self
 #   modifying code is one solution, but is it too wordy ? ...
 #
-################################################################################
+# ##############################################################################
 
-#####
+# ###
 # Initial state:
 # - [PTR] is pointing to top-of-ram
 #
-#####
+# ###
 :INSPECT_PTR
 # First Pass
 LDA [ALLA]  # Load even-bits checker pattern into the A register for first pass of this cell.
@@ -35,11 +35,11 @@ LDM [PTR]
 SUB [ALL5]
 JNZ [ERR]
 # Both passes passed, move on.
-#####
+# ###
 # MOOT Because above JNZ forces this be zero now.
-#LDI 0x00   # memset 0 ...
+#  LDI 0x00   # memset 0 ...
 STM [PTR]  # memset 0x00->[*PTR] ... saved.
-#####
+# ###
 # Decrement the pointer
 LDA [PTR]  # Get the current pointer value
 SUB [ONE]  # Subtract one
@@ -81,7 +81,10 @@ LDA [PTR] OUT HLT # Print the pointer value and quit
 :ONE    0x01
 :ALLA   0xAA
 :ALL5   0x55
-
+:PLUS   [END+1]
+:MINUS  [END-1]
+:SELF   [SELF]
+:END    [END]
 
 
 # # SAVING FOR LATER USE to end after testing lowmem.
