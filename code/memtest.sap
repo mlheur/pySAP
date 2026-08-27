@@ -17,7 +17,7 @@
 # ###
 # Initial state:
 # - [PTR] is pointing to top-of-ram
-#
+# - [DST] is pointing to midpoint-of-ram
 # ###
 :INSPECT_PTR
 # First Pass
@@ -43,23 +43,55 @@ STM [PTR]  # memset 0x00->[*PTR] ... saved.
 # Decrement the pointer
 LDA [PTR]  # Get the current pointer value
 SUB [ONE]  # Subtract one
-STA [PTR]  # Finally save the updated pointer; Validate: this should leave the CF and ZF untouched!
-JC  [EXIT] # Finished when the A register wrapped below zero.
-# More cells have to be checked, move on.
+STA [PTR]  # Save the updated pointer
 SUB [HALF] # Need to check if himem pass is ending...
 JC  [MOVESELF]
 JMP [INSPECT_PTR]
 
-
-:DECREMENT_ADDRESS_HIMEM # We have to avoid clobbering program code.
-                         # Strategy: scan himem 0xFF..0x80; move code; scan lowmem 0x7F..0x00.
-LDA 0xFF    # Read the pointer value
-SUB [HALF]  # Check if we've finished down to 0x80
-JZ  [MOVESELF]
-
-
 :MOVESELF
-LDI 0xD003 OUT HLT # NOT IMPLEMENTED
+# memcpy(src=0x7F,dst=0x00,count=0x80,step=-1)
+LDI [END_OF_PROGRAM-1]
+:NEXT_MEMCPY
+SUB [ONE]
+JC  [FINISHED_MEMCPY]
+STA [PTR]
+ADD [HALF]
+STA [DST]
+:TOP_OF_MEMCPY
+LDM [PTR]
+STM [DST]
+LDA [PTR]
+JMP [NEXT_MEMCPY]
+:FINISHED_MEMCPY
+
+# Do it all again in himem
+JMP [HIMEM+128] # Jump to our himem version
+:HIMEM
+LDA [HALF+128]       # Reset the working pointer to mid-ram
+STA [PTR+128]        # Apply the latest working pointer
+
+# First Pass
+:INSPECT_HIMEM
+LDA [ALLA+128]  # Load even-bits checker pattern into the A register for first pass of this cell.
+STM [PTR+128]   # Write those to the memory cell pointed to by [PTR] at data-in-code later in this source file.
+LDA [ALL5+128]  # Invalidate the A register
+LDM [PTR+128]   # Read the memory cell contents back into the A register
+SUB [ALLA+128]  # subtract the even bits that seeded this operation, should get zero out the bottom.
+JNZ [ERR+128]
+# Second pass, same as the first pass but work with odd bits.
+LDA [ALL5+128]
+STM [PTR+128]
+LDA [ALLA+128]
+LDM [PTR+128]
+SUB [ALL5+128]
+JNZ [ERR+128]
+STM [PTR+128]  # memset 0x00->[*PTR] ... saved.
+SUB [ONE+128]  # Subtract one
+STA [PTR+128]  # Finally save the updated pointer; Validate: this should leave the CF and ZF untouched!
+0xFF # invalid opcode
+JC  [EXIT+128] # Finished when the A register wrapped below zero.
+JMP [INSPECT_HIMEM+128]
+
 
 
 :EXIT               # On completion, inform the user the memory test is complete
@@ -76,15 +108,13 @@ LDA [PTR] OUT HLT # Print the pointer value and quit
 # Data Values, some for convenience, others for dedicated purpose;
 # Mostly driven by the fact SUB/ADD always has A and RAM as the operands.
 # SuperRISC-strategy: no inc/dec, no indirect jumps, yada yada yada.
-:PTR    0xFF # First cell to test is 'top-of-ram', go down from there.
-:HALF   0x80
-:ONE    0x01
-:ALLA   0xAA
-:ALL5   0x55
-:PLUS   [END+1]
-:MINUS  [END-1]
-:SELF   [SELF]
-:END    [END]
+:PTR    0x8F # First cell to test is 'top-of-ram', go down from there.
+:DST    0x80 # Destination pointer for memcpy
+:HALF   0x80 # Constant for arithmatic
+:ONE    0x01 # Constant for arithmatic
+:ALLA   0xAA # Constant for arithmatic
+:ALL5   0x55 # Constant for arithmatic
+:END_OF_PROGRAM
 
 
 # # SAVING FOR LATER USE to end after testing lowmem.
