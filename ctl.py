@@ -47,6 +47,8 @@ class CtlSeq():
                 except KeyError:
                     print(f'Invalid opcode: 0x{self.cpu.ir.value:02X} at address 0x{self.cpu.pc.value:02X}')
                     input("Press Enter to continue (this may conflict with 0Hz operation)")
+                    self.Tstep = 0
+                    return
                 #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
                 #print(f'AROM={self.AROM[conditions]}')
                 #print(f'CROM={self.CROM}')
