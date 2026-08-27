@@ -1,9 +1,66 @@
-JMP [START]         # Jump to START
+################################################################################
+#
+# Purpose:
+# - Test every memory cell in RAM on my SAP CPU computer.
+#
+# Strategy:
+# - The program will be assembled into RAM starting at 0x00 and the CPU
+#   instruction pointer will start there.
+# - So long as the program is 0x80 bytes or less, it is free to scan 0xFF..0x80.
+# - Then it has to move itself to himem so it can scan 0x7F..0x00.
+# - Moving the program is straightforward enough; executing it from himem is
+#   a whole other beast on the Radically Reduced Instruction Set Computer.  Self
+#   modifying code is one solution, but is it too wordy ? ...
+#
+################################################################################
 
-:ZERO 0x00
-:ONE  0x01
-:ALLA 0xAA
-:ALL5 0x55
+#####
+# Initial state:
+# - [PTR] is pointing to top-of-ram
+#
+#####
+:INSPECT_PTR
+# First Pass
+LDA [ALLA]  # Load even-bits checker pattern into the A register for first pass of this cell.
+STM [PTR]   # Write those to the memory cell pointed to by [PTR] at data-in-code later in this source file.
+LDA [ALL5]  # Invalidate the A register
+LDM [PTR]   # Read the memory cell contents back into the A register
+SUB [ALLA]  # subtract the even bits that seeded this operation, should get zero out the bottom.
+JNZ [ERR]
+# Second pass, same as the first pass but work with odd bits.
+LDA [ALL5]
+STM [PTR]
+LDA [ALLA]
+LDM [PTR]
+SUB [ALL5]
+JNZ [ERR]
+# Both passes passed, move on.
+#####
+# MOOT Because above JNZ forces this be zero now.
+#LDI 0x00   # memset 0 ...
+STM [PTR]  # memset 0x00->[*PTR] ... saved.
+#####
+# Decrement the pointer
+LDA [PTR]  # Get the current pointer value
+SUB [ONE]  # Subtract one
+STA [PTR]  # Finally save the updated pointer; Validate: this should leave the CF and ZF untouched!
+JC  [EXIT] # Finished when the A register wrapped below zero.
+# More cells have to be checked, move on.
+SUB [HALF] # Need to check if himem pass is ending...
+JC  [MOVESELF]
+JMP [INSPECT_PTR]
+
+
+:DECREMENT_ADDRESS_HIMEM # We have to avoid clobbering program code.
+                         # Strategy: scan himem 0xFF..0x80; move code; scan lowmem 0x7F..0x00.
+LDA 0xFF    # Read the pointer value
+SUB [HALF]  # Check if we've finished down to 0x80
+JZ  [MOVESELF]
+
+
+:MOVESELF
+LDI 0xD003 OUT HLT # NOT IMPLEMENTED
+
 
 :EXIT               # On completion, inform the user the memory test is complete
 LDI 0xAA OUT
@@ -13,51 +70,23 @@ LDI 0x55 OUT
 LDI 0xAA OUT
 HLT
 
-:ERR  LDA 0xFF # retrieve the address of most recent use
-:BAIL OUT
-:HALT HLT
+:ERR
+LDA [PTR] OUT HLT # Print the pointer value and quit
 
-:START
-LDI 0xFF STA 0xFF   # We need to test address 0xFF, store all ones a zero there for now.
-# we still have all ones in the A register
-SUB [ALLA]          # Subtract half the bits
-SUB [ALL5]          # Subtract the other half
-JNZ [BAIL]          # Bail if the result is not zero.
-# A register checks out OK
+# Data Values, some for convenience, others for dedicated purpose;
+# Mostly driven by the fact SUB/ADD always has A and RAM as the operands.
+# SuperRISC-strategy: no inc/dec, no indirect jumps, yada yada yada.
+:PTR    0xFF # First cell to test is 'top-of-ram', go down from there.
+:HALF   0x80
+:ONE    0x01
+:ALLA   0xAA
+:ALL5   0x55
 
-# now test the 0xFF memory cell
-LDA 0xFF
-SUB [ALLA]          # Subtract half the bits
-SUB [ALL5]          # Subtract the other half
-JNZ [BAIL]          # Bail if the result is not zero.
-# 0xFF memory cell checks out, start using it
 
-:SET_FIRST_POINTER
-LDI 0xFE            # The first memory cell to test by indirect pointer is at address 0xFE
-STA 0xFF            # Save that address in our well-known-pointer 0xFF
 
-:TOP_OF_LOOP_EVEN
-LDA [ALLA]  # test even bits
-STM 0xFF    # write even bits to the pointed-at cell whose address is in our well-known-pointer 0xFF
-LDA [ALL5]  # set odd bits
-LDM 0xFF    # read back the even bits
-SUB [ALLA]  # subtract the even bits
-JNZ [ERR]
-:TOP_OF_LOOP_ODD
-LDA [ALL5]
-STM 0xFF
-LDA [ALLA]
-LDM 0xFF
-SUB [ALL5]
-JNZ [ERR]
-:BOTTOM_OF_LOOP
-LDI 0x00
-STM 0xFF
-
-:DECREMENT_ADDRESS
-LDA 0xFF    # Read the pointer value
-SUB [ONE]   # Decrement it
-JZ [EXIT]   # Quit when done
-:SAVE_DECREMENTED_ADDRESS
-STA 0xFF
-JMP [TOP_OF_LOOP_EVEN]
+# # SAVING FOR LATER USE to end after testing lowmem.
+# SUB [ONE]   # Decrement it
+# JZ [EXIT]   # Quit when done
+# :SAVE_DECREMENTED_ADDRESS
+# STA 0xFF
+# JMP [TOP_OF_LOOP_EVEN]
