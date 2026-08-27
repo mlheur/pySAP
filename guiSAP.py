@@ -20,8 +20,12 @@ class gui_bitfield(object):
         self.bits = list()
         for bitpos in range(self.bitlen):
             self.bits.append(self.gm.draw_bit(self,bitpos))
+        self.oldValue = None
 
     def redraw(self,value):
+        if self.oldValue is not None and self.oldValue == value:
+            return
+        self.oldValue = value
         for bitpos,bitID in enumerate(self.bits):
             bitval = 0b1 & (value >> bitpos)
             self.gm.update_bit(self,bitID,bitval)
