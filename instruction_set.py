@@ -93,13 +93,30 @@ class instruction_set(object):
                     else:
                         subassembly(line)
             # Assembly is complete, except labels have to be replaced with values
-            for i in range(len(asm)):
-                if asm[i] in self._pointers:
-                    asm[i] = self._pointers[asm[i]]
+            def reassemble(i,value,offset=0):
+                asm[i] = value + offset
                 if verbose:
                     print(f'ASM: addr=0x{i:02X} data=0x{asm[i]:02X} src={src[i]}')
-        except Exception as E:
-            print(f'FATAL: unable assemble source file: {E}')
+
+            inttype = type(0)
+            for i in range(len(asm)):
+                if type(asm[i]) == inttype:
+                    reassemble(i,asm[i])
+                    continue
+                else:
+                    word = asm[i]
+                    offset = "0"
+                    if "+" in asm[i]:
+                        [word,offset] = asm[i].split("+")
+                    elif "-" in asm[i]:
+                        [word,offset] = asm[i].split("-")
+                        offset = -1 * int(offset)
+                    if word in self._pointers:
+                        reassemble(i,self._pointers[word],int(offset))
+                        continue
+                raise RuntimeError(f"reassembly failed, extra data? i={i} asm={asm} word={word} offset={offset}")
+        except IOError as E:
+            print(f'FATAL: unable assemble source file; IOError [{E}]')
             pass
         self._addr = None
         del self._addr
