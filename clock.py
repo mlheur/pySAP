@@ -54,7 +54,7 @@ class Clock():
             time_delta = time() - self.last_pulse
         self.last_pulse = time()
         self.performance['cycles'] += 1
-        if self.performance['cycles'] % 1000 == 0:
+        if self.performance['current'] < (self.last_pulse-1):
             self.print_performance()
         self.cpu.clock(self.subscribers)
         if self.Hz == 0:
