@@ -68,8 +68,10 @@ JMP [NEXT_MEMCPY]
 JMP [HIMEM+128] # Jump to our himem version
 :HIMEM
 LDA [HALF+128]       # Reset the working pointer to mid-ram
-STA [PTR+128]        # Apply the latest working pointer
-
+:NEXT_HIMEM
+SUB [ONE+128]  # Subtract one
+STA [PTR+128]  # Finally save the updated pointer; Validate: this should leave the CF and ZF untouched!
+JC  [EXIT+128] # Finished when the A register wrapped below zero.
 # First Pass
 :INSPECT_HIMEM
 LDA [ALLA+128]  # Load even-bits checker pattern into the A register for first pass of this cell.
@@ -86,11 +88,8 @@ LDM [PTR+128]
 SUB [ALL5+128]
 JNZ [ERR+128]
 STM [PTR+128]  # memset 0x00->[*PTR] ... saved.
-SUB [ONE+128]  # Subtract one
-STA [PTR+128]  # Finally save the updated pointer; Validate: this should leave the CF and ZF untouched!
-0xFF # invalid opcode
-JC  [EXIT+128] # Finished when the A register wrapped below zero.
-JMP [INSPECT_HIMEM+128]
+LDA [PTR+128]
+JMP [NEXT_HIMEM+128]
 
 
 
@@ -108,7 +107,7 @@ LDA [PTR] OUT HLT # Print the pointer value and quit
 # Data Values, some for convenience, others for dedicated purpose;
 # Mostly driven by the fact SUB/ADD always has A and RAM as the operands.
 # SuperRISC-strategy: no inc/dec, no indirect jumps, yada yada yada.
-:PTR    0x8F # First cell to test is 'top-of-ram', go down from there.
+:PTR    0xFF # First cell to test is 'top-of-ram', go down from there.
 :DST    0x80 # Destination pointer for memcpy
 :HALF   0x80 # Constant for arithmatic
 :ONE    0x01 # Constant for arithmatic
