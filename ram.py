@@ -4,17 +4,18 @@ from random import randint
 
 class RAM(StdRegister):
 
-    def __init__(self,cpu,latch,enable,FirstRAM):
+    def __init__(self,cpu,latch,enable):
         super().__init__(cpu,latch,enable)
         self.value = []
-        for addr in range(0,1+2**cpu.bits):
+        for addr in range(2**cpu.bits):
             self.value.append(randint(0,0x100))
-        self.set(FirstRAM)
+            #self.value.append(addr)
 
     def set(self,newram):
-        if newram is not None and len(newram) > 0:
-            for i,v in enumerate(newram):
-                self.value[i] = v
+        if newram is None or len(newram) == 0:
+            return
+        for i,v in enumerate(newram):
+            self.value[i] = v
 
     def tick(self):
         if self.enable.istrue():

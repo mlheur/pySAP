@@ -67,9 +67,9 @@ class gui_ram_register(gui_bitfield):
         self.bitlen = cpu.bits
         self.address = address
         super().__init__(gm, name, row, col, color, justify = justify)
+        self.redraw()
     def redraw(self):
-        addr = self.address
-        if addr is None: addr = self.cpu.mar.value
+        addr = self.cpu.ir.value if self.address is None else self.address
         return super().redraw(self.cpu.ram.value[addr])
 
 # Flags are different than registers because it's a list of bits rather than a word.

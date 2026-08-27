@@ -14,7 +14,7 @@ class CPU(object):
     def reset(self):
         self.oflags['HLT'].settruth(False)
         self.oflags['CLR'].settruth(True)
-    def FlushRam(self,gui=None):
+    def WipeRam(self,gui=None):
         sleep(1)
         for i in range(256+13):
             if i >= 13 and i <= 268: self.ram.value[i-13] = 0b00000000

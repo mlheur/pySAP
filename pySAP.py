@@ -179,7 +179,7 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa=None,FirstRAM=None,bits=8,addrlen=8):
+    def __init__(self,isa=None,bits=8,addrlen=8):
         super().__init__()
         self.isa        = isa
         self.bits       = bits
@@ -192,7 +192,7 @@ class pySAP(CPU):
         self.ir         = IR(self,'Li','Ei')
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
-        self.ram        = RAM(self,'Lr','CE',FirstRAM)
+        self.ram        = RAM(self,'Lr','CE')
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh','CF')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
@@ -206,6 +206,7 @@ if __name__ == "__main__":
     assemble_only = False
     filename = None
     Hz = None
+    WipeRam = False
     DollarZero = argv.pop(0)
     while len(argv) > 0:
         arg = argv.pop(0)
@@ -221,6 +222,9 @@ if __name__ == "__main__":
             elif arg == "-Hz":
                 Hz=int(argv.pop(0))
                 continue
+            elif arg[1] == "w":
+                WipeRam = True
+                continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
 
@@ -234,6 +238,8 @@ if __name__ == "__main__":
         exit(0)
 
     sap = pySAP(isa=isa)
+    if WipeRam:
+        sap.WipeRam()
     clk = Clock(cpu=sap,Hz=Hz)
 
     from guiSAP import guiSAP as GUI
