@@ -1,0 +1,33 @@
+LDI :ALLA 0xAA # Label this data value for self-modifying code to update it later.
+STM [PTR]
+LDA [PTR]
+ADD [ONE]
+JC  [RESTART]
+STA [PTR]
+LDI :ALL5 0x55
+STM [PTR]
+LDA [PTR]
+ADD [ONE]
+STA [PTR]
+JNC 0x00
+# Implied JMP [RESTART]
+
+:RESTART
+# Before restarting, if the previous pass was odd-even-odd-even;
+# then we have to set the next pass to do even-odd-even-odd...
+# use the 3-cell method to to reassign B->C;A->B;C->A
+LDA [ALLA]
+STA [PTR]
+LDA [ALL5]
+STA [ALLA]
+LDA [PTR]
+STA [ALL5]
+# Then we can fix PTR
+LDI [PTR+1]
+STA [PTR]
+# And start over.
+JMP 0x00
+
+# Data
+:ONE 0x01
+:PTR [PTR+1]
