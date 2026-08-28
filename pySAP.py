@@ -179,7 +179,7 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa=None,bits=8,addrlen=8):
+    def __init__(self,isa=None,bits=8,addrlen=8,code=None):
         super().__init__()
         self.isa        = isa
         self.bits       = bits
@@ -192,7 +192,7 @@ class pySAP(CPU):
         self.ir         = IR(self,'Li','Ei')
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
-        self.ram        = RAM(self,'Lr','CE')
+        self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt')
         self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh','CF')
         self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
@@ -206,7 +206,6 @@ if __name__ == "__main__":
     assemble_only = False
     filename = None
     Hz = None
-    WipeRam = False
     DollarZero = argv.pop(0)
     while len(argv) > 0:
         arg = argv.pop(0)
@@ -222,11 +221,13 @@ if __name__ == "__main__":
             elif arg == "-Hz":
                 Hz=int(argv.pop(0))
                 continue
-            elif arg[1] == "w":
-                WipeRam = True
-                continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
+
+    if filename is None:
+        filename = "./code/cylon.sap"
+        if Hz is None:
+            clk.modify(5000)
 
     isa = SAPisa()
     if assemble_only:
@@ -237,17 +238,13 @@ if __name__ == "__main__":
         from sys import exit
         exit(0)
 
-    sap = pySAP(isa=isa)
-    if WipeRam:
-        sap.WipeRam()
+    code = isa.assemble_file(filename)
+
+    sap = pySAP(isa=isa,code=code)
     clk = Clock(cpu=sap,Hz=Hz)
 
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    if filename is None:
-        filename = "./code/cylon.sap"
-        if Hz is None:
-            clk.modify(5000)
-    clk.run(ram=isa.assemble_file(filename))
+    clk.run()
     gui.wait_for_close()

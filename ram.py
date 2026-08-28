@@ -4,10 +4,15 @@ from random import randint
 
 class RAM(StdRegister):
 
-    def __init__(self,cpu,latch,enable):
+    def __init__(self,cpu,latch,enable,code=None):
         super().__init__(cpu,latch,enable)
         self.value = []
-        for addr in range(2**cpu.bits):
+        if code is not None:
+            codelen = len(code)
+            self.value += code
+        else:
+            codelen = 0
+        for addr in range(0,2**cpu.bits):
             self.value.append(randint(0,0x100))
             #self.value.append(addr)
 
