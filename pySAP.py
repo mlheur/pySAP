@@ -224,10 +224,11 @@ if __name__ == "__main__":
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
 
+    FastClock = False
     if filename is None:
         filename = "./code/cylon.sap"
         if Hz is None:
-            clk.modify(5000)
+            FastClock = True
 
     isa = SAPisa()
     if assemble_only:
@@ -241,7 +242,7 @@ if __name__ == "__main__":
     code = isa.assemble_file(filename)
 
     sap = pySAP(isa=isa,code=code)
-    clk = Clock(cpu=sap,Hz=Hz)
+    clk = Clock(cpu=sap,Hz=5000 if FastClock else Hz)
 
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
