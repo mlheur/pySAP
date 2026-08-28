@@ -99,7 +99,7 @@ class guiSAP(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self) # Ask the clock to notify us on each pulse.
-        self.gm = guimgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP")
+        self.gm = guimgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP CPU: Registers, Flags and Control Lines")
 
         self.components = list()
         self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
