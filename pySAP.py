@@ -247,6 +247,7 @@ if __name__ == "__main__":
 
     if filename is None:
         filename = "./code/cylon.sap"
-        clk.modify(5000)
+        if Hz is None:
+            clk.modify(5000)
     clk.run(ram=isa.assemble_file(filename))
     gui.wait_for_close()
