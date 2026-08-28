@@ -1,4 +1,3 @@
-from time import sleep
 from ctl import CtlLine
 
 
@@ -15,7 +14,6 @@ class CPU(object):
         self.oflags['HLT'].settruth(False)
         self.oflags['CLR'].settruth(True)
     def WipeRam(self,gui=None):
-        sleep(1)
         for i in range(256+13):
             if i >= 13 and i <= 268: self.ram.value[i-13] = 0b00000000
             if i >= 12 and i <= 267: self.ram.value[i-12] = 0b11111111

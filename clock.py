@@ -1,11 +1,11 @@
-from time import time
+from time import perf_counter, process_time
 from time import sleep
 from pynput import keyboard as kbd
 
 
 class Clock():
 
-    NoTime = 0.000001
+    NoTime = 0.00001
 
     def __init__(self,cpu=None,Hz=None):
         if Hz is None:
@@ -45,18 +45,19 @@ class Clock():
         self.reset_performance()
         self.Hz         = Hz
         self.freq       = Hz if Hz == 0 else 1/Hz
-        self.last_pulse = max(self.last_pulse, time() - self.freq)
+        self.last_pulse = max(self.last_pulse, perf_counter() - self.freq)
 
     def pulse(self):
-        time_delta = time() - self.last_pulse
+        time_delta = perf_counter() - self.last_pulse
         while (self.Hz != 0) and (time_delta < self.freq) and (not(self.cpu.oflags['HLT'].istrue())):
             sleep(Clock.NoTime)
-            time_delta = time() - self.last_pulse
-        self.last_pulse = time()
-        self.performance['cycles'] += 1
-        if self.performance['current'] < (self.last_pulse-1):
-            self.print_performance()
+            time_delta = perf_counter() - self.last_pulse
+        self.last_pulse = perf_counter()
         self.cpu.clock(self.subscribers)
+        self.performance['cycles'] += 1
+        if self.performance['current'] < (self.last_pulse-4) and self.Hz > 0:
+            self.print_performance()
+            self.reset_performance()
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
 
@@ -74,10 +75,10 @@ class Clock():
         if ram is not None:
             self.cpu.setram(ram)
         self.cpu.reset()
-        self.last_pulse = time() - self.freq
         self.redraw()
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
+        self.reset_performance()
         while (not self.cpu.oflags['HLT'].istrue()):
             if self.Hz == 0:
                 self.redraw()
