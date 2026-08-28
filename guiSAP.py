@@ -122,8 +122,9 @@ class guiSAP(object):
             self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
         self.rgm.pack()
 
-        self.gm.redraw()
         self.rgm.redraw()
+        self.gm.tkwnd.geometry(f'{self.gm.tkwnd.winfo_width()}x{self.gm.tkwnd.winfo_height()}+{10+self.rgm.tkwnd.winfo_width()}+0')
+        self.gm.redraw()
         self.clk_ctl = gui_clock_controller(
             clk,
             self.gm,
