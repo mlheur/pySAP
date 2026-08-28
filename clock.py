@@ -13,7 +13,12 @@ class Clock():
         self.cpu         = cpu
         self.last_pulse  = 0
         self.subscribers = list()
-        self.reset_performance()
+        self.performance = {
+            'started': 0,
+            'current': 0,
+            'cycles' : 0,
+            'value'  : 0,
+        }
         self.modify(Hz)
         # Spawn a thread that listens for keyboard events to have non-blocking
         # I/O waiting for manual clock pulse from either the console or the GUI.
@@ -24,24 +29,23 @@ class Clock():
         kbd.Listener(on_press=keyhandler).start()
 
     def reset_performance(self):
-        self.performance = {
-            'started': self.last_pulse,
-            'current': self.last_pulse,
-            'cycles':  0,
-        }
+        self.performance['started'] = self.last_pulse
+        self.performance['current'] = self.last_pulse
+        self.performance['cycles']  = 0
 
-    def print_performance(self):
+    def update_performance(self):
         self.performance['current'] = self.last_pulse
         if self.performance['cycles'] > 1:
             dT = self.performance['current'] - self.performance['started']
-            aHz = self.performance['cycles'] / dT
-            print(f'Average Performance: {aHz:.2f} Hz, Target: {self.Hz}')
+            self.performance['value'] = self.performance['cycles'] / dT
+            #print(f"Average Performance: {self.performance['value']:.2f} Hz, Target: {self.Hz}")
+            self.reset_performance()
 
     def subscribe(self,subscriber):
         self.subscribers.append(subscriber)
 
     def modify(self,Hz):
-        self.print_performance()
+        #self.print_performance()
         self.reset_performance()
         self.Hz         = Hz
         self.freq       = Hz if Hz == 0 else 1/Hz
@@ -55,9 +59,10 @@ class Clock():
         self.last_pulse = perf_counter()
         self.cpu.clock(self.subscribers)
         self.performance['cycles'] += 1
-        if self.performance['current'] < (self.last_pulse-4) and self.Hz > 0:
-            self.print_performance()
-            self.reset_performance()
+        if self.performance['current'] < (self.last_pulse-1):
+            self.update_performance()
+        #    self.print_performance()
+        #    self.reset_performance()
         if self.Hz == 0:
             print("Press [Enter] to pulse the clock.")
 
@@ -67,7 +72,6 @@ class Clock():
                 subby.redraw()
 
     def run(self,cpu=None,ram=None,Hz=None):
-        self.reset_performance()
         if cpu is not None:
             self.cpu = cpu
         if Hz is not None:
@@ -88,4 +92,4 @@ class Clock():
                 sleep(Clock.NoTime)
             else:
                 self.pulse()
-        self.print_performance()
+        #self.print_performance()

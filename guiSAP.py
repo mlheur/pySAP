@@ -133,9 +133,7 @@ class guiSAP(object):
         )
 
     def redraw(self):
-        self.gm.redraw()
-        self.rgm.redraw()
-        self.clk_ctl.redraw()
+        self.clock()
 
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
     def clock(self):

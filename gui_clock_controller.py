@@ -19,11 +19,19 @@ class gui_clock_controller(object):
             fill    = gm.COLORS["TEXT_BG"]
         )
         self.canvas.create_text(
-            50,30,
-            text    = "Hz",
+            50,25,
+            text    = "Tgt Hz",
             fill    = gm.COLORS['TEXT_FG'],
             font    = gm.label_font
         )
+
+        self.hz_value = self.canvas.create_text(
+            50,75,
+            text         = "0 Hz",
+            fill         = gm.COLORS['TEXT_FG'],
+            font         = gm.label_font
+        )
+
         self.hz_tracker = tk.StringVar(self.tkwnd)
         spinvals = []
         for i in (0,1,2,3,4,5,10,25,50,100,250,500,1000,2000,5000):
@@ -44,7 +52,7 @@ class gui_clock_controller(object):
         )
         self.hz_tracker.set(str(self.clk.Hz))
         self.hz_spinner.config(state="normal", cursor="hand2", bd=3, justify="center", wrap=True)
-        self.hz_spinner.place(x=20,y=50)
+        self.hz_spinner.place(x=20,y=35)
         # The manual clock pulser
         self.canvas.create_rectangle(
             110,10,190,90,
@@ -82,6 +90,14 @@ class gui_clock_controller(object):
         self.clk.pulse()
 
     def redraw(self):
+        Hz = self.clk.performance['value']
+        if Hz < 10:
+            Hz = f'{Hz:.2f}'
+        elif Hz < 100:
+            Hz = f'{Hz:.1f}'
+        else:
+            Hz = f'{Hz:.0f}'
+        self.canvas.itemconfigure(self.hz_value, text=f"{Hz} Hz")
         self.hz_tracker.set(str(self.clk.Hz))
         self.update_btn_pulse()
         self.tkwnd.update_idletasks()

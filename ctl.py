@@ -70,8 +70,8 @@ class CtlSeq():
             component.tick()
         # Update GUI
 #        T0 = perf_counter()
-        for i in range(len(subscribers)):
-            subscribers[i].clock()
+        for subby in subscribers:
+            subby.clock()
 #        T1 = perf_counter()
 #        print(f'REAL: T1-T0 = {T1-T0:.5f}')
         if self.cpu.oflags['HLT'].istrue():
