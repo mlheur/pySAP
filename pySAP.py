@@ -206,6 +206,7 @@ if __name__ == "__main__":
     assemble_only = False
     filename = None
     Hz = None
+    WithProfiling = False
     DollarZero = argv.pop(0)
     while len(argv) > 0:
         arg = argv.pop(0)
@@ -217,6 +218,9 @@ if __name__ == "__main__":
             elif arg[1] == "a":
                 #print("Assemble Only")
                 assemble_only = True
+                continue
+            elif arg[1] == "v":
+                WithProfiling = True
                 continue
             elif arg == "-Hz":
                 Hz=int(argv.pop(0))
@@ -247,9 +251,12 @@ if __name__ == "__main__":
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    from cProfile import Profile
-    from pstats import Stats, SortKey
-    with Profile() as pr:
+    if WithProfiling:
+        from cProfile import Profile
+        from pstats import Stats, SortKey
+        with Profile() as pr:
+            clk.run()
+        Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
+    else:
         clk.run()
-    Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
     gui.wait_for_close()
