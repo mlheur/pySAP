@@ -247,5 +247,9 @@ if __name__ == "__main__":
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    clk.run()
+    from cProfile import Profile
+    from pstats import Stats, SortKey
+    with Profile() as pr:
+        clk.run()
+    Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
     gui.wait_for_close()

@@ -3,6 +3,8 @@ from .guiMgr import guiMgr
 from .guiScrolling import guiScrolling
 from .guiClock import guiClock
 
+from time import sleep
+
 
 # Generic class for handling any kind of bitfield.
 # This should be subclassed by a component that has
@@ -143,5 +145,20 @@ class guiSAP(object):
 
     # Tk nuance.
     def wait_for_close(self):
-        self.gm.wait_for_close()
-        self.clk_ctl.wait_for_close()
+        bGM = 1
+        bRGM = 1
+        bCLK = 1
+        while bGM + bRGM + bCLK >= 3:
+            try:
+                bGM = self.gm.tkwnd.winfo_ismapped()
+                bRGM = self.rgm.tkwnd.winfo_ismapped()
+                bCLK = self.clk_ctl.tkwnd.winfo_ismapped()
+                sleep(0.01)
+                self.gm.tkwnd.update()
+                self.rgm.tkwnd.update()
+                self.clk_ctl.tkwnd.update()
+            except:
+                break
+        self.gm.tkwnd.quit()
+        self.rgm.tkwnd.quit()
+        self.clk_ctl.tkwnd.quit()

@@ -129,8 +129,5 @@ class guiMgr(object):
             self.tkwnd.update_idletasks()
             self.tkwnd.update()
 
-    def wait_for_close(self):
-        self.tkwnd.mainloop()
-
     def pack(self):
         self.canvas.pack()
