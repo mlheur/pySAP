@@ -1,9 +1,10 @@
 import tkinter as tk
 
 
-class gui_clock_controller(object):
+class guiClock(object):
     def __init__(self,clk,gm,xoff,yoff):
         self.clk = clk
+        self.oHz = 0
         # Main window
         self.tkwnd = tk.Tk()
         self.tkwnd.title("Clock")
@@ -89,17 +90,19 @@ class gui_clock_controller(object):
         #print("pulse the clock from GUI")
         self.clk.pulse()
 
-    def redraw(self):
+    def refreshwnd(self):
         Hz = self.clk.performance['value']
-        if Hz < 10:
-            Hz = f'{Hz:.2f}'
-        elif Hz < 100:
-            Hz = f'{Hz:.1f}'
-        else:
-            Hz = f'{Hz:.0f}'
-        self.canvas.itemconfigure(self.hz_value, text=f"{Hz} Hz")
-        self.hz_tracker.set(str(self.clk.Hz))
-        self.update_btn_pulse()
+        if Hz != self.oHz:
+            if Hz < 10:
+                Hz = f'{Hz:.2f}'
+            elif Hz < 100:
+                Hz = f'{Hz:.1f}'
+            else:
+                Hz = f'{Hz:.0f}'
+            self.canvas.itemconfigure(self.hz_value, text=f"{Hz} Hz")
+            self.hz_tracker.set(str(self.clk.Hz))
+            self.update_btn_pulse()
+        self.oHz = Hz
         self.tkwnd.update_idletasks()
         self.tkwnd.update()
 

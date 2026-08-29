@@ -1,13 +1,13 @@
 from tkinter import *
-from guimgr import guimgr
-from guimgr import scrolling_guimgr
-from gui_clock_controller import gui_clock_controller
+from .guiMgr import guiMgr
+from .guiScrolling import guiScrolling
+from .guiClock import guiClock
 
 
 # Generic class for handling any kind of bitfield.
 # This should be subclassed by a component that has
 # some kind of binary value to display.
-class gui_bitfield(object):
+class _bitfield(object):
     def __init__(self, gm, name, row, col, color, justify = "left"):
         self.gm = gm
         self.name = name
@@ -31,7 +31,7 @@ class gui_bitfield(object):
             self.gm.update_bit(self,bitID,bitval)
 
 # Display which T step the controller/sequencer is on.
-class gui_tstep(gui_bitfield):
+class _tstep(_bitfield):
     def __init__(self, gm, ctlseq, name = "T", row = 0, col = 0, color = "BLUE", justify = "left"):
         self.ctlseq = ctlseq
         self.bitlen = 4
@@ -40,7 +40,7 @@ class gui_tstep(gui_bitfield):
         return super().redraw(self.ctlseq.Tstep)
 
 # Display any standard register (aka CPU word) value.
-class gui_register(gui_bitfield):
+class _register(_bitfield):
     def __init__(self, gm, reg, name, row, col, color = "GREEN", justify = "left"):
         self.reg = reg
         self.bitlen = reg.bits
@@ -50,7 +50,7 @@ class gui_register(gui_bitfield):
         return super().redraw(self.reg.value)
 
 # Display any standard register (aka CPU word) value.
-class gui_bus(gui_bitfield):
+class _bus(_bitfield):
     def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left"):
         self.cpu = cpu
         self.bitlen = self.cpu.bits
@@ -61,7 +61,7 @@ class gui_bus(gui_bitfield):
 
 # RAM is a special kind of array of registers, and we
 # display one value based on the pointer in the Memory Address Register (MAR)
-class gui_ram_register(gui_bitfield):
+class _ram_register(_bitfield):
     def __init__(self, gm, cpu, name = "RAM", row = 0, col = 0, color = "RED", justify = "left", address = None):
         self.cpu = cpu
         self.bitlen = cpu.bits
@@ -73,7 +73,7 @@ class gui_ram_register(gui_bitfield):
         return super().redraw(self.cpu.ram.value[addr])
 
 # Flags are different than registers because it's a list of bits rather than a word.
-class gui_flags(gui_bitfield):
+class _flags(_bitfield):
     def __init__(self, gm, flags, name, row, col, color = "CYAN", justify = "left"):
         self.flags = flags
         self.bitlen = len(self.flags)
@@ -99,50 +99,47 @@ class guiSAP(object):
     def __init__(self,cpu,clk):
         self.cpu = cpu
         clk.subscribe(self) # Ask the clock to notify us on each pulse.
-        self.gm = guimgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP CPU: Registers, Flags and Control Lines")
+        self.gm = guiMgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP CPU: Registers, Flags and Control Lines")
 
         self.components = list()
-        self.components.append(gui_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
-        self.components.append(gui_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
-        self.components.append(gui_ram_register(self.gm, self.cpu,                   row = 2, col = 0))
-        self.components.append(gui_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
-        self.components.append(gui_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "left"))
-        self.components.append(gui_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 2, justify = "right"))
-        self.components.append(gui_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
-        self.components.append(gui_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
-        self.components.append(gui_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 2))
-        self.components.append(gui_register(self.gm, self.cpu.out,    name = "OUT",  row = 3, col = 1, color = "WHITE"))
-        self.components.append(gui_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 4, col = 2, color = "MAGENTA", justify = "right"))
-        self.components.append(gui_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
+        self.components.append(_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
+        self.components.append(_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
+        self.components.append(_ram_register(self.gm, self.cpu,                   row = 2, col = 0))
+        self.components.append(_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
+        self.components.append(_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "left"))
+        self.components.append(_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 2, justify = "right"))
+        self.components.append(_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
+        self.components.append(_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
+        self.components.append(_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 2))
+        self.components.append(_register(self.gm, self.cpu.out,    name = "OUT",  row = 3, col = 1, color = "WHITE"))
+        self.components.append(_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 4, col = 2, color = "MAGENTA", justify = "right"))
+        self.components.append(_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
         self.gm.pack()
 
-        self.rgm = scrolling_guimgr( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
+        self.rgm = guiScrolling( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
         border = 1, ppb = 16, label_width = 120, font_label_size = 12 )
         for addr in range(2**self.cpu.addrlen):
-            self.components.append(gui_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
+            self.components.append(_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
         self.rgm.pack()
 
-        self.rgm.redraw()
+        self.rgm.refreshwnd()
         self.gm.tkwnd.geometry(f'{self.gm.tkwnd.winfo_width()}x{self.gm.tkwnd.winfo_height()}+{10+self.rgm.tkwnd.winfo_width()}+0')
-        self.gm.redraw()
-        self.clk_ctl = gui_clock_controller(
+        self.gm.refreshwnd()
+        self.clk_ctl = guiClock(
             clk,
             self.gm,
             self.rgm.tkwnd.winfo_width(),
             self.gm.tkwnd.winfo_height()
         )
 
-    def redraw(self):
-        self.clock()
-
     # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
     def clock(self):
-        if self.cpu.oflags['Lr'].istrue():
-            self.rgm.invalidate = True
         for comp in self.components:
             comp.redraw()
-        self.gm.redraw()
-        self.clk_ctl.redraw()
+        if self.cpu.oflags['Lr'].istrue():
+            self.rgm.refreshwnd()
+        self.gm.refreshwnd()
+        self.clk_ctl.refreshwnd()
 
     # Tk nuance.
     def wait_for_close(self):
