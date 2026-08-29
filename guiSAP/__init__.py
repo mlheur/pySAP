@@ -124,9 +124,9 @@ class guiSAP(object):
             self.components.append(_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
         self.rgm.pack()
 
-        self.rgm.refreshwnd()
+        self.rgm.redraw()
         self.gm.tkwnd.geometry(f'{self.gm.tkwnd.winfo_width()}x{self.gm.tkwnd.winfo_height()}+{10+self.rgm.tkwnd.winfo_width()}+0')
-        self.gm.refreshwnd()
+        self.gm.redraw()
         self.clk_ctl = guiClock(
             clk,
             self.gm,
@@ -139,9 +139,9 @@ class guiSAP(object):
         for comp in self.components:
             comp.redraw()
         if self.cpu.oflags['Lr'].istrue():
-            self.rgm.refreshwnd()
-        self.gm.refreshwnd()
-        self.clk_ctl.refreshwnd()
+            self.rgm.redraw()
+        self.gm.redraw()
+        self.clk_ctl.redraw()
 
     # Tk nuance.
     def wait_for_close(self):
@@ -157,6 +157,8 @@ class guiSAP(object):
                 self.gm.tkwnd.update()
                 self.rgm.tkwnd.update()
                 self.clk_ctl.tkwnd.update()
+            except KeyboardInterrupt as KE:
+                raise(KE)
             except:
                 break
         self.gm.tkwnd.quit()

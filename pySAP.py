@@ -11,6 +11,7 @@ from ctl import CtlSeq
 from instruction_set import instruction_set as ISA
 from cpu import CPU
 
+from tkinter import *
 
 class SAPisa(ISA):
 
@@ -251,12 +252,15 @@ if __name__ == "__main__":
     from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    if WithProfiling:
-        from cProfile import Profile
-        from pstats import Stats, SortKey
-        with Profile() as pr:
+    try:
+        if WithProfiling:
+            from cProfile import Profile
+            from pstats import Stats, SortKey
+            with Profile() as pr:
+                clk.run()
+            Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
+        else:
             clk.run()
-        Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
-    else:
-        clk.run()
+    except TclError as E:
+        pass
     gui.wait_for_close()

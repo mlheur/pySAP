@@ -47,7 +47,7 @@ class CtlSeq():
                     self.micro = self.CROM[microaddr]
                 except KeyError:
                     print(f'Invalid opcode: 0x{self.cpu.ir.value:02X} at address 0x{self.cpu.pc.value:02X}')
-                    input("Press Enter to continue (this may conflict with 0Hz operation)")
+                    input("Press [Enter] to continue")
                     for F in self.cpu.oflags:
                         self.cpu.oflags[F].settruth(False)
                     self.ResetT.settruth(True)
@@ -70,11 +70,9 @@ class CtlSeq():
             component.tick()
         # Update GUI
 #        T0 = perf_counter()
-        try:
-            for subby in subscribers:
+        for subby in subscribers:
+            if hasattr(subby,"clock"):
                 subby.clock()
-        except Exception as E:
-            self.cpu.oflags['HLT'].settruth(True)
 #        T1 = perf_counter()
 #        print(f'REAL: T1-T0 = {T1-T0:.5f}')
         if self.cpu.oflags['HLT'].istrue():

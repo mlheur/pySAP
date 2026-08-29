@@ -39,13 +39,15 @@ class Clock():
             dT = self.performance['current'] - self.performance['started']
             self.performance['value'] = self.performance['cycles'] / dT
             #print(f"Average Performance: {self.performance['value']:.2f} Hz, Target: {self.Hz}")
+            for subby in self.subscribers:
+                if hasattr(subby,"update_performance"):
+                    subby.update_performance(self.performance['value'])
             self.reset_performance()
 
     def subscribe(self,subscriber):
         self.subscribers.append(subscriber)
 
     def modify(self,Hz):
-        #self.print_performance()
         self.reset_performance()
         self.Hz         = Hz
         self.freq       = Hz if Hz == 0 else 1/Hz
@@ -61,10 +63,6 @@ class Clock():
         self.performance['cycles'] += 1
         if self.performance['current'] < (self.last_pulse-1):
             self.update_performance()
-        #    self.print_performance()
-        #    self.reset_performance()
-        if self.Hz == 0:
-            print("Press [Enter] to pulse the clock.")
 
     def redraw(self):
         for subby in self.subscribers:
@@ -80,8 +78,6 @@ class Clock():
             self.cpu.setram(ram)
         self.cpu.reset()
         self.redraw()
-        if self.Hz == 0:
-            print("Press [Enter] to pulse the clock.")
         self.reset_performance()
         while (not self.cpu.oflags['HLT'].istrue()):
             if self.Hz == 0:
@@ -92,4 +88,3 @@ class Clock():
                 sleep(Clock.NoTime)
             else:
                 self.pulse()
-        #self.print_performance()

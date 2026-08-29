@@ -117,7 +117,7 @@ class guiMgr(object):
         y2 = y1 + self.get_row_height()
         return x1,y1,x2,y2
 
-    def refreshwnd(self):
+    def redraw(self):
         bDoRedraw = False
         if self.invalidate is not None:
             if self.invalidate:
