@@ -70,8 +70,11 @@ class CtlSeq():
             component.tick()
         # Update GUI
 #        T0 = perf_counter()
-        for subby in subscribers:
-            subby.clock()
+        try:
+            for subby in subscribers:
+                subby.clock()
+        except Exception as E:
+            self.cpu.oflags['HLT'].settruth(True)
 #        T1 = perf_counter()
 #        print(f'REAL: T1-T0 = {T1-T0:.5f}')
         if self.cpu.oflags['HLT'].istrue():
