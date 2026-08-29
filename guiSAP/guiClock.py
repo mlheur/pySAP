@@ -88,7 +88,7 @@ class guiClock(object):
 
     def pulse_clk(self):
         #print("pulse the clock from GUI")
-        self.clk.pulse()
+        self.clk.manual_pulse = True
 
     def redraw(self):
         self.tkwnd.update_idletasks()

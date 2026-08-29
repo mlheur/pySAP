@@ -19,14 +19,8 @@ class Clock():
             'cycles' : 0,
             'value'  : 0,
         }
+        self.manual_pulse = False
         self.modify(Hz)
-        # Spawn a thread that listens for keyboard events to have non-blocking
-        # I/O waiting for manual clock pulse from either the console or the GUI.
-        self.has_enter = False
-        def keyhandler(key):
-            if (self.has_enter == False or self.Hz == 0) and f'{key}' == "Key.enter":
-                self.has_enter = True
-        kbd.Listener(on_press=keyhandler).start()
 
     def reset_performance(self):
         self.performance['started'] = self.last_pulse
@@ -49,9 +43,10 @@ class Clock():
 
     def modify(self,Hz):
         self.reset_performance()
-        self.Hz         = Hz
-        self.freq       = Hz if Hz == 0 else 1/Hz
-        self.last_pulse = max(self.last_pulse, perf_counter() - self.freq)
+        self.Hz           = Hz
+        self.freq         = Hz if Hz == 0 else 1/Hz
+        self.last_pulse   = max(self.last_pulse, perf_counter() - self.freq)
+        self.manual_pulse = Hz != 0
 
     def pulse(self):
         time_delta = perf_counter() - self.last_pulse
@@ -80,11 +75,8 @@ class Clock():
         self.redraw()
         self.reset_performance()
         while (not self.cpu.oflags['HLT'].istrue()):
-            if self.Hz == 0:
+            while self.Hz == 0 and self.manual_pulse == False:
                 self.redraw()
-                if self.has_enter:
-                    self.has_enter = False
-                    self.pulse()
                 sleep(Clock.NoTime)
-            else:
-                self.pulse()
+            self.manual_pulse = False
+            self.pulse()
