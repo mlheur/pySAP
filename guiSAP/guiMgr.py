@@ -24,7 +24,7 @@ class guiMgr(object):
         "TEXT_FG": "#ffb"
     }
 
-    def __init__(self,bitlen,rows,cols,title = "guimgr",
+    def __init__(self,bitlen,rows,cols,title = "guiMgr",
     border = None, ppb = None, label_width = None, font_label_size = None, font_flag_size = None, colors = None, led = None):
         if border is not None: self.BORDER = border
         if ppb is not None: self.PPB = ppb
@@ -47,7 +47,7 @@ class guiMgr(object):
             width         = self.width
         )
         self.label_font   = Font(family=self.FIXEDFONT, size = self.FONT_LABEL_SIZE, weight = 'bold')
-        self.flag_font    = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE, weight = 'bold')
+        self.flag_font    = Font(family=self.FIXEDFONT, size = self.FONT_FLAG_SIZE,  weight = 'bold')
         self.invalidate   = None
 
     def draw_bitfield(self, bf):
