@@ -77,6 +77,10 @@ class Clock():
         while (not self.cpu.oflags['HLT'].istrue()):
             while self.Hz == 0 and self.manual_pulse == False:
                 self.redraw()
+                # Check if any windows are closed, if yes then quit.
+                for subby in self.subscribers:
+                    if hasattr(subby,"count_open_windows") and subby.count_open_windows() < 3:
+                        return
                 sleep(Clock.NoTime)
             self.manual_pulse = False
             self.pulse()

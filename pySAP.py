@@ -264,6 +264,6 @@ if __name__ == "__main__":
             Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
         else:
             clk.run()
-    except TclError as E:
+    except TclError as TE:
         pass
     gui.wait_for_close()

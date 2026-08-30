@@ -145,22 +145,23 @@ class guiSAP(object):
 
     # Tk nuance.
     def wait_for_close(self):
-        bGM = 1
-        bRGM = 1
-        bCLK = 1
-        while bGM + bRGM + bCLK >= 3:
-            try:
-                bGM = self.gm.tkwnd.winfo_ismapped()
-                bRGM = self.rgm.tkwnd.winfo_ismapped()
-                bCLK = self.clk_ctl.tkwnd.winfo_ismapped()
-                sleep(0.01)
-                self.gm.tkwnd.update()
-                self.rgm.tkwnd.update()
-                self.clk_ctl.tkwnd.update()
-            except KeyboardInterrupt as KE:
-                raise(KE)
-            except:
-                break
+        try:
+            while self.count_open_windows() >= 3:
+                sleep(self.clk_ctl.clk.NoTime)
+                self.rgm.redraw()
+                self.gm.redraw()
+                self.clk_ctl.redraw()
+        except KeyboardInterrupt as KE:
+            pass
+        except TclError as TE:
+            pass
         self.gm.tkwnd.quit()
         self.rgm.tkwnd.quit()
         self.clk_ctl.tkwnd.quit()
+
+    def count_open_windows(self):
+        bGM = self.gm.tkwnd.winfo_ismapped()
+        bRGM = self.rgm.tkwnd.winfo_ismapped()
+        bCLK = self.clk_ctl.tkwnd.winfo_ismapped()
+        return bGM + bRGM + bCLK
+
