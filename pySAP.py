@@ -1,3 +1,5 @@
+#!/usr/bin/env ./venv/bin/python3
+
 from clock import Clock
 from register import Register
 from register import StdRegister
@@ -12,6 +14,7 @@ from instruction_set import instruction_set as ISA
 from cpu import CPU
 
 from tkinter import *
+
 
 class SAPisa(ISA):
 
