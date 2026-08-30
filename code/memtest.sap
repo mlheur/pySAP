@@ -42,6 +42,7 @@ STM [PTR]  # memset 0x00->[*PTR] ... saved.
 # ###
 # Decrement the pointer
 LDA [PTR]  # Get the current pointer value
+OUT        # Inform the user the memory cell was good
 SUB [ONE]  # Subtract one
 STA [PTR]  # Save the updated pointer
 SUB [HALF] # Need to check if himem pass is ending...
@@ -89,6 +90,7 @@ SUB [ALL5+128]
 JNZ [ERR+128]
 STM [PTR+128]  # memset 0x00->[*PTR] ... saved.
 LDA [PTR+128]
+OUT        # Inform the user the memory cell was good
 JMP [NEXT_HIMEM+128]
 
 
@@ -114,11 +116,3 @@ LDA [PTR] OUT HLT # Print the pointer value and quit
 :ALLA   0xAA # Constant for arithmatic
 :ALL5   0x55 # Constant for arithmatic
 :END_OF_PROGRAM
-
-
-# # SAVING FOR LATER USE to end after testing lowmem.
-# SUB [ONE]   # Decrement it
-# JZ [EXIT]   # Quit when done
-# :SAVE_DECREMENTED_ADDRESS
-# STA 0xFF
-# JMP [TOP_OF_LOOP_EVEN]
