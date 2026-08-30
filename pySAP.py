@@ -212,6 +212,7 @@ if __name__ == "__main__":
     Hz = None
     WithProfiling = False
     DollarZero = argv.pop(0)
+    OldGUI = False
     while len(argv) > 0:
         arg = argv.pop(0)
         if arg[0] == "-":
@@ -228,6 +229,9 @@ if __name__ == "__main__":
                 continue
             elif arg == "-Hz":
                 Hz=int(argv.pop(0))
+                continue
+            elif arg == "-og":
+                OldGUI = True
                 continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
@@ -252,7 +256,10 @@ if __name__ == "__main__":
     sap = pySAP(isa=isa,code=code)
     clk = Clock(cpu=sap,Hz=5000 if FastClock else Hz)
 
-    from guiSAP import guiSAP as GUI
+    if OldGUI:
+        from oldGUI import guiSAP as GUI
+    else:
+        from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
     try:

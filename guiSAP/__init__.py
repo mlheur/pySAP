@@ -1,167 +1,278 @@
-from tkinter import *
-from .guiMgr import guiMgr
-from .guiScrolling import guiScrolling
-from .guiClock import guiClock
+from .WindowMgr import WindowMgr
+from .guiBitfield import guiBitfield
 
-from time import sleep
-
-
-# Generic class for handling any kind of bitfield.
-# This should be subclassed by a component that has
-# some kind of binary value to display.
-class _bitfield(object):
-    def __init__(self, gm, name, row, col, color, justify = "left"):
-        self.gm = gm
-        self.name = name
-        self.row = row
-        self.col = col
-        self.color = color
-        if self.bitlen is None: self.bitlen = self.gm.bitlen
-        self.justify = justify
-        self.coords = self.gm.draw_bitfield(self)
-        self.bits = list()
-        for bitpos in range(self.bitlen):
-            self.bits.append(self.gm.draw_bit(self,bitpos))
-        self.oldValue = None
-
-    def redraw(self,value):
-        if self.oldValue is not None and self.oldValue == value:
-            return
-        self.oldValue = value
-        for bitpos,bitID in enumerate(self.bits):
-            bitval = 0b1 & (value >> bitpos)
-            self.gm.update_bit(self,bitID,bitval)
-
-# Display which T step the controller/sequencer is on.
-class _tstep(_bitfield):
-    def __init__(self, gm, ctlseq, name = "T", row = 0, col = 0, color = "BLUE", justify = "left"):
-        self.ctlseq = ctlseq
-        self.bitlen = 4
-        super().__init__(gm, name, row, col, color, justify = justify)
-    def redraw(self):
-        return super().redraw(self.ctlseq.Tstep)
-
-# Display any standard register (aka CPU word) value.
-class _register(_bitfield):
-    def __init__(self, gm, reg, name, row, col, color = "GREEN", justify = "left"):
-        self.reg = reg
-        self.bitlen = reg.bits
-        super().__init__(gm, name, row, col, color, justify = justify)
-        self.redraw()
-    def redraw(self):
-        return super().redraw(self.reg.value)
-
-# Display any standard register (aka CPU word) value.
-class _bus(_bitfield):
-    def __init__(self, gm, cpu, name, row, col, color = "RED", justify = "left"):
-        self.cpu = cpu
-        self.bitlen = self.cpu.bits
-        super().__init__(gm, name, row, col, color, justify = justify)
-        self.redraw()
-    def redraw(self):
-        return super().redraw(self.cpu.w)
-
-# RAM is a special kind of array of registers, and we
-# display one value based on the pointer in the Memory Address Register (MAR)
-class _ram_register(_bitfield):
-    def __init__(self, gm, cpu, name = "RAM", row = 0, col = 0, color = "RED", justify = "left", address = None):
-        self.cpu = cpu
-        self.bitlen = cpu.bits
-        self.address = address
-        super().__init__(gm, name, row, col, color, justify = justify)
-        self.redraw()
-    def redraw(self):
-        addr = self.cpu.ir.value if self.address is None else self.address
-        return super().redraw(self.cpu.ram.value[addr])
-
-# Flags are different than registers because it's a list of bits rather than a word.
-class _flags(_bitfield):
-    def __init__(self, gm, flags, name, row, col, color = "CYAN", justify = "left"):
-        self.flags = flags
-        self.bitlen = len(self.flags)
-        super().__init__(gm, name, row, col, color, justify = justify)
-        for fname in self.flags.keys():
-            label = fname
-            label_color = "#303"
-            if self.flags[fname].inv == 1:
-                # label = "-{}-".format(fname)
-                label_color = "#f9f"
-            gm.draw_bit_label(self, self.flags[fname].pos, label, label_color)
-    def redraw(self):
-        result = 0
-        for fname in (self.flags.keys()):
-            #print("fname=[{}] value=[{}] pos=[{}]".format(fname,self.flags[fname].value,self.flags[fname].pos))
-            result |= ( self.flags[fname].value << self.flags[fname].pos )
-        #print("resulting value=[{}]".format(result))
-        return super().redraw(result)
-
-
-# The collection of gui components specific to pySAP1 cpu type.
 class guiSAP(object):
     def __init__(self,cpu,clk):
+        clk.subscribe(self)
         self.cpu = cpu
-        clk.subscribe(self) # Ask the clock to notify us on each pulse.
-        self.gm = guiMgr(bitlen = self.cpu.bits, rows = 5, cols = 3, title = "SAP CPU: Registers, Flags and Control Lines")
+        self.clk = clk
+        self.mgr = WindowMgr(self)
 
-        self.components = list()
-        self.components.append(_tstep(   self.gm, self.cpu.ctlseq, name = "T",    row = 0, col = 0, justify = "left"))
-        self.components.append(_register(self.gm, self.cpu.mar,    name = "MAR",  row = 1, col = 0, justify = "right"))
-        self.components.append(_ram_register(self.gm, self.cpu,                   row = 2, col = 0))
-        self.components.append(_register(self.gm, self.cpu.ir,     name = "IR",   row = 3, col = 0))
-        self.components.append(_flags(   self.gm, self.cpu.iflags, name = "FLG",  row = 4, col = 0, justify = "left"))
-        self.components.append(_register(self.gm, self.cpu.pc,     name = "PC",   row = 0, col = 2, justify = "right"))
-        self.components.append(_register(self.gm, self.cpu.a,      name = "A",    row = 1, col = 2))
-        self.components.append(_register(self.gm, self.cpu.alu,    name = "ALU",  row = 2, col = 2, color = "YELLOW"))
-        self.components.append(_register(self.gm, self.cpu.b,      name = "B",    row = 3, col = 2))
-        self.components.append(_register(self.gm, self.cpu.out,    name = "OUT",  row = 3, col = 1, color = "WHITE"))
-        self.components.append(_flags(   self.gm, self.cpu.oflags, name = "CTL",  row = 4, col = 2, color = "MAGENTA", justify = "right"))
-        self.components.append(_bus(     self.gm, self.cpu,        name = "BUS",  row = 1, col = 1))
-        self.gm.pack()
+        # Lambda functions to be called in by bitfield drawing routines
+        def getFlags(flagset):
+            result = 0
+            for f in flagset:
+                result |= flagset[f].value << flagset[f].pos
+            return result
 
-        self.rgm = guiScrolling( bitlen = self.cpu.bits, cols = 1, rows = 2**self.cpu.addrlen, title = "RAM",
-        border = 1, ppb = 16, label_width = 120, font_label_size = 12 )
-        for addr in range(2**self.cpu.addrlen):
-            self.components.append(_ram_register(self.rgm, self.cpu, row = addr, col = 0, address=addr, name = "0x{:02X}".format(addr)))
-        self.rgm.pack()
+        def getInputFlags():
+            return getFlags(self.cpu.iflags)
 
-        self.rgm.redraw()
-        self.gm.tkwnd.geometry(f'{self.gm.tkwnd.winfo_width()}x{self.gm.tkwnd.winfo_height()}+{10+self.rgm.tkwnd.winfo_width()}+0')
-        self.gm.redraw()
-        self.clk_ctl = guiClock(
-            clk,
-            self.gm,
-            self.rgm.tkwnd.winfo_width(),
-            self.gm.tkwnd.winfo_height()
+        def getOutputFlags():
+            return getFlags(self.cpu.oflags)
+
+        self.windows = {
+            'CPU': self.mgr.createWindow(
+                title = "CPU: Registers, Flags and Control Lines",
+            ),
+            'RAM': self.mgr.createScrollingWindow(
+                self.cpu.ram.bits,
+                2**self.cpu.mar.bits,
+                title = "RAM",
+            ),
+            #'CLK': self.mgr.createWindow(
+                #title = "Clock",
+            #),
+        }
+
+        self.components = []
+
+        for addr in range(2**self.cpu.mar.bits):
+            memCell = guiBitfield(
+                getValue  = lambda : self.cpu.ram.value[addr],
+                wordSize  = self.cpu.ram.bits,
+                color     = "RED",
+                title     = f'0x{addr:04X}',
+                profile   = "SML",
+            )
+            self.mgr.placeComponentAt(
+                self.windows['RAM'],
+                memCell,
+                row       = addr,
+                col       = 0,
+                sticky    = "e",
+            )
+        # Resize and position the RAM window on the left of the screen
+        self.mgr.refreshWindows()
+
+        ###
+        # COLUMN 1
+        ###
+
+        # Draw the Tstep from the Ring Counter
+        guiTstep = guiBitfield(
+            getValue  = lambda : self.cpu.ctlseq.Tstep,
+            wordSize  = 4,
+            color     = "BLUE",
+            title     = "T",
         )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiTstep,
+            row        = 0,
+            col        = 0,
+            columnspan = 2,
+            sticky     = "e"
+        )
+        self.components.append(guiTstep)
 
-    # Redraw the bitfields after each clock cycle, must be subscribed to the clock.
+        # Draw the Memory Address Register
+        guiMAR = guiBitfield(
+            getValue  = lambda : self.cpu.mar.value,
+            wordSize  = self.cpu.mar.bits,
+            color     = "GREEN",
+            title     = "MAR"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiMAR,
+            row        = 1,
+            col        = 0,
+            columnspan = 2,
+        )
+        self.components.append(guiMAR)
+
+        # Draw the current RAM value
+        guiRAM = guiBitfield(
+            getValue  = lambda : self.cpu.ram.value[self.cpu.mar.value],
+            wordSize  = self.cpu.ram.bits,
+            color     = "RED",
+            title     = "RAM",
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiRAM,
+            row        = 2,
+            col        = 0,
+            columnspan = 2,
+        )
+        self.components.append(guiRAM)
+
+        # Draw the current Instruction Register value
+        guiIR = guiBitfield(
+            getValue  = lambda : self.cpu.ir.value,
+            wordSize  = self.cpu.ir.bits,
+            color     = "GREEN",
+            title     = "IR"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiIR,
+            row        = 3,
+            col        = 0,
+            columnspan = 2,
+        )
+        self.components.append(guiIR)
+
+        # Draw the current Input Flags
+        guiFlags = guiBitfield(
+            getValue  = getInputFlags,
+            wordSize  = len(self.cpu.iflags),
+            color     = "CYAN",
+            title     = "FLG",
+            flags     = self.cpu.iflags,
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiFlags,
+            row        = 4,
+            col        = 0,
+            columnspan = 1,
+        )
+        self.components.append(guiFlags)
+
+        #####
+        # COLUMN 2
+        #####
+
+        # Draw the current Bus value
+        guiBUS = guiBitfield(
+            getValue  = lambda : self.cpu.w,
+            wordSize  = 8,
+            color     = "RED",
+            title     = "BUS"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiBUS,
+            row        = 1,
+            col        = 2,
+            columnspan = 2,
+        )
+        self.components.append(guiBUS)
+
+        # Draw the current OUT1 value
+        guiOUT = guiBitfield(
+            getValue  = lambda : self.cpu.out.value,
+            wordSize  = self.cpu.out.bits,
+            color     = "WHITE",
+            title     = "OUT"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiOUT,
+            row        = 3,
+            col        = 2,
+            columnspan = 2,
+        )
+        self.components.append(guiOUT)
+
+        #####
+        # COLUMN 3
+        #####
+
+        # Draw the current Program Counter valuewinfo screenheight
+        guiPC = guiBitfield(
+            getValue  = lambda : self.cpu.pc.value,
+            wordSize  = self.cpu.pc.bits,
+            color     = "GREEN",
+            title     = "PC"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiPC,
+            row        = 0,
+            col        = 4,
+            columnspan = 2,
+        )
+        self.components.append(guiPC)
+
+        # Draw the current A register value
+        guiA = guiBitfield(
+            getValue  = lambda : self.cpu.a.value,
+            wordSize  = self.cpu.a.bits,
+            color     = "GREEN",
+            title     = "A"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiA,
+            row        = 1,
+            col        = 4,
+            columnspan = 2,
+        )
+        self.components.append(guiA)
+
+        # Draw the current A register value
+        guiALU = guiBitfield(
+            getValue  = lambda : self.cpu.alu.value,
+            wordSize  = self.cpu.alu.bits,
+            color     = "YELLOW",
+            title     = "ALU"
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiALU,
+            row        = 2,
+            col        = 4,
+            columnspan = 2,
+        )
+        self.components.append(guiALU)
+
+        # Draw the current B register value
+        guiB = guiBitfield(
+            getValue  = lambda : self.cpu.b.value,
+            wordSize  = self.cpu.b.bits,
+            color     = "GREEN",
+            title     = "B",
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiB,
+            row        = 3,
+            col        = 4,
+            columnspan = 2,
+        )
+        self.components.append(guiB)
+
+        # Draw the current Output Control Lines
+        guiCtls = guiBitfield(
+            getValue  = getOutputFlags,
+            wordSize  = len(self.cpu.oflags),
+            color     = "MAGENTA",
+            title     = "CTL",
+            flags     = self.cpu.oflags,
+        )
+        self.mgr.placeComponentAt(
+            self.windows['CPU'],
+            guiCtls,
+            row        = 4,
+            col        = 1,
+            columnspan = 5,
+            sticky     = "E",
+        )
+        self.components.append(guiCtls)
+
+        self.mgr.refreshWindows()
+
+    def redraw(self):
+        self.mgr.refreshWindows()
+
     def clock(self):
-        for comp in self.components:
-            comp.redraw()
-        if self.cpu.oflags['Lr'].istrue():
-            self.rgm.redraw()
-        self.gm.redraw()
-        self.clk_ctl.redraw()
+        self.mgr.updateComponents(self.components)
+        self.mgr.refreshWindows()
 
-    # Tk nuance.
     def wait_for_close(self):
-        try:
-            while self.count_open_windows() >= 3:
-                sleep(self.clk_ctl.clk.NoTime)
-                self.rgm.redraw()
-                self.gm.redraw()
-                self.clk_ctl.redraw()
-        except KeyboardInterrupt as KE:
-            pass
-        except TclError as TE:
-            pass
-        self.gm.tkwnd.quit()
-        self.rgm.tkwnd.quit()
-        self.clk_ctl.tkwnd.quit()
-
-    def count_open_windows(self):
-        bGM = self.gm.tkwnd.winfo_ismapped()
-        bRGM = self.rgm.tkwnd.winfo_ismapped()
-        bCLK = self.clk_ctl.tkwnd.winfo_ismapped()
-        return bGM + bRGM + bCLK
-
+        self.mgr.refreshWindows()
+        self.mgr.mainloop()
+        self.mgr.close()
