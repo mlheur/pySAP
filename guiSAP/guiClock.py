@@ -34,10 +34,13 @@ class guiClock(object):
         )
 
         self.hz_tracker = tk.StringVar(self.tkwnd)
-        spinvals = []
-        for i in (0,1,2,3,4,5,10,25,50,100,250,500,1000,2000,5000):
-        #for i in range(0,51):
-            spinvals.append(str(i))
+        spinvals = [0]
+        stops = [1,2,5]
+        for exp in range(4):
+            for stop in stops:
+                n = stop * (10**exp)
+                spinvals.append(str(n))
+        #print(f'spinvals={spinvals}')
         self.hz_spinner = tk.Spinbox(
             self.tkwnd,
             values = spinvals,
