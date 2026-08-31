@@ -51,6 +51,8 @@ class guiSAP(object):
                 row       = addr,
                 col       = 0,
                 sticky    = "e",
+                padx      = 0,
+                pady      = 0,
             )
         # Resize and position the RAM window on the left of the screen
         self.mgr.refreshWindows()
@@ -275,4 +277,4 @@ class guiSAP(object):
     def wait_for_close(self):
         self.mgr.refreshWindows()
         self.mgr.mainloop()
-        self.mgr.close()
+        self.mgr.quit()
