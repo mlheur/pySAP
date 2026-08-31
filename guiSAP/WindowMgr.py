@@ -2,23 +2,25 @@ from tkinter import Tk, Toplevel, Canvas, Frame, Scrollbar
 from tkinter.font import Font
 
 FONT="Tlwg Mono"
+WMGR_X=24
+WMGR_Y=50
 
 PROFILES = {
     "BIG": {
-        "LABEL_WIDTH"   :  56,
+        "LABEL_WIDTH"   :  48,
         "LABEL_PADDING" :   2,
         "BULB_DIAMETER" :  24,
-        "BULB_SPACING"  :   2,
-        "EXTRA_PAD"     :   0,
+        "BULB_SPACING"  :   1,
+        "PADDING"       :   1,
         "FONT_SIZE"     :  16,
         "FLAG_SIZE"     :   8,
     },
     "SML": {
-        "LABEL_WIDTH"   :  60,
-        "LABEL_PADDING" :   0,
-        "BULB_DIAMETER" :  12,
+        "LABEL_WIDTH"   :  40,
+        "LABEL_PADDING" :   1,
+        "BULB_DIAMETER" :   8,
         "BULB_SPACING"  :   0,
-        "EXTRA_PAD"     :   1,
+        "PADDING"       :   0,
         "FONT_SIZE"     :   8,
         "FLAG_SIZE"     :   8,
     },
@@ -32,7 +34,7 @@ PROFILES = {
         "WHITE":   {"ON":"#FFF", "OFF":"#666"},
     },
     "COLORS": {
-        "BG":      "#444",
+        "BG":      "#555",
         "TEXT_BG": "#222",
         "TEXT_FG": "#ffb",
         "FLAG_IN": "#303",
@@ -62,6 +64,12 @@ class WindowMgr(object):
                     weight = "bold",
                 )
 
+    def getWmgrX(self):
+        return WMGR_X
+
+    def getWmgrY(self):
+        return WMGR_Y
+
     def quit(self):
         self.tkwnd.destroy()
 
@@ -71,18 +79,20 @@ class WindowMgr(object):
         if profile not in self._dimCache:
             self._dimCache[profile] = dict()
 
-        outer_diameter_bulbs = PROFILES[profile]["BULB_DIAMETER"] + ( 2 * PROFILES[profile]["BULB_SPACING"])
+        thisProfile = PROFILES[profile]
+
+        outer_diameter_bulbs = thisProfile["BULB_DIAMETER"] + ( 2 * thisProfile["BULB_SPACING"] )
         width_of_all_bulbs = nBulbs * outer_diameter_bulbs
         dim = {
             "width": {
                 "bulbs"    : width_of_all_bulbs,
-                "label"    : PROFILES[profile]["LABEL_WIDTH"],
-                "component": PROFILES[profile]["LABEL_WIDTH"] + width_of_all_bulbs,
+                "label"    : thisProfile["LABEL_WIDTH"],
+                "component": thisProfile["LABEL_WIDTH"] + width_of_all_bulbs + ( 2 * thisProfile["PADDING"] ),
             },
             "height": {
                 "bulbs"    : outer_diameter_bulbs,
                 "label"    : outer_diameter_bulbs,
-                "component": outer_diameter_bulbs,
+                "component": outer_diameter_bulbs + ( 2 * thisProfile["PADDING"] ),
             },
         }
         self._dimCache[profile][nBulbs] = dict(dim)
@@ -107,14 +117,14 @@ class WindowMgr(object):
         total_height         = nCells * (2+component_dimensions["height"]["component"])
         window_dimensions = {
             "width": {
-                "subwindow" : 2 + component_dimensions["width"]["component"],
-                "clientarea": 1 + component_dimensions["width"]["component"] + self.SCROLLBAR_WIDTH,
-                "dressings" : -11,
+                "subwindow" : component_dimensions["width"]["component"],
+                "clientarea": component_dimensions["width"]["component"] + self.SCROLLBAR_WIDTH,
+                "dressings" : 2,
             },
             "height": {
                 "subwindow" : total_height,
                 "clientarea": total_height + self.SCROLLBAR_WIDTH,
-                "dressings" : -12,
+                "dressings" : 0,
             },
         }
 
@@ -124,10 +134,17 @@ class WindowMgr(object):
         print(f'hwnd.geometry({_w}x{_h}+0+0)')
         hWnd.geometry(f'{_w}x{_h}+0+0')
 
+        _w = window_dimensions["width"]["clientarea"]
+        _h = window_dimensions["height"]["clientarea"]
+        print(f'hScrollCanvas({_w}x{_h}+0+0)')
         hScrollCanvas = Canvas(
             hWnd,
-            bg           = "#000",
-            scrollregion = (0,0,_w,_h),
+            width              = _w,
+            height             = _h,
+            bg                 = "#080",
+            scrollregion       = (0,0,_w,_h),
+            bd                 = 0,
+            highlightthickness = 0,
         )
         hBar = Scrollbar(
             hWnd,
@@ -144,6 +161,9 @@ class WindowMgr(object):
         )
         vBar.pack(side="right", fill="y")
 
+        _w = window_dimensions["width"]["clientarea"]
+        _h = window_dimensions["height"]["clientarea"]
+        print(f'hScrollCanvas.configure({_w}x{_h}+0+0)')
         hScrollCanvas.configure(
             xscrollcommand = hBar.set,
             yscrollcommand = vBar.set,
@@ -197,8 +217,8 @@ class WindowMgr(object):
         col,
         columnspan = 1,
         sticky     = "w",
-        padx       = 0,
-        pady       = 0,
+        padx       = 1,
+        pady       = 1,
     ):
         sizeProfile = PROFILES[hBitfield.guiData["profile"]]
         component_dimensions = self.getDimension(hBitfield.guiData["profile"],hBitfield.wordSize)
@@ -215,9 +235,10 @@ class WindowMgr(object):
         # Put the label on the left side of the canvas
         hBitfield.guiData["canvas"].create_rectangle(
             0,0,
-            sizeProfile["LABEL_WIDTH"],
-            component_dimensions["height"]["label"]+2,
+            sizeProfile["LABEL_WIDTH"]-1,
+            component_dimensions["height"]["label"]-1,
             fill               = PROFILES["COLORS"]["TEXT_BG"],
+            outline            = PROFILES["COLORS"]["TEXT_BG"],
         )
         hBitfield.guiData["label"] = hBitfield.guiData["canvas"].create_text(
             sizeProfile["LABEL_WIDTH"] - sizeProfile["LABEL_PADDING"],
@@ -262,7 +283,7 @@ class WindowMgr(object):
                     state = "hidden"
                 #print(f'bitPos={bitPos} bitVal={bitVal} x1={x1} x2={x2} y1={y1} y2={y2} FarX={FarX} STATE={STATE} state={state}')
                 bitBulbs[STATE] = hBitfield.guiData["canvas"].create_oval(
-                    x1+1,y1+1,
+                    x1,y1,
                     x2+1,y2+1,
                     fill    = PROFILES["LED"][hBitfield.guiData["color"]][STATE],
                     outline = PROFILES["LED"][hBitfield.guiData["color"]]["OFF"] if STATE == "ON" else "black",
@@ -278,5 +299,5 @@ class WindowMgr(object):
                     fill  = bulbInvers[bitPos],
                     font  = sizeProfile["flagFont"]
                 )
-        hBitfield.guiData["canvas"].grid(row=row,column=col,sticky=sticky,padx=0,pady=0,ipadx=0,ipady=0,columnspan=columnspan)
+        hBitfield.guiData["canvas"].grid(row=row,column=col,sticky=sticky,padx=padx,pady=pady,ipadx=0,ipady=0,columnspan=columnspan)
         #print(f'bulbs={hBitfield.guiData["bulbs"]}')

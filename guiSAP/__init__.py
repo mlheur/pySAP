@@ -266,6 +266,11 @@ class guiSAP(object):
         self.components.append(guiCtls)
 
         self.mgr.refreshWindows()
+        xoff = self.windows['RAM'].winfo_width() + self.mgr.getWmgrX()
+        _w = self.windows['CPU'].winfo_width()
+        _h = self.windows['CPU'].winfo_height()
+        self.windows['CPU'].geometry(f'{_w}x{_h}+{xoff}+0')
+        self.mgr.refreshWindows()
 
     def redraw(self):
         self.mgr.refreshWindows()
