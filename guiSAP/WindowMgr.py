@@ -5,7 +5,7 @@ FONT="Tlwg Mono"
 
 PROFILES = {
     "BIG": {
-        "LABEL_WIDTH"   :  60,
+        "LABEL_WIDTH"   :  56,
         "LABEL_PADDING" :   2,
         "BULB_DIAMETER" :  24,
         "BULB_SPACING"  :   2,
@@ -92,7 +92,7 @@ class WindowMgr(object):
         self,
         title = "WindowMgr.bitlistcreateWindow()",
     ):
-        hWnd = Toplevel(self.tkroot)
+        hWnd = Toplevel(self.tkroot,bg=PROFILES["COLORS"]["BG"])
         hWnd.title(title)
         return hWnd
 
@@ -206,17 +206,18 @@ class WindowMgr(object):
         # Create the canvas
         hBitfield.guiData["canvas"] = Canvas(
             hWnd,
-            width  = component_dimensions["width"]["component"],
-            height = component_dimensions["height"]["component"],
-            bg     = PROFILES["COLORS"]["BG"],
-            bd     = 0,
+            width              = component_dimensions["width"]["component"],
+            height             = component_dimensions["height"]["component"],
+            bg                 = PROFILES["COLORS"]["BG"],
+            bd                 = 0,
+            highlightthickness = 0,
         )
         # Put the label on the left side of the canvas
         hBitfield.guiData["canvas"].create_rectangle(
             0,0,
             sizeProfile["LABEL_WIDTH"],
-            component_dimensions["height"]["label"],
-            fill    = PROFILES["COLORS"]["TEXT_BG"],
+            component_dimensions["height"]["label"]+2,
+            fill               = PROFILES["COLORS"]["TEXT_BG"],
         )
         hBitfield.guiData["label"] = hBitfield.guiData["canvas"].create_text(
             sizeProfile["LABEL_WIDTH"] - sizeProfile["LABEL_PADDING"],
@@ -226,10 +227,6 @@ class WindowMgr(object):
             anchor  = "e",
             font    = sizeProfile["labelFont"]
         )
-        # Draw the bitfield on the right side of the canvas
-        FarX = component_dimensions["width"]["component"]
-        y1 = sizeProfile["BULB_SPACING"]
-        y2 = y1 + sizeProfile["BULB_DIAMETER"] - 1
 
         bulbLabels = dict()
         bulbInvers = dict()
@@ -242,6 +239,11 @@ class WindowMgr(object):
                 else:
                     bulbInvers[hFlag.pos] = PROFILES["COLORS"]["FLAG_OV"]
 
+
+        # Draw the bitfield on the right side of the canvas
+        FarX = component_dimensions["width"]["component"]
+        y1 = sizeProfile["BULB_SPACING"]
+        y2 = y1 + sizeProfile["BULB_DIAMETER"] - 2
         for bitPos,bitVal in enumerate(hBitfield):
             # For efficiency, draw now both the lit and unlit versionsBULB_SPACING
             # later, just toggle the visibility of it.
@@ -251,7 +253,7 @@ class WindowMgr(object):
             }
             FarX -= component_dimensions["height"]["bulbs"]
             x1 = FarX + sizeProfile["BULB_SPACING"]
-            x2 = x1 + sizeProfile["BULB_DIAMETER"] - 1
+            x2 = x1 + sizeProfile["BULB_DIAMETER"] - 2
             for STATE in bitBulbs:
                 if (STATE == "ON" and bitVal) or (STATE == "OFF" and not bitVal):
                     state = "normal"
