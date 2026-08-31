@@ -6,16 +6,17 @@ BLOCK_SIZE  = 100
 BORDER_SIZE = 10
 
 class guiClockCtl(object):
-    def __init__(self,cpu,clk,hWnd):
+    def __init__(self,cpu,mgr,clk):
         clk.subscribe(self)
-        self.clk  = clk
         self.cpu  = cpu
-        self.hWnd = hWnd
-        # Reset the window to match its contents
+        self.mgr  = mgr
+        self.clk  = clk
+        self.hWnd = self.mgr.createWindow(title = "Clock Controller")
+        # Resize the window to match its contents
         self.hWnd.geometry(f'{2*BLOCK_SIZE}x{BLOCK_SIZE}+0+0')
         # Left Half: The Hz selector and display
         self.ticker = Canvas(
-            hWnd,
+            self.hWnd,
             width              = BLOCK_SIZE,
             height             = BLOCK_SIZE,
             bg                 = "#000",
@@ -80,7 +81,7 @@ class guiClockCtl(object):
         self.hz_spinner.place(x=50,y=50,in_=self.ticker,anchor="center")
         # Right Half: The manual clock pulsing button
         self.pulser = Canvas(
-            hWnd,
+            self.hWnd,
             width              = BLOCK_SIZE,
             height             = BLOCK_SIZE,
             bg                 = "#000",

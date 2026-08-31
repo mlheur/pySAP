@@ -190,7 +190,7 @@ class WindowMgr(object):
 
     def updateComponents(self,components):
         for hBitfield in components:
-            curValue = hBitfield.getValue()
+            curValue = hBitfield.get()
             hBitfield.iterVal = curValue
             if hBitfield.guiData["lastValue"] != curValue:
                 hBitfield.guiData["lastValue"] = curValue

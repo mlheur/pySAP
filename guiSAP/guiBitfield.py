@@ -3,27 +3,36 @@
 class guiBitfield(object):
     def __init__(
         self,
-        getValue,
         wordSize,
         color,
         title,
-        profile = "BIG",
-        flags   = None,
+        getValue     = None,
+        getAddrValue = None,
+        addr         = None,
+        profile      = "BIG",
+        flags        = None,
     ):
-        self.getValue  = getValue
-        self.wordSize  = wordSize
-        self.iterPtr   = None
-        self.iterVal   = None
-        self.guiData   = {
-            "title"    : title,
-            "canvas"   : None,
-            "label"    : None,
-            "bulbs"    : list(),
-            "profile"  : profile,
-            "color"    : color,
-            "lastValue": None,
-            "flags"    : flags,
+        self.getValue     = getValue
+        self.getAddrValue = getAddrValue
+        self.addr         = addr
+        self.wordSize     = wordSize
+        self.iterPtr      = None
+        self.iterVal      = None
+        self.guiData      = {
+            "title"     : title,
+            "canvas"    : None,
+            "label"     : None,
+            "bulbs"     : list(),
+            "profile"   : profile,
+            "color"     : color,
+            "lastValue" : None,
+            "flags"     : flags,
         }
+
+    def get(self):
+        if self.addr is not None:
+            return self.getAddrValue(self.addr)
+        return self.getValue()
 
     def __iter__(self):
         return self
@@ -32,7 +41,7 @@ class guiBitfield(object):
         if self.iterPtr is None:
             self.iterPtr = 0
             if self.iterVal is None:
-                self.iterVal = self.getValue()
+                self.iterVal = self.get()
         if self.iterPtr >= self.wordSize:
             self.iterPtr = None
             self.iterVal = None
