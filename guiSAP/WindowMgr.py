@@ -3,7 +3,7 @@ from tkinter.font import Font
 
 FONT="Tlwg Mono"
 WMGR_X=24
-WMGR_Y=50
+WMGR_Y=60
 
 PROFILES = {
     "BIG": {
@@ -52,13 +52,13 @@ class WindowMgr(object):
 
         for P in PROFILES:
             if "FONT_SIZE" in PROFILES[P]:
-                PROFILES[P]["labelFont"] = Font(
+                PROFILES[P]["label_font"] = Font(
                     family = FONT,
                     size   = PROFILES[P]["FONT_SIZE"],
                     weight = "bold",
                 )
             if "FLAG_SIZE" in PROFILES[P]:
-                PROFILES[P]["flagFont"] = Font(
+                PROFILES[P]["flag_font"] = Font(
                     family = FONT,
                     size   = PROFILES[P]["FLAG_SIZE"],
                     weight = "bold",
@@ -131,12 +131,12 @@ class WindowMgr(object):
         hWnd = WindowMgr.createWindow(self,title)
         _w = window_dimensions["width"]["dressings"]  + window_dimensions["width"]["clientarea"]
         _h = window_dimensions["height"]["dressings"] + window_dimensions["height"]["clientarea"]
-        print(f'hwnd.geometry({_w}x{_h}+0+0)')
+        #print(f'hwnd.geometry({_w}x{_h}+0+0)')
         hWnd.geometry(f'{_w}x{_h}+0+0')
 
         _w = window_dimensions["width"]["clientarea"]
         _h = window_dimensions["height"]["clientarea"]
-        print(f'hScrollCanvas({_w}x{_h}+0+0)')
+        #print(f'hScrollCanvas({_w}x{_h}+0+0)')
         hScrollCanvas = Canvas(
             hWnd,
             width              = _w,
@@ -163,7 +163,7 @@ class WindowMgr(object):
 
         _w = window_dimensions["width"]["clientarea"]
         _h = window_dimensions["height"]["clientarea"]
-        print(f'hScrollCanvas.configure({_w}x{_h}+0+0)')
+        #print(f'hScrollCanvas.configure({_w}x{_h}+0+0)')
         hScrollCanvas.configure(
             xscrollcommand = hBar.set,
             yscrollcommand = vBar.set,
@@ -200,14 +200,14 @@ class WindowMgr(object):
                 for bitPos,bitVal in enumerate(hBitfield):
                     if bitVal:
                         # hide the OFF bulb
-                        hCanvas.itemconfigure(hBulbs[bitPos]["OFF"],state="hidden")
+                        #hCanvas.itemconfigure(hBulbs[bitPos]["OFF"],state="hidden")
                         # show the ON bulb
                         hCanvas.itemconfigure(hBulbs[bitPos]["ON"],state="normal")
                     else:
                         # hide the ON bulb
                         hCanvas.itemconfigure(hBulbs[bitPos]["ON"],state="hidden")
                         # show the OFF bulb
-                        hCanvas.itemconfigure(hBulbs[bitPos]["OFF"],state="normal")
+                        #hCanvas.itemconfigure(hBulbs[bitPos]["OFF"],state="normal")
 
     def placeComponentAt(
         self,
@@ -246,7 +246,7 @@ class WindowMgr(object):
             fill    = PROFILES["COLORS"]["TEXT_FG"],
             text    = hBitfield.guiData["title"],
             anchor  = "e",
-            font    = sizeProfile["labelFont"]
+            font    = sizeProfile["label_font"]
         )
 
         bulbLabels = dict()
@@ -269,25 +269,20 @@ class WindowMgr(object):
             # For efficiency, draw now both the lit and unlit versionsBULB_SPACING
             # later, just toggle the visibility of it.
             bitBulbs = {
-                "ON": None,
                 "OFF": None,
+                "ON": None,
             }
             FarX -= component_dimensions["height"]["bulbs"]
             x1 = FarX + sizeProfile["BULB_SPACING"]
             x2 = x1 + sizeProfile["BULB_DIAMETER"] - 2
             for STATE in bitBulbs:
-                if (STATE == "ON" and bitVal) or (STATE == "OFF" and not bitVal):
-                    state = "normal"
-
-                else:
-                    state = "hidden"
                 #print(f'bitPos={bitPos} bitVal={bitVal} x1={x1} x2={x2} y1={y1} y2={y2} FarX={FarX} STATE={STATE} state={state}')
                 bitBulbs[STATE] = hBitfield.guiData["canvas"].create_oval(
                     x1,y1,
                     x2+1,y2+1,
                     fill    = PROFILES["LED"][hBitfield.guiData["color"]][STATE],
                     outline = PROFILES["LED"][hBitfield.guiData["color"]]["OFF"] if STATE == "ON" else "black",
-                    state   = state,
+                    state   = "normal",
                 )
             hBitfield.guiData["bulbs"].append(bitBulbs)
             # If the bitfield is a flag, label the bulb
@@ -297,7 +292,7 @@ class WindowMgr(object):
                     y1+(sizeProfile["BULB_DIAMETER"])/2,
                     text  = bulbLabels[bitPos],
                     fill  = bulbInvers[bitPos],
-                    font  = sizeProfile["flagFont"]
+                    font  = sizeProfile["flag_font"]
                 )
         hBitfield.guiData["canvas"].grid(row=row,column=col,sticky=sticky,padx=padx,pady=pady,ipadx=0,ipady=0,columnspan=columnspan)
         #print(f'bulbs={hBitfield.guiData["bulbs"]}')

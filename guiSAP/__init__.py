@@ -1,5 +1,7 @@
 from .WindowMgr import WindowMgr
 from .guiBitfield import guiBitfield
+from .guiClockCtl import guiClockCtl
+
 
 class guiSAP(object):
     def __init__(self,cpu,clk):
@@ -7,20 +9,16 @@ class guiSAP(object):
         self.cpu = cpu
         self.clk = clk
         self.mgr = WindowMgr(self)
-
         # Lambda functions to be called in by bitfield drawing routines
         def getFlags(flagset):
             result = 0
             for f in flagset:
                 result |= flagset[f].value << flagset[f].pos
             return result
-
         def getInputFlags():
             return getFlags(self.cpu.iflags)
-
         def getOutputFlags():
             return getFlags(self.cpu.oflags)
-
         self.windows = {
             'CPU': self.mgr.createWindow(
                 title = "CPU: Registers, Flags and Control Lines",
@@ -30,13 +28,11 @@ class guiSAP(object):
                 2**self.cpu.mar.bits,
                 title = "RAM",
             ),
-            #'CLK': self.mgr.createWindow(
-                #title = "Clock",
-            #),
+            'CLK': self.mgr.createWindow(
+                title = "Clock Controller",
+            ),
         }
-
         self.components = []
-
         for addr in range(2**self.cpu.mar.bits):
             memCell = guiBitfield(
                 getValue  = lambda : self.cpu.ram.value[addr],
@@ -56,11 +52,9 @@ class guiSAP(object):
             )
         # Resize and position the RAM window on the left of the screen
         self.mgr.refreshWindows()
-
         ###
         # COLUMN 1
         ###
-
         # Draw the Tstep from the Ring Counter
         guiTstep = guiBitfield(
             getValue  = lambda : self.cpu.ctlseq.Tstep,
@@ -77,7 +71,6 @@ class guiSAP(object):
             sticky     = "e"
         )
         self.components.append(guiTstep)
-
         # Draw the Memory Address Register
         guiMAR = guiBitfield(
             getValue  = lambda : self.cpu.mar.value,
@@ -93,7 +86,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiMAR)
-
         # Draw the current RAM value
         guiRAM = guiBitfield(
             getValue  = lambda : self.cpu.ram.value[self.cpu.mar.value],
@@ -109,7 +101,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiRAM)
-
         # Draw the current Instruction Register value
         guiIR = guiBitfield(
             getValue  = lambda : self.cpu.ir.value,
@@ -125,7 +116,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiIR)
-
         # Draw the current Input Flags
         guiFlags = guiBitfield(
             getValue  = getInputFlags,
@@ -142,11 +132,9 @@ class guiSAP(object):
             columnspan = 1,
         )
         self.components.append(guiFlags)
-
         #####
         # COLUMN 2
         #####
-
         # Draw the current Bus value
         guiBUS = guiBitfield(
             getValue  = lambda : self.cpu.w,
@@ -162,7 +150,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiBUS)
-
         # Draw the current OUT1 value
         guiOUT = guiBitfield(
             getValue  = lambda : self.cpu.out.value,
@@ -178,11 +165,9 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiOUT)
-
         #####
         # COLUMN 3
         #####
-
         # Draw the current Program Counter valuewinfo screenheight
         guiPC = guiBitfield(
             getValue  = lambda : self.cpu.pc.value,
@@ -198,7 +183,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiPC)
-
         # Draw the current A register value
         guiA = guiBitfield(
             getValue  = lambda : self.cpu.a.value,
@@ -214,7 +198,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiA)
-
         # Draw the current A register value
         guiALU = guiBitfield(
             getValue  = lambda : self.cpu.alu.value,
@@ -230,7 +213,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiALU)
-
         # Draw the current B register value
         guiB = guiBitfield(
             getValue  = lambda : self.cpu.b.value,
@@ -246,7 +228,6 @@ class guiSAP(object):
             columnspan = 2,
         )
         self.components.append(guiB)
-
         # Draw the current Output Control Lines
         guiCtls = guiBitfield(
             getValue  = getOutputFlags,
@@ -264,12 +245,28 @@ class guiSAP(object):
             sticky     = "E",
         )
         self.components.append(guiCtls)
-
+        #####
+        # Draw the window on the screen
+        #####
         self.mgr.refreshWindows()
         xoff = self.windows['RAM'].winfo_width() + self.mgr.getWmgrX()
         _w = self.windows['CPU'].winfo_width()
         _h = self.windows['CPU'].winfo_height()
         self.windows['CPU'].geometry(f'{_w}x{_h}+{xoff}+0')
+        self.mgr.refreshWindows()
+        yoff = self.windows['CPU'].winfo_height() + self.mgr.getWmgrY()
+        #####
+        # Create and draw the clock controller
+        #####
+        self.clock_ctl = guiClockCtl(
+            self.cpu,
+            self.clk,
+            self.windows['CLK'],
+        )
+        self.mgr.refreshWindows()
+        _w = self.windows['CLK'].winfo_width()
+        _h = self.windows['CLK'].winfo_height()
+        self.windows['CLK'].geometry(f'{_w}x{_h}+{xoff}+{yoff}')
         self.mgr.refreshWindows()
 
     def redraw(self):
