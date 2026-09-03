@@ -44,6 +44,7 @@ PROFILES = {
 
 class WindowMgr(object):
     SCROLLBAR_WIDTH = 12
+    RAM_COLUMNS = 4
     def __init__(self,gui):
         self.gui    = gui
         self.tkroot = Tk()
