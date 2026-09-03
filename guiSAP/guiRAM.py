@@ -23,8 +23,8 @@ class guiRAM(object):
             self.mgr.placeComponentAt(
                 self.hWnd,
                 memCell,
-                row       = addr, # int(addr / 4),
-                col       = 0,    # 2 * (addr % 4),
+                row       = int(addr / self.mgr.RAM_COLUMNS),
+                col       = 2 * (addr % self.mgr.RAM_COLUMNS),
                 sticky    = "e",
                 padx      = 0,
                 pady      = 0,
