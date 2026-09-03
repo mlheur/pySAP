@@ -53,5 +53,5 @@ class guiSAP(object):
 
     def wait_for_close(self):
         self.mgr.refreshWindows()
-        self.mgr.mainloop()
+        self.mgr.tkroot.mainloop()
         self.mgr.quit()
