@@ -11,30 +11,33 @@ class guiSAP(object):
         self.cpu = cpu
         self.clk = clk
         self.mgr = WindowMgr(self)
+        # Create a RAM window
         self.ram_window = guiRAM(self.cpu,self.mgr)
         self.mgr.refreshWindows()
+        # Create a CPU window
         self.cpu_window = guiCPU(self.cpu,self.mgr)
         self.mgr.refreshWindows()
+        # Reposition the CPU window adjacent to the RAM window
         xoff = self.ram_window.hWnd.winfo_width() + self.mgr.getWmgrX()
         _w = self.cpu_window.hWnd.winfo_width()
         _h = self.cpu_window.hWnd.winfo_height()
         self.cpu_window.hWnd.geometry(f'{_w}x{_h}+{xoff}+0')
         self.mgr.refreshWindows()
         yoff = self.cpu_window.hWnd.winfo_height() + self.mgr.getWmgrY()
-        #####
-        # Create and draw the clock controller
-        #####
+        # Create a clock-controller window
         self.clock_ctl = guiClockCtl(
             self.cpu,
             self.mgr,
             self.clk,
         )
         self.mgr.refreshWindows()
+        # Reposition the clock-controller window
         _w = self.clock_ctl.hWnd.winfo_width()
         _h = self.clock_ctl.hWnd.winfo_height()
         self.clock_ctl.hWnd.geometry(f'{_w}x{_h}+{xoff}+{yoff}')
         self.mgr.refreshWindows()
         self._previous_latch = None
+        # Update the bulbs' on/off state
         self.clock()
 
     def redraw(self):

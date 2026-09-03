@@ -5,12 +5,17 @@ class guiRAM(object):
     def __init__(self,cpu,mgr):
         self.cpu  = cpu
         self.mgr  = mgr
+        # Create a window with a scrollable client area,
+        # giving it hints to pre-calculate what will be the size and number
+        # of components that will be placed in said client area.
         self.hWnd = self.mgr.createScrollingWindow(
             self.cpu.ram.bits,
             2**self.cpu.mar.bits,
             title = "RAM",
         )
+        # Allocate a list that will hold pointers to the memory cell GUI objects.
         self.cells = list("-"*2**self.cpu.mar.bits)
+        # For each memory cell, create its graphical components and put them in the client area.
         for addr in range(2**self.cpu.mar.bits):
             memCell = guiBitfield(
                 wordSize     = self.cpu.ram.bits,
