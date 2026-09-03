@@ -14,6 +14,11 @@ class guiSAP(object):
         # Create a RAM window
         self.ram_window = guiRAM(self.cpu,self.mgr)
         self.mgr.refreshWindows()
+        xoff = 0
+        yoff = 0
+        _w = self.ram_window.hWnd.winfo_width()
+        _h = self.ram_window.hWnd.winfo_height()
+        self.ram_window.hWnd.geometry(f'{_w}x{_h}+{xoff}+{yoff}')
         # Create a CPU window
         self.cpu_window = guiCPU(self.cpu,self.mgr)
         self.mgr.refreshWindows()
@@ -23,7 +28,6 @@ class guiSAP(object):
         _h = self.cpu_window.hWnd.winfo_height()
         self.cpu_window.hWnd.geometry(f'{_w}x{_h}+{xoff}+0')
         self.mgr.refreshWindows()
-        yoff = self.cpu_window.hWnd.winfo_height() + self.mgr.getWmgrY()
         # Create a clock-controller window
         self.clock_ctl = guiClockCtl(
             self.cpu,
@@ -32,6 +36,7 @@ class guiSAP(object):
         )
         self.mgr.refreshWindows()
         # Reposition the clock-controller window
+        yoff = self.cpu_window.hWnd.winfo_height() + self.mgr.getWmgrY()
         _w = self.clock_ctl.hWnd.winfo_width()
         _h = self.clock_ctl.hWnd.winfo_height()
         self.clock_ctl.hWnd.geometry(f'{_w}x{_h}+{xoff}+{yoff}')

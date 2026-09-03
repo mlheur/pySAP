@@ -5,7 +5,7 @@ class guiCPU(object):
     def __init__(self,cpu,mgr):
         self.cpu  = cpu
         self.mgr  = mgr
-        self.hWnd = self.mgr.createWindow(title="CPU: Registers, Flags, and Control Lines")
+        self.hWnd = self.mgr.newWindow("CPU: Registers, Flags, and Control Lines")
         self.components = list()
         # Lambda functions to be called in by bitfield drawing routines
         def getFlags(flagset):
@@ -27,13 +27,12 @@ class guiCPU(object):
             color     = "BLUE",
             title     = "T",
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiTstep,
             row        = 0,
             col        = 0,
             columnspan = 2,
-            sticky     = "e"
         )
         self.components.append(guiTstep)
         # Draw the Memory Address Register
@@ -43,7 +42,7 @@ class guiCPU(object):
             color     = "GREEN",
             title     = "MAR"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiMAR,
             row        = 1,
@@ -58,7 +57,7 @@ class guiCPU(object):
             color     = "RED",
             title     = "RAM",
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiRAM,
             row        = 2,
@@ -73,7 +72,7 @@ class guiCPU(object):
             color     = "GREEN",
             title     = "IR"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiIR,
             row        = 3,
@@ -89,12 +88,13 @@ class guiCPU(object):
             title     = "FLG",
             flags     = self.cpu.iflags,
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiFlags,
             row        = 4,
             col        = 0,
             columnspan = 1,
+            sticky     = "W",
         )
         self.components.append(guiFlags)
         #####
@@ -107,7 +107,7 @@ class guiCPU(object):
             color     = "RED",
             title     = "BUS"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiBUS,
             row        = 1,
@@ -122,7 +122,7 @@ class guiCPU(object):
             color     = "WHITE",
             title     = "OUT"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiOUT,
             row        = 3,
@@ -140,7 +140,7 @@ class guiCPU(object):
             color     = "GREEN",
             title     = "PC"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiPC,
             row        = 0,
@@ -155,7 +155,7 @@ class guiCPU(object):
             color     = "GREEN",
             title     = "A"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiA,
             row        = 1,
@@ -170,7 +170,7 @@ class guiCPU(object):
             color     = "YELLOW",
             title     = "ALU"
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiALU,
             row        = 2,
@@ -185,7 +185,7 @@ class guiCPU(object):
             color     = "GREEN",
             title     = "B",
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiB,
             row        = 3,
@@ -201,12 +201,11 @@ class guiCPU(object):
             title     = "CTL",
             flags     = self.cpu.oflags,
         )
-        self.mgr.placeComponentAt(
+        self.mgr.addLabelledBitfieldToWindow(
             self.hWnd,
             guiCtls,
             row        = 4,
             col        = 1,
             columnspan = 5,
-            sticky     = "E",
         )
         self.components.append(guiCtls)

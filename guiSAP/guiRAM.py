@@ -1,17 +1,55 @@
 from .guiBitfield import guiBitfield
-
+from .WindowMgr import RAM_COLUMNS
+from .WindowMgr import SCROLLBAR_WIDTH
+from tkinter import Canvas, Scrollbar, Frame
 
 class guiRAM(object):
     def __init__(self,cpu,mgr):
         self.cpu  = cpu
         self.mgr  = mgr
-        # Create a window with a scrollable client area,
-        # giving it hints to pre-calculate what will be the size and number
-        # of components that will be placed in said client area.
-        self.hWnd = self.mgr.createScrollingWindow(
-            self.cpu.ram.bits,
-            2**self.cpu.mar.bits,
-            title = "RAM",
+        self.hWnd = self.mgr.newWindow("RAM")
+        # Create the scrolling subwindow structures
+        self.scrolling_canvas = Canvas(self.hWnd)
+        self.vertical_scroll = Scrollbar(
+            self.hWnd,
+            orient  = "vertical",
+            command = self.scrolling_canvas.yview,
+            width   = SCROLLBAR_WIDTH,
+        )
+        self.vertical_scroll.pack(
+            side   = "right",
+            fill   = "y",
+        )
+        self.horizontal_scroll = Scrollbar(
+            self.hWnd,
+            orient  = "horizontal",
+            command = self.scrolling_canvas.xview,
+            width   = SCROLLBAR_WIDTH,
+        )
+        self.horizontal_scroll.pack(
+            side   = "bottom",
+            fill   = "x",
+        )
+        self.hFrame = Frame(self.scrolling_canvas)
+        self.hFrame.bind(
+            "<Configure>",
+            lambda e: self.scrolling_canvas.configure(
+                scrollregion = self.scrolling_canvas.bbox("all")
+            )
+        )
+        self.scrolling_canvas.create_window(
+            (0,0),
+            window = self.hFrame,
+            anchor = "nw",
+        )
+        self.scrolling_canvas.configure(
+            xscrollcommand = self.horizontal_scroll.set,
+            yscrollcommand = self.vertical_scroll.set,
+        )
+        self.scrolling_canvas.pack(
+            side   = "left",
+            fill   = "both",
+            expand = True,
         )
         # Allocate a list that will hold pointers to the memory cell GUI objects.
         self.cells = list("-"*2**self.cpu.mar.bits)
@@ -25,14 +63,14 @@ class guiRAM(object):
                 addr         = addr,
                 getAddrValue = lambda addr : self.cpu.ram.value[addr],
             )
-            self.mgr.placeComponentAt(
-                self.hWnd,
+            col = 2 * (addr % RAM_COLUMNS)
+            fn = self.mgr.addLabelledBitfieldToWindow if col == 0 else self.mgr.addUnlabelledBitfieldToWindow
+            fn(
+                self.hFrame,
                 memCell,
-                row       = int(addr / self.mgr.RAM_COLUMNS),
-                col       = 2 * (addr % self.mgr.RAM_COLUMNS),
+                row       = int(addr / RAM_COLUMNS),
+                col       = col,
                 sticky    = "e",
-                padx      = 0,
-                pady      = 0,
             )
             self.cells[addr] = memCell
         self.updateAllCells()

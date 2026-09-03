@@ -2,8 +2,8 @@ from tkinter import Canvas, StringVar, Spinbox, Button
 from .WindowMgr import PROFILES
 
 
-BLOCK_SIZE  = 100
-BORDER_SIZE = 10
+BLOCK_SIZE = 200
+BORDER_SIZE = 15
 
 class guiClockCtl(object):
     def __init__(self,cpu,mgr,clk):
@@ -11,7 +11,7 @@ class guiClockCtl(object):
         self.cpu  = cpu
         self.mgr  = mgr
         self.clk  = clk
-        self.hWnd = self.mgr.createWindow(title = "Clock Controller")
+        self.hWnd = self.mgr.newWindow("Clock Controller")
         # Resize the window to match its contents
         self.hWnd.geometry(f'{2*BLOCK_SIZE}x{BLOCK_SIZE}+0+0')
         # Left Half: The Hz selector and display
@@ -78,7 +78,7 @@ class guiClockCtl(object):
             state="normal", cursor="hand2", bd=3, justify="center", wrap=True
         )
         self.hz_tracker.set(str(self.clk.Hz))
-        self.hz_spinner.place(x=50,y=50,in_=self.ticker,anchor="center")
+        self.hz_spinner.place(x=BLOCK_SIZE/2,y=BLOCK_SIZE/2,in_=self.ticker,anchor="center")
         # Right Half: The manual clock pulsing button
         self.pulser = Canvas(
             self.hWnd,
@@ -106,7 +106,7 @@ class guiClockCtl(object):
             activebackground="lightgrey",
             relief="raised",
         )
-        self.btn_pulse.place(x=50,y=50,in_=self.pulser,anchor="center")
+        self.btn_pulse.place(x=BLOCK_SIZE/2,y=BLOCK_SIZE/2,in_=self.pulser,anchor="center")
 
     def modify_clk(self):
         self.clk.modify(int(self.hz_tracker.get()))
@@ -117,12 +117,12 @@ class guiClockCtl(object):
         self.clk.manual_pulse = True
 
     def update_performance(self,Hz):
-        if Hz   > 99.95:
+        if Hz   > 99.94:
             Hz  = f'{Hz:.0f}'
-        elif Hz >  9.995:
+        elif Hz >  9.994:
             Hz  = f'{Hz:.1f}'
         else:
-            Hz  = f'{Hz:.0f}'
+            Hz  = f'{Hz:.2f}'
         self.ticker.itemconfigure(self.hz_value, text=f"{Hz}")
         self.hz_tracker.set(str(self.clk.Hz))
         self.update_btn_pulse()
