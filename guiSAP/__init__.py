@@ -1,5 +1,4 @@
-from .WindowMgr import WindowMgr
-from .guiBitfield import guiBitfield
+from .WindowMgr import WindowMgr, SCROLLBAR_WIDTH
 from .guiClockCtl import guiClockCtl
 from .guiRAM import guiRAM
 from .guiCPU import guiCPU
@@ -19,8 +18,8 @@ class guiSAP(object):
         self.mgr.refreshWindows()
         xoff = 0
         yoff = 0
-        _w = self.windows["ram"].hWnd.winfo_width()
-        _h = self.windows["ram"].hWnd.winfo_height()
+        _w = self.windows["ram"].hFrame.winfo_width()  + SCROLLBAR_WIDTH+3# + self.mgr.getWmgrX()
+        _h = self.windows["ram"].hFrame.winfo_height() + SCROLLBAR_WIDTH+4# + self.mgr.getWmgrY()
         self.windows["ram"].hWnd.geometry(f'{_w}x{_h}+{xoff}+{yoff}')
         # Create a CPU window
         self.windows["cpu"] = guiCPU(self.cpu,self.mgr)
@@ -60,7 +59,10 @@ class guiSAP(object):
         elif self.cpu.oflags['Lr'].istrue():
             addr = self.cpu.mar.value
             self._previous_latch = addr
-        self.mgr.refreshWindows()
+        try:
+            self.mgr.refreshWindows()
+        except TclError as TE:
+            self.cpu.oflags['HLT'].setTruth(True)
 
     def count_open_windows(self):
         n = 0
@@ -75,5 +77,5 @@ class guiSAP(object):
     def wait_for_close(self):
         while self.count_open_windows() >= 3:
             self.mgr.refreshWindows()
-            sleep(0.01)
+            sleep(0.1)
         self.mgr.quit()

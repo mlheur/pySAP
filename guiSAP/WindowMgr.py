@@ -2,10 +2,10 @@ from tkinter import Tk, Canvas, Toplevel
 from tkinter.font import Font
 
 FONT="Tlwg Mono"
-WMGR_X=24
-WMGR_Y=60
+WMGR_X          =  0 # 24
+WMGR_Y          = 30 # 60
 SCROLLBAR_WIDTH = 12
-RAM_COLUMNS = 8
+RAM_COLUMNS     =  4
 
 PROFILES = {
     "BIG": {
@@ -19,14 +19,14 @@ PROFILES = {
         "SPACER"        :   8,
     },
     "SML": {
-        "LABEL_WIDTH"   :  40,
+        "LABEL_WIDTH"   :  30,
         "LABEL_PADDING" :   1,
         "BULB_DIAMETER" :   6,
         "BULB_SPACING"  :   0,
         "PADDING"       :   0,
-        "FONT_SIZE"     :   6,
-        "FLAG_SIZE"     :   6,
-        "SPACER"        :   2,
+        "FONT_SIZE"     :   3,
+        "FLAG_SIZE"     :   0,
+        "SPACER"        :   1,
     },
     "LED": {
         "RED":     {"ON":"#F22", "OFF":"#622"},
