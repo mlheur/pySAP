@@ -85,7 +85,7 @@ class WindowMgr(object):
         return WMGR_Y
 
     def quit(self):
-        self.tkwnd.destroy()
+        self.tkroot.destroy()
 
     def refreshWindows(self):
         self.tkroot.update()
