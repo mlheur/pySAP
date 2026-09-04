@@ -18,7 +18,7 @@ class guiSAP(object):
         self.mgr.refreshWindows()
         xoff = 0
         yoff = 0
-        _w = self.windows["ram"].hFrame.winfo_width()  + SCROLLBAR_WIDTH+3# + self.mgr.getWmgrX()
+        _w = self.windows["ram"].hFrame.winfo_width()  + SCROLLBAR_WIDTH+4# + self.mgr.getWmgrX()
         _h = self.windows["ram"].hFrame.winfo_height() + SCROLLBAR_WIDTH+4# + self.mgr.getWmgrY()
         self.windows["ram"].hWnd.geometry(f'{_w}x{_h}+{xoff}+{yoff}')
         # Create a CPU window

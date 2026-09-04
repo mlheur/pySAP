@@ -21,7 +21,7 @@ PROFILES = {
     "SML": {
         "LABEL_WIDTH"   :  30,
         "LABEL_PADDING" :   1,
-        "BULB_DIAMETER" :   6,
+        "BULB_DIAMETER" :  10,
         "BULB_SPACING"  :   0,
         "PADDING"       :   0,
         "FONT_SIZE"     :   3,
@@ -220,7 +220,7 @@ class WindowMgr(object):
                     bulbInvers[hFlag.pos] = PROFILES["COLORS"]["FLAG_OV"]
         # Draw the bitfield on the right side of the canvas
         ## Least-significant-bulb starts at a large value of X, X decreases down to zero as significance increases.
-        FarX = fullWidth - 1
+        FarX = fullWidth
         # The Y coordinates will be the same for all bulbs.
         y1 = sizeProfile["BULB_SPACING"]
         y2 = y1 + sizeProfile["BULB_DIAMETER"] - 1
