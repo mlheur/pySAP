@@ -4,6 +4,7 @@ from .WindowMgr import PROFILES
 
 BLOCK_SIZE = 200
 BORDER_SIZE = 15
+TEXT_PAD_FACTOR = 1.5
 
 class guiClockCtl(object):
     def __init__(self,cpu,mgr,clk):
@@ -39,7 +40,7 @@ class guiClockCtl(object):
         label_height = 10
         self.ticker.create_text(
             xoff + BLOCK_SIZE/2,
-            label_height + BORDER_SIZE,
+            label_height + int(TEXT_PAD_FACTOR*BORDER_SIZE),
             text = "TGT HZ",
             font = PROFILES["BIG"]["label_font"],
             fill = PROFILES["COLORS"]["TEXT_FG"],
@@ -47,7 +48,7 @@ class guiClockCtl(object):
         # Draw the value
         self.hz_value = self.ticker.create_text(
             xoff + BLOCK_SIZE/2,
-            BLOCK_SIZE - label_height - BORDER_SIZE,
+            BLOCK_SIZE - label_height - int(TEXT_PAD_FACTOR*BORDER_SIZE),
             text = "0 HZ",
             font = PROFILES["BIG"]["label_font"],
             fill = PROFILES["COLORS"]["TEXT_FG"],

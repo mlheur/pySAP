@@ -31,6 +31,7 @@ class guiBitfield(object):
 
     def get(self):
         if self.addr is not None:
+            #print(f'getting value at addr {self.addr}')
             return self.getAddrValue(self.addr)
         return self.getValue()
 

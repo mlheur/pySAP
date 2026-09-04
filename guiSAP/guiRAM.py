@@ -52,9 +52,10 @@ class guiRAM(object):
             expand = True,
         )
         # Allocate a list that will hold pointers to the memory cell GUI objects.
-        self.cells = list("-"*2**self.cpu.mar.bits)
+        self.cells = list("-"*2**self.cpu.addrlen)
+        #print(f'preallocated n={len(self.cells)} memory cells')
         # For each memory cell, create its graphical components and put them in the client area.
-        for addr in range(2**self.cpu.mar.bits):
+        for addr in range(len(self.cells)):
             memCell = guiBitfield(
                 wordSize     = self.cpu.ram.bits,
                 color        = "RED",

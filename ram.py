@@ -12,7 +12,7 @@ class RAM(StdRegister):
             self.value += code
         else:
             codelen = 0
-        for addr in range(0,2**cpu.bits):
+        for addr in range(codelen,2**cpu.addrlen):
             self.value.append(randint(0,0x100))
             #self.value.append(addr)
 
