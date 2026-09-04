@@ -268,9 +268,12 @@ if __name__ == "__main__":
             from pstats import Stats, SortKey
             with Profile() as pr:
                 clk.run()
-            Stats(pr).sort_stats(SortKey.CUMULATIVE).print_stats()
+            Stats(pr).sort_stats(SortKey.TIME).print_stats()
         else:
             clk.run()
     except TclError as TE:
         pass
-    gui.wait_for_close()
+    try:
+        gui.wait_for_close()
+    except KeyboardInterrupt as KE:
+        pass

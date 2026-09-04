@@ -1,7 +1,8 @@
 from tkinter import Tk, Canvas, Toplevel
 from tkinter.font import Font
 
-FONT="Tlwg Mono"
+#FONT="Tlwg Mono"
+FONT            = 'Courier'
 WMGR_X          =  0 # 24
 WMGR_Y          = 30 # 60
 SCROLLBAR_WIDTH = 12
@@ -19,12 +20,12 @@ PROFILES = {
         "SPACER"        :   8,
     },
     "SML": {
-        "LABEL_WIDTH"   :  30,
+        "LABEL_WIDTH"   :  35,
         "LABEL_PADDING" :   1,
         "BULB_DIAMETER" :  10,
         "BULB_SPACING"  :   0,
         "PADDING"       :   0,
-        "FONT_SIZE"     :   3,
+        "FONT_SIZE"     :   6,
         "FLAG_SIZE"     :   0,
         "SPACER"        :   1,
     },

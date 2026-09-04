@@ -61,8 +61,10 @@ class guiSAP(object):
             self._previous_latch = addr
         try:
             self.mgr.refreshWindows()
+        except KeyboardInterrupt as KE:
+            self.cpu.oflags['HLT'].settruth(True)
         except TclError as TE:
-            self.cpu.oflags['HLT'].setTruth(True)
+            self.cpu.oflags['HLT'].settruth(True)
 
     def count_open_windows(self):
         n = 0
