@@ -19,7 +19,6 @@ class Clock():
             'cycles' : 0,
             'value'  : 0,
         }
-        self.manual_pulse = False
         self.modify(Hz)
 
     def reset_performance(self):
@@ -46,7 +45,6 @@ class Clock():
         self.Hz           = Hz
         self.freq         = Hz if Hz == 0 else 1/Hz
         self.last_pulse   = max(self.last_pulse, perf_counter() - self.freq)
-        self.manual_pulse = Hz != 0
 
     def pulse(self):
         time_delta = perf_counter() - self.last_pulse
@@ -75,12 +73,11 @@ class Clock():
         self.redraw()
         self.reset_performance()
         while (not self.cpu.oflags['HLT'].istrue()):
-            while self.Hz == 0 and self.manual_pulse == False:
+            while self.Hz == 0:
                 self.redraw()
                 # Check if any windows are closed, if yes then quit.
                 for subby in self.subscribers:
                     if hasattr(subby,"count_open_windows") and subby.count_open_windows() < 3:
                         return
                 sleep(Clock.NoTime)
-            self.manual_pulse = False
             self.pulse()

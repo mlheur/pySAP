@@ -101,7 +101,7 @@ class guiClockCtl(object):
         self.btn_pulse = Button(
             self.hWnd,
             text="Manual\nClock\nTrigger",
-            command=self.pulse_clk,
+            command=self.clk.pulse,
             width=4,
             height=3,
             activebackground="lightgrey",
@@ -112,10 +112,6 @@ class guiClockCtl(object):
     def modify_clk(self):
         self.clk.modify(int(self.hz_tracker.get()))
         self.update_btn_pulse()
-
-    def pulse_clk(self):
-        #print("pulse the clock from GUI")
-        self.clk.manual_pulse = True
 
     def update_performance(self,Hz):
         if Hz   > 99.94:
