@@ -74,6 +74,6 @@ class Clock():
                 for subby in self.subscribers:
                     if hasattr(subby,"count_open_windows") and subby.count_open_windows() < 3:
                         return
-                sleep(self.NoTime)
+                sleep(self.NoTime/NS)
             self.pulse()
         #print(self.perf_history)
