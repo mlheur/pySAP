@@ -208,11 +208,12 @@ if __name__ == "__main__":
 
     from sys import argv
     assemble_only = False
-    filename = None
-    Hz = None
+    filename      = None
+    Hz            = None
     WithProfiling = False
-    DollarZero = argv.pop(0)
-    OldGUI = False
+    DollarZero    = argv.pop(0)
+    OldGUI        = False
+    NoGUI         = False
     while len(argv) > 0:
         arg = argv.pop(0)
         if arg[0] == "-":
@@ -232,6 +233,9 @@ if __name__ == "__main__":
                 continue
             elif arg == "-og":
                 OldGUI = True
+                continue
+            elif arg == "-ng":
+                NoGUI = True
                 continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
@@ -256,11 +260,12 @@ if __name__ == "__main__":
     sap = pySAP(isa=isa,code=code)
     clk = Clock(cpu=sap,Hz=5000 if FastClock else Hz)
 
-    if OldGUI:
-        from oldGUI import guiSAP as GUI
-    else:
-        from guiSAP import guiSAP as GUI
-    gui = GUI(sap,clk)
+    if not NoGUI:
+        if OldGUI:
+            from oldGUI import guiSAP as GUI
+        else:
+            from guiSAP import guiSAP as GUI
+        gui = GUI(sap,clk)
 
     if WithProfiling:
         from cProfile import Profile
@@ -270,10 +275,11 @@ if __name__ == "__main__":
         Stats(pr).sort_stats(SortKey.TIME).print_stats()
     else:
         try:
-                clk.run()
+            clk.run()
         except TclError as TE:
             pass
-        try:
-            gui.wait_for_close()
-        except KeyboardInterrupt as KE:
-            pass
+        if not NoGUI:
+            try:
+                gui.wait_for_close()
+            except KeyboardInterrupt as KE:
+                pass
