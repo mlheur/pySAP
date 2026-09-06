@@ -12,8 +12,8 @@ PROFILES = {
     "BIG": {
         "LABEL_WIDTH"   :  72,
         "LABEL_PADDING" :   2,
-        "BULB_DIAMETER" :  36,
-        "BULB_SPACING"  :   1,
+        "BULB_DIAMETER" :  24,
+        "BULB_SPACING"  :   3,
         "PADDING"       :   1,
         "FONT_SIZE"     :  22,
         "FLAG_SIZE"     :   8,
@@ -22,7 +22,7 @@ PROFILES = {
     "SML": {
         "LABEL_WIDTH"   :  35,
         "LABEL_PADDING" :   1,
-        "BULB_DIAMETER" :  10,
+        "BULB_DIAMETER" :   8,
         "BULB_SPACING"  :   0,
         "PADDING"       :   0,
         "FONT_SIZE"     :   6,
