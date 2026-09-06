@@ -1,11 +1,11 @@
-from time import perf_counter, process_time
-from time import sleep
+from time import sleep, time_ns as now
 from pynput import keyboard as kbd
 
+NS = 1000000000
 
 class Clock():
 
-    NoTime = 0.00001
+    NoTime = 0.0000001
 
     def __init__(self,cpu=None,Hz=None):
         if Hz is None:
@@ -30,7 +30,7 @@ class Clock():
         self.performance['current'] = self.last_pulse
         if self.performance['cycles'] > 1:
             dT = self.performance['current'] - self.performance['started']
-            self.performance['value'] = self.performance['cycles'] / dT
+            self.performance['value'] = (NS * self.performance['cycles']) / dT
             #print(f"Average Performance: {self.performance['value']:.2f} Hz, Target: {self.Hz}")
             for subby in self.subscribers:
                 if hasattr(subby,"update_performance"):
@@ -43,18 +43,18 @@ class Clock():
     def modify(self,Hz):
         self.reset_performance()
         self.Hz           = Hz
-        self.freq         = Hz if Hz == 0 else 1/Hz
-        self.last_pulse   = max(self.last_pulse, perf_counter() - self.freq)
+        self.freq         = Hz if Hz == 0 else ((1*NS)/Hz)
+        self.last_pulse   = max(self.last_pulse, now() - self.freq)
 
     def pulse(self):
-        time_delta = perf_counter() - self.last_pulse
-        while (self.Hz != 0) and (time_delta < self.freq) and (not(self.cpu.oflags['HLT'].istrue())):
+        next_pulse = self.last_pulse + self.freq
+        next_pulse -= (NS * Clock.NoTime)
+        while (self.Hz != 0) and (self.last_pulse < next_pulse) and (not(self.cpu.oflags['HLT'].istrue())):
             sleep(Clock.NoTime)
-            time_delta = perf_counter() - self.last_pulse
-        self.last_pulse = perf_counter()
+            self.last_pulse = now()
         self.cpu.clock(self.subscribers)
         self.performance['cycles'] += 1
-        if self.performance['current'] < (self.last_pulse-1):
+        if self.performance['current'] < (self.last_pulse-NS):
             self.update_performance()
 
     def redraw(self):
