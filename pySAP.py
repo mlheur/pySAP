@@ -262,18 +262,18 @@ if __name__ == "__main__":
         from guiSAP import guiSAP as GUI
     gui = GUI(sap,clk)
 
-    try:
-        if WithProfiling:
-            from cProfile import Profile
-            from pstats import Stats, SortKey
-            with Profile() as pr:
-                clk.run()
-            Stats(pr).sort_stats(SortKey.TIME).print_stats()
-        else:
+    if WithProfiling:
+        from cProfile import Profile
+        from pstats import Stats, SortKey
+        with Profile() as pr:
             clk.run()
-    except TclError as TE:
-        pass
-    try:
-        gui.wait_for_close()
-    except KeyboardInterrupt as KE:
-        pass
+        Stats(pr).sort_stats(SortKey.TIME).print_stats()
+    else:
+        try:
+                clk.run()
+        except TclError as TE:
+            pass
+        try:
+            gui.wait_for_close()
+        except KeyboardInterrupt as KE:
+            pass
