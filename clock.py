@@ -47,12 +47,13 @@ class Clock():
         # do the thing.
         self.cpu.clock(self.subscribers)
         self.perf_data['cycles'] += 1
-        #if (_now - self.perf_data['started'] > NS):
-        if (self.perf_data['cycles'] >= PERF_HIST_CAPTURE):
+        if (_now - self.perf_data['started'] > NS):
+        #if (self.perf_data['cycles'] >= self.Hz):
             perfset = (self.perf_data['started'],_now,self.perf_data['cycles'])
             self.perf_data['started'] = _now
             self.perf_data['cycles']  = 0
-            self.perf_data['history'] = self.perf_data['history'][1:PERF_HIST_LENGTH] + [perfset[2] / ((perfset[1] - perfset[0]) / NS)]
+            #self.perf_data['history'] = self.perf_data['history'][1:PERF_HIST_LENGTH] + [perfset[2] / ((perfset[1] - perfset[0]) / NS)]
+            self.perf_data['history'][-1] = perfset[2] / ((perfset[1] - perfset[0]) / NS)
 
     def run(self,cpu=None,ram=None,Hz=None):
         if cpu is not None:
