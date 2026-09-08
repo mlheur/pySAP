@@ -202,9 +202,10 @@ if __name__ == "__main__":
     filename      = None
     Hz            = None
     WithProfiling = False
-    DollarZero    = argv.pop(0)
-    OldGUI        = False
     NoGUI         = False
+    OldGUI        = False
+    SecondGUI     = False
+    DollarZero    = argv.pop(0)
     while len(argv) > 0:
         arg = argv.pop(0)
         if arg[0] == "-":
@@ -224,6 +225,9 @@ if __name__ == "__main__":
                 continue
             elif arg == "-og":
                 OldGUI = True
+                continue
+            elif arg == "-sg":
+                SecondGUI = True
                 continue
             elif arg == "-ng":
                 NoGUI = True
@@ -254,9 +258,13 @@ if __name__ == "__main__":
     if not NoGUI:
         if OldGUI:
             from oldGUI import guiSAP as GUI
+            gui = GUI(sap,clk)
+        elif SecondGUI:
+            from secondGUI import guiSAP as GUI
+            gui = GUI(sap,clk)
         else:
-            from guiSAP import guiSAP as GUI
-        gui = GUI(sap,clk)
+            NoGUI = True
+            gui = None
     # Finally, allow the clock to run the CPU.
     if WithProfiling:
         from cProfile import Profile
