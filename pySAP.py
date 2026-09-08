@@ -13,8 +13,6 @@ from ctl import CtlSeq
 from instruction_set import instruction_set as ISA
 from cpu import CPU
 
-from tkinter import *
-
 
 class SAPisa(ISA):
 
@@ -274,10 +272,7 @@ if __name__ == "__main__":
             clk.run()
         Stats(pr).sort_stats(SortKey.TIME).print_stats()
     else:
-        try:
-            clk.run()
-        except TclError as TE:
-            pass
+        clk.run()
         if not NoGUI:
             try:
                 gui.wait_for_close()

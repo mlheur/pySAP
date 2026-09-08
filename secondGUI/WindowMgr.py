@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, Toplevel
+from tkinter import Tk, Canvas, Toplevel, TclError
 from tkinter.font import Font
 
 #FONT="Tlwg Mono"
@@ -100,7 +100,10 @@ class WindowMgr(object):
                 hBulbs  = hBitfield.guiData['bulbs']
                 for bitPos,bitVal in enumerate(hBitfield):
                     state = "normal" if bitVal else "hidden"
-                    hCanvas.itemconfigure(hBulbs[bitPos]["ON"],state=state)
+                    try:
+                        hCanvas.itemconfigure(hBulbs[bitPos]["ON"],state=state)
+                    except TclError as TE:
+                        self.gui.cpu.oflags['HLT'].settruth(True)
 
     def addUnlabelledBitfieldToWindow(
         self,
