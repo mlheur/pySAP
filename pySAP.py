@@ -20,46 +20,43 @@ class SAPisa(ISA):
         # The iflags are control bits set by other components, and used in the
         # instruction decoder to take different actions depending on these conditions.
         self.iflags = {
-            'CF':      CtlLine(0),
-            'ZF':      CtlLine(1)
+            'CF':  CtlLine(0),
+            'ZF':  CtlLine(1)
         }
         # The oflags are the control lines set by the instruction decoder for enabling
         # various latches and operations on the next clock cycle.
         self.oflags = {
-            'Lo':         CtlLine(0,inv=1),  # Latch OUT
-            'Lb':         CtlLine(1,inv=1),  # Latch B
-            'Eu':         CtlLine(2),        # Enable ALU
-            'Su':         CtlLine(3),        # Subtract
-            'Ea':         CtlLine(4),        # Enable A
-            'La':         CtlLine(5,inv=1),  # Latch A
-            'Ei':         CtlLine(6,inv=1),  # Enable IR
-            'Li':         CtlLine(7,inv=1),  # Latch IR
-            'CE':         CtlLine(8,inv=1),  # Chip Enable RAM
-            'Lm':         CtlLine(9,inv=1),  # Latch MAR
-            'Ep':         CtlLine(10),       # Enable PC
-            'Cp':         CtlLine(11),       # Clock PC
-            'Lr':         CtlLine(12),       # Latch RAM
-            'Eb':         CtlLine(13),       # Enable B
-            'CLR':        CtlLine(14,inv=1), # CLR
-            'HLT':        CtlLine(15),       # HLT
-            'Rt':         CtlLine(16),       # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
-            'Sh':         CtlLine(17),       # ALU Shift Left; [Sh+Su] = ALU Shift Right.
-            'CC':         CtlLine(18),       # Clear the Carry Flag
-            'SC':         CtlLine(19,inv=1), # Set the Carry Flag
-            'CZ':         CtlLine(20),       # Clear the Zero Flag
-            'SZ':         CtlLine(21,inv=1), # Set the Zero Flag
+            'Lo':  CtlLine(0,inv=1),  # Latch OUT
+            'Lb':  CtlLine(1,inv=1),  # Latch B
+            'Eu':  CtlLine(2),        # Enable ALU
+            'Su':  CtlLine(3),        # Subtract
+            'Ea':  CtlLine(4),        # Enable A
+            'La':  CtlLine(5,inv=1),  # Latch A
+            'Ei':  CtlLine(6,inv=1),  # Enable IR
+            'Li':  CtlLine(7,inv=1),  # Latch IR
+            'CE':  CtlLine(8,inv=1),  # Chip Enable RAM
+            'Lm':  CtlLine(9,inv=1),  # Latch MAR
+            'Ep':  CtlLine(10),       # Enable PC
+            'Cp':  CtlLine(11),       # Clock PC
+            'Lr':  CtlLine(12),       # Latch RAM
+            'Eb':  CtlLine(13),       # Enable B
+            'CLR': CtlLine(14,inv=1), # CLR
+            'HLT': CtlLine(15),       # HLT
+            'Rt':  CtlLine(16),       # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
+            'Sh':  CtlLine(17),       # ALU Shift Left; [Sh+Su] = ALU Shift Right.
+            'CC':  CtlLine(18),       # Clear the Carry Flag
+            'SC':  CtlLine(19,inv=1), # Set the Carry Flag
+            'CZ':  CtlLine(20),       # Clear the Zero Flag
+            'SZ':  CtlLine(21,inv=1), # Set the Zero Flag
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
-
-        # initialize the final ROM address space
+        # initialize the final instruction decoder's address space
         self.addr = dict()
-
         # Generate the control word that's all 'false' regardless if high or low means true
         self.NOP = 0
         for f in self.oflags:
             self.NOP = self.NOP | (self.oflags[f].inv << self.oflags[f].pos)
-
         # This array assigns binary mnemonics for each string of ASM code.
         self.ASM = {
             'NOP': 0x00,
@@ -85,7 +82,6 @@ class SAPisa(ISA):
             'STM': 0x14,
             'LDM': 0x15,
         }
-
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
         # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
         self.ctl = [
@@ -146,10 +142,7 @@ class SAPisa(ISA):
             self.mkctl(['Cp','CE','Lm']),      # 0x24     : IncPC RAM->MAR
             self.mkctl(['CE','Lm']),           # 0x25     : RAM->MAR
             self.mkctl(['CE','La','Rt']),      # 0x26     : RAM->A Next
-
-            None
         ]
-
         # Lastly we teach the instruction decoder which micronstruction is the entry point when the clock hits T3.
         # The decoder knows all instructions share the same T1,T2 to fetch the actual instruction from RAM.
         self.addinstr('NOP',0x00)
@@ -203,7 +196,7 @@ class pySAP(CPU):
 
 
 if __name__ == "__main__":
-
+    # Handle arguments and default values
     from sys import argv
     assemble_only = False
     filename      = None
@@ -237,13 +230,12 @@ if __name__ == "__main__":
                 continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
-
     FastClock = False
     if filename is None:
         filename = "./code/cylon.sap"
         if Hz is None:
             FastClock = True
-
+    # Instantiate the instruction decoder, it's necessary for assembling the initial program.
     isa = SAPisa()
     if assemble_only:
         if filename is not None:
@@ -252,19 +244,20 @@ if __name__ == "__main__":
             raise RuntimeError("assembly needs a source file [-f ./code/source.sap]")
         from sys import exit
         exit(0)
-
+    # Assemble the initial program for loading into RAM
     code = isa.assemble_file(filename)
-
+    # Instantiate the CPU with said program ...
     sap = pySAP(isa=isa,code=code)
-    clk = Clock(cpu=sap,Hz=5000 if FastClock else Hz)
-
+    # ... and the clock.
+    clk = Clock(cpu=sap,Hz=50 if FastClock else Hz)
+    # Load a GUI
     if not NoGUI:
         if OldGUI:
             from oldGUI import guiSAP as GUI
         else:
             from guiSAP import guiSAP as GUI
         gui = GUI(sap,clk)
-
+    # Finally, allow the clock to run the CPU.
     if WithProfiling:
         from cProfile import Profile
         from pstats import Stats, SortKey
