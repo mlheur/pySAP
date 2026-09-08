@@ -2,8 +2,8 @@ from time import sleep, time_ns as now
 
 NS                = 1000000000
 TIME_FRACTION     = 1000
-PERF_HIST_LENGTH  = 100
-PERF_HIST_CAPTURE = 100
+PERF_HIST_LENGTH  = 10
+PERF_HIST_CAPTURE = 1000
 
 class Clock():
 
@@ -68,4 +68,4 @@ class Clock():
             while self.Hz == 0:
                 sleep(self.NoTime/NS)
             self.pulse()
-        print(self.perf_data['history'])
+        #print(self.perf_data['history'])
