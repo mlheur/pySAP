@@ -114,7 +114,7 @@ class guiClockCtl(object):
         self.update_btn_pulse()
 
     def clock(self):
-        Hz = self.clk.perf_data['history'][-1]
+        Hz = self.clk.perf_data['history'][self.clk.perf_data['histptr']]
         Hz = 0 if Hz is None else Hz
         if Hz   > 99.94:
             Hz  = f'{Hz:.0f}'
