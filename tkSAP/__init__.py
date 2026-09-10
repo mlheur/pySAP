@@ -9,7 +9,7 @@ from .tkCPU import tkCPU
 
 from tkinter.filedialog import askopenfilename
 
-REFRESH_RATE = 10 # ms
+REFRESH_RATE = 2 # ms
 
 MENU = {
     '_File': {
@@ -32,6 +32,7 @@ class tkSAP(object):
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
         self.clk = Clock(cpu=pySAP(isa=SAPisa()))
+        #self.clk.subscribe(self)
         self.code = None
         # Run said clock in its own thread.
         self.clock_thread = clock_thread(self.clk)
@@ -53,6 +54,8 @@ class tkSAP(object):
         self.mgr.root.mainloop()
 
     def update(self):
+        if self.clk.cpu.oflags['HLT'].istrue():
+            return
         self.tkCLK.update()
         self.tkCPU.update()
         #self.tkRAM.update()
@@ -60,6 +63,9 @@ class tkSAP(object):
     def scheduled_update(self):
         self.update()
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
+
+#    def clock(self):
+#        self.update()
 
     def file_open(self):
         self.clk.cpu.setram(
