@@ -60,11 +60,11 @@ class tkBitfield(object):
             self.coords['x'] -= w
         # The widget size and position is fixed, all remaining components are relative to self.coords
         y1 = self.coords['y'] + self.profile['LABEL_PADDING']
-        y2 = y1               + self.profile['OUTER_DIAMETER'] - 1
+        y2 = self.coords['y'] + self.coords['h'] - self.profile['LABEL_PADDING']
         if show_label:
             # Create a backplate for the label
             x1 = self.coords['x'] + self.profile['LABEL_PADDING']
-            x2 = x1               + self.profile['LABEL_WIDTH']    - 1
+            x2 = x1               + self.profile['LABEL_WIDTH']
             x3 = x2 - 1
             y3 = self.coords['y'] + self.profile['LABEL_PADDING'] + (0.5 * self.profile['OUTER_DIAMETER'])
             self.canvas.create_rectangle(
@@ -81,8 +81,8 @@ class tkBitfield(object):
                 fill    = PROFILES["COLORS"]["TEXT_FG"],
             )
         # Create a backplate for the bulbs.
-        x2 = ((self.coords['x'] + self.coords['w']) - self.profile['LABEL_PADDING']) - 1
-        x1 = x2 - (self.wordSize * self.profile['OUTER_DIAMETER']) - 1
+        x1 = self.coords['x'] + (3 * self.profile['LABEL_PADDING']) + lbl_width
+        x2 = self.coords['x'] + self.coords['w'] - self.profile['LABEL_PADDING']
         # y1 and y2 remain the same as for the label backplate
         self.canvas.create_rectangle(
             x1,y1,x2,y2,
@@ -93,7 +93,7 @@ class tkBitfield(object):
         # they all share the same y coordinates
         y1 = self.coords['y'] + self.profile['LABEL_PADDING'] + self.profile['BULB_SPACING']
         y2 = y1 + self.profile['BULB_DIAMETER']
-        FarX = x2
+        FarX = self.coords['x'] + self.coords['w'] - self.profile['LABEL_PADDING']
         if self.flags is not None:
             flag_labels = [None] * self.wordSize
             flag_colors = [None] * self.wordSize
@@ -103,23 +103,24 @@ class tkBitfield(object):
                 flag_colors[flag.pos] = PROFILES["COLORS"]["FLAG_IN"] if flag.inv == 0 else PROFILES["COLORS"]["FLAG_OV"]
         for i in range(self.wordSize):
             self.bulbs[i] = dict()
-            x2    = FarX - 2
             FarX -= self.profile['OUTER_DIAMETER']
-            x1    = FarX + 1
+            x1    = FarX + self.profile['BULB_SPACING'] 
+            x2    = x1   + self.profile['BULB_DIAMETER']
             for state in [False,True]:
                 fill    = PROFILES['LED'][self.color]["ON"]  if state else PROFILES['LED'][self.color]["OFF"]
                 outline = PROFILES['LED'][self.color]["OFF"] if state else '#000'
                 self.bulbs[i][state] = self.canvas.create_oval(
-                    x1,y1,x2-2,y2-2,
+                    x1,y1,x2-1,y2-1,
                     fill    = fill,
                     outline = outline,
                     state   = "normal",
+                    width   = 1,
                 )
             # If the bitfield is a flag, label the bulb
             if self.flags is not None:
                 self.canvas.create_text(
-                    x1+(self.profile["BULB_DIAMETER"])/2,
-                    y1+(self.profile["BULB_DIAMETER"])/2,
+                    -1+x1+(self.profile["BULB_DIAMETER"])/2,
+                    -1+y1+(self.profile["BULB_DIAMETER"])/2,
                     font = self.profile["flag_font"],
                     text = flag_labels[i],
                     fill = flag_colors[i],

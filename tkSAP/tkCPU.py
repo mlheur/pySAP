@@ -5,7 +5,7 @@ from tkinter import Canvas
 class tkCPU(object):
     def __init__(self,frame,cpu):
         self.frame      = frame
-        self.canvas     = Canvas(self.frame,bd=0,highlightthickness=0)
+        self.canvas     = Canvas(self.frame,bg='#000',bd=0,highlightthickness=0)
         self.cpu        = cpu
         self.components = list()
         # Lambda functions to be called in by bitfield drawing routines

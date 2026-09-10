@@ -62,9 +62,9 @@ class tkMGR(object):
     def build_panes(self):
         panes = dict()
         # Create the outermost frame that's got a horizontal divider
-        panes['OUTER'] = PanedWindow(orient=VERTICAL)
+        panes['OUTER'] = PanedWindow(orient=VERTICAL,bd=0)
         # Create the inner frame on the upper half that's got a vertical divider
-        panes['INNER'] = PanedWindow(panes['OUTER'], orient=HORIZONTAL)
+        panes['INNER'] = PanedWindow(panes['OUTER'],orient=HORIZONTAL,bd=0)
         panes['INNER'].pack(side=TOP)
         panes['OUTER'].add(panes['INNER'])
         # Create the RAM frame on the lower half of the outer frame

@@ -1,9 +1,9 @@
 from tkinter import Canvas, Spinbox, Button, StringVar
 from .constants import PROFILES, DEFAULTS
 
-BLOCK_SIZE = 150
-BORDER_SIZE = 15
-TEXT_PAD_FACTOR = 1.5
+BLOCK_SIZE      = 100
+BORDER_SIZE     =  10
+TEXT_PAD_FACTOR =   1.5
 
 
 class tkCLK(object):

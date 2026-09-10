@@ -8,19 +8,19 @@ DEFAULTS = {
 
 PROFILES = {
     "BIG": {
-        "LABEL_WIDTH"   :  72,
+        "LABEL_WIDTH"   :  50,
         "LABEL_PADDING" :   1,
-        "BULB_DIAMETER" :  24,
-        "BULB_SPACING"  :   2,
-        "PADDING"       :   1,
-        "FONT_SIZE"     :  22,
-        "FLAG_SIZE"     :   8,
+        "BULB_DIAMETER" :  18,
+        "BULB_SPACING"  :   1,
+        "PADDING"       :   0,
+        "FONT_SIZE"     :  12,
+        "FLAG_SIZE"     :   6,
         "SPACER"        :   8,
     },
     "SML": {
-        "LABEL_WIDTH"   :  35,
-        "LABEL_PADDING" :   1,
-        "BULB_DIAMETER" :   8,
+        "LABEL_WIDTH"   :  30,
+        "LABEL_PADDING" :   0,
+        "BULB_DIAMETER" :   6,
         "BULB_SPACING"  :   0,
         "PADDING"       :   0,
         "FONT_SIZE"     :   6,

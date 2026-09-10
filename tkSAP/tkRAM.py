@@ -8,7 +8,7 @@ class tkRAM(object):
         self.clk   = clk
         self.clk.subscribe(self)
         self.addrspace = 2**self.clk.cpu.addrlen
-        self.canvas = Canvas(self.frame,bd=0,highlightthickness=0)
+        self.canvas = Canvas(self.frame,bg='#000',bd=0,highlightthickness=0)
         x = 0
         y = 0
         self.cells = [None] * self.addrspace
