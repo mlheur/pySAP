@@ -15,6 +15,7 @@ class Clock():
         self.NoTime        = 0
         self.next_pulse    = None
         self.perf_data     = None
+        self.modify(self.Hz)
 
     def modify(self,Hz):
         if self.perf_data is not None:
