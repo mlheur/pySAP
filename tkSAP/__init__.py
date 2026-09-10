@@ -6,6 +6,7 @@ from .clock_thread import clock_thread
 from .tkMGR import tkMGR
 from .tkCLK import tkCLK
 from .tkCPU import tkCPU
+from .tkRAM import tkRAM
 
 from tkinter.filedialog import askopenfilename
 
@@ -46,10 +47,13 @@ class tkSAP(object):
         #, CPU
         self.tkCPU = tkCPU(
             self.panes['CPU'],
-            self.mgr,
             self.clk.cpu,
         )
         #, and RAM.
+        self.tkRAM = tkRAM(
+            self.panes['RAM'],
+            self.clk,
+        )
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
         self.mgr.root.mainloop()
 
@@ -58,7 +62,7 @@ class tkSAP(object):
             return
         self.tkCLK.update()
         self.tkCPU.update()
-        #self.tkRAM.update()
+        self.tkRAM.update()
 
     def scheduled_update(self):
         self.update()

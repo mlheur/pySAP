@@ -1,8 +1,9 @@
 DEFAULTS = {
-    'Hz'   : 50,
-    'EXT'  : '.sap',
-    'DIR'  : './code/',
-    'FONT' : 'Courier',
+    'Hz'          : 50,
+    'EXT'         : '.sap',
+    'DIR'         : './code/',
+    'FONT'        : 'Courier',
+    'RAM_COLUMNS' : 16,
 }
 
 PROFILES = {

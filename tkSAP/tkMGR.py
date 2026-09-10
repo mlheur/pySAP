@@ -68,14 +68,14 @@ class tkMGR(object):
         panes['INNER'].pack(side=TOP)
         panes['OUTER'].add(panes['INNER'])
         # Create the RAM frame on the lower half of the outer frame
-        panes['RAM'] = Frame(self.root,bg='blue')
+        panes['RAM'] = Frame(self.root,bg='blue',bd=0,highlightthickness=0)
         panes['RAM'].pack(side=BOTTOM)
         panes['OUTER'].add(panes['RAM'])
         # Create the clock and CPU that wil go on the left and right halves of the lower frame.
-        panes['CLK'] = Frame(panes['INNER'],bg='red')
+        panes['CLK'] = Frame(panes['INNER'],bg='red',bd=0,highlightthickness=0)
         panes['CLK'].pack(side=RIGHT)
         panes['INNER'].add(panes['CLK'])
-        panes['CPU'] = Frame(panes['INNER'],bg='green')
+        panes['CPU'] = Frame(panes['INNER'],bg='green',bd=0,highlightthickness=0)
         panes['CPU'].pack(side=LEFT)
         panes['INNER'].add(panes['CPU'])
         panes['OUTER'].pack(fill=BOTH,expand=True)
