@@ -35,11 +35,19 @@ class tkRAM(object):
             width  = DEFAULTS['RAM_COLUMNS'] * self.cells[0].coords['w'],
             height = (self.addrspace / DEFAULTS['RAM_COLUMNS']) * self.cells[0].coords['w'],
         )
+        self.next_update = None
 
     def update_all(self):
         for cell in self.cells:
             cell.update()
 
     def clock(self):
-        if self.clk.cpu.oflags['Lr'].istrue():
-            self.cells[self.clk.cpu.mar.value].update()
+        #print(f'Clocked tkRAM')
+        if self.next_update is not None:
+            #print(f'Redrawing RAM, addr={self.next_update}')
+            self.cells[self.next_update].update()
+            self.next_update = None
+        elif self.clk.cpu.oflags['Lr'].istrue():
+            self.next_update = self.clk.cpu.mar.value
+            #print(f'Written to RAM, addr={self.next_update}')
+

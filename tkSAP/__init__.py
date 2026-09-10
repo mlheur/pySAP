@@ -55,6 +55,8 @@ class tkSAP(object):
             self.clk,
         )
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
+
+    def mainloop(self):
         self.mgr.root.mainloop()
 
     def update(self):
@@ -62,7 +64,6 @@ class tkSAP(object):
             return
         self.tkCLK.update()
         self.tkCPU.update()
-        self.tkRAM.update()
 
     def scheduled_update(self):
         self.update()
@@ -71,15 +72,14 @@ class tkSAP(object):
 #    def clock(self):
 #        self.update()
 
-    def file_open(self):
-        self.clk.cpu.setram(
-            self.clk.cpu.isa.assemble_file(
-                askopenfilename(
-                    defaultextension = DEFAULTS['EXT'],
-                    initialdir       = DEFAULTS['DIR'],
-                )
+    def file_open(self,fname=None):
+        if fname is None:
+            fname = askopenfilename(
+                defaultextension = DEFAULTS['EXT'],
+                initialdir       = DEFAULTS['DIR'],
             )
-        )
+        self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
+        self.tkRAM.update_all()
 
     def file_reset(self):
         self.clk.cpu = pySAP(isa=SAPisa(),code=self.code)

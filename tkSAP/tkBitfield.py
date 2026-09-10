@@ -142,8 +142,8 @@ class tkBitfield(object):
         if self.addr is not None:
             result = self.getAddrValue(self.addr)
             #print(f'getting value at addr {self.addr}, result={result}')
-            if self.iterVal is None:
-                self.iterVal = result
+            self.iterPtr = 0
+            self.iterVal = result
             return result
         return self.getValue()
 
