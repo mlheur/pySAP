@@ -12,7 +12,7 @@ class clock_thread(Thread):
     def run(self):
         self.clk.modify(self.clk.Hz)
         while not self.kill:
-            while self.running:
+            while self.running and self.clk.Hz > 0:
                 self.clk.pulse()
             sleep(self.clk.NoTime)
 
