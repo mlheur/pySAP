@@ -47,7 +47,7 @@ class tkSAP(object):
         #, CPU
         self.tkCPU = tkCPU(
             self.panes['CPU'],
-            self.clk.cpu,
+            self.clk,
         )
         #, and RAM.
         self.tkRAM = tkRAM(
@@ -69,8 +69,10 @@ class tkSAP(object):
         self.update()
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
 
-#    def clock(self):
-#        self.update()
+    def update_all(self):
+        self.tkCLK.update()
+        self.tkCPU.update()
+        self.tkRAM.update_all()
 
     def file_open(self,fname=None):
         if fname is None:
@@ -79,10 +81,12 @@ class tkSAP(object):
                 initialdir       = DEFAULTS['DIR'],
             )
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
-        self.tkRAM.update_all()
+        self.update_all()
 
     def file_reset(self):
-        self.clk.cpu = pySAP(isa=SAPisa(),code=self.code)
+        self.clock_stop()
+        self.clk.cpu.oflags['CLR'].settruth(True)
+        self.update_all()
 
     def file_quit(self):
         #print(f'Trying to quit')
