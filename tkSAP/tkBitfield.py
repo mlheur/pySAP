@@ -118,9 +118,10 @@ class tkBitfield(object):
                 )
             # If the bitfield is a flag, label the bulb
             if self.flags is not None:
+                #print(f'Labelling the bulb flag_labels[i={i}]={flag_labels[i]}')
                 self.canvas.create_text(
-                    -1+x1+(self.profile["BULB_DIAMETER"])/2,
-                    -1+y1+(self.profile["BULB_DIAMETER"])/2,
+                    -1+x1+(self.profile["BULB_DIAMETER"]/2),
+                    -1+y1+(self.profile["BULB_DIAMETER"]/2),
                     font = self.profile["flag_font"],
                     text = flag_labels[i],
                     fill = flag_colors[i],
