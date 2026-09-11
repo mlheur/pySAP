@@ -1,10 +1,6 @@
 from tkinter import Canvas, Spinbox, Button, StringVar
 from .constants import PROFILES, DEFAULTS
 
-BLOCK_SIZE      = 100
-BORDER_SIZE     =  10
-TEXT_PAD_FACTOR =   1.5
-
 
 class tkCLK(object):
     def __init__(self,frame,clk):
@@ -18,17 +14,17 @@ class tkCLK(object):
             bg                 = "#000",
             bd                 = 0,
             highlightthickness = 0,
-            height             = BLOCK_SIZE,
-            width              = BLOCK_SIZE * 2,
+            height             = PROFILES['CLK']['BLOCK_SIZE'],
+            width              = PROFILES['CLK']['BLOCK_SIZE'] * 2,
         )
         self.frame.rowconfigure(0, weight = 1)
         self.frame.columnconfigure(0, weight = 1)
         self.canvas.grid(row=0,column=0)
         # Draw the faux panels
-        xoff = BLOCK_SIZE
+        xoff = PROFILES['CLK']['BLOCK_SIZE']
         yoff = 0
-        xy1 = BORDER_SIZE
-        xy2 = BLOCK_SIZE - BORDER_SIZE
+        xy1 = PROFILES['CLK']['BORDER_SIZE']
+        xy2 = PROFILES['CLK']['BLOCK_SIZE'] - PROFILES['CLK']['BORDER_SIZE']
         #print(f'xoff={xoff} yoff={yoff} xy1={xy1} xy2={xy2} xoff+xy1={xoff+xy1} yoff+xy1={yoff+xy1} xoff+xy2={xoff+xy2} yoff+xy2={yoff+xy2}')
         self.canvas.create_rectangle(
             xoff+xy1,yoff+xy1,xoff+xy2,yoff+xy2,
@@ -37,8 +33,8 @@ class tkCLK(object):
         )
         xoff = 0
         yoff = 0
-        xy1 = BORDER_SIZE
-        xy2 = BLOCK_SIZE - BORDER_SIZE
+        xy1 = PROFILES['CLK']['BORDER_SIZE']
+        xy2 = PROFILES['CLK']['BLOCK_SIZE'] - PROFILES['CLK']['BORDER_SIZE']
         #print(f'xoff={xoff} yoff={yoff} xy1={xy1} xy2={xy2} xoff+xy1={xoff+xy1} yoff+xy1={yoff+xy1} xoff+xy2={xoff+xy2} yoff+xy2={yoff+xy2}')
         self.canvas.create_rectangle(
             xoff+xy1,yoff+xy1,xoff+xy2,yoff+xy2,
@@ -48,16 +44,16 @@ class tkCLK(object):
         # Draw the label
         label_height = 10
         self.canvas.create_text(
-            xoff + BLOCK_SIZE/2,
-            label_height + int(TEXT_PAD_FACTOR*BORDER_SIZE),
+            xoff + PROFILES['CLK']['BLOCK_SIZE']/2,
+            label_height + int(PROFILES['CLK']['TEXT_PAD_FACTOR']*PROFILES['CLK']['BORDER_SIZE']),
             text = "TGT HZ",
             font = PROFILES["BIG"]["label_font"],
             fill = PROFILES["COLORS"]["TEXT_FG"],
         )
         # Draw the value
         self.hz_value = self.canvas.create_text(
-            xoff + BLOCK_SIZE/2,
-            BLOCK_SIZE - label_height - int(TEXT_PAD_FACTOR*BORDER_SIZE),
+            xoff + PROFILES['CLK']['BLOCK_SIZE']/2,
+            PROFILES['CLK']['BLOCK_SIZE'] - label_height - int(PROFILES['CLK']['TEXT_PAD_FACTOR']*PROFILES['CLK']['BORDER_SIZE']),
             text = "0 HZ",
             font = PROFILES["BIG"]["label_font"],
             fill = PROFILES["COLORS"]["TEXT_FG"],
@@ -87,7 +83,7 @@ class tkCLK(object):
             state="normal", cursor="hand2", bd=3, justify="center", wrap=True
         )
         self.target_hz_stringvar.set(str(self.clk.Hz))
-        self.hz_spinner.place(x=BLOCK_SIZE*1/2,y=BLOCK_SIZE/2,in_=self.canvas,anchor="center")
+        self.hz_spinner.place(x=PROFILES['CLK']['BLOCK_SIZE']*1/2,y=PROFILES['CLK']['BLOCK_SIZE']/2,in_=self.canvas,anchor="center")
         # Create the button in memory, unplaced.
         self.btn_pulse = Button(
             self.frame,
@@ -98,7 +94,7 @@ class tkCLK(object):
             activebackground="lightgrey",
             relief="raised",
         )
-        self.btn_pulse.place(x=BLOCK_SIZE*3/2,y=BLOCK_SIZE/2,in_=self.canvas,anchor="center")
+        self.btn_pulse.place(x=PROFILES['CLK']['BLOCK_SIZE']*3/2,y=PROFILES['CLK']['BLOCK_SIZE']/2,in_=self.canvas,anchor="center")
         self.canvas.pack()
 
     def update_btn_pulse(self):
