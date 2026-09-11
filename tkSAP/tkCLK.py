@@ -111,12 +111,14 @@ class tkCLK(object):
     def update(self):
         Hz = self.clk.perf_data['history'][self.clk.perf_data['histptr']]
         Hz = 0 if Hz is None else Hz
-        if Hz   > 99.94:
-            Hz  = f'{Hz:.0f}'
+        if Hz > 999.4:
+            Hz  = f'{Hz:03.0f}'
+        elif Hz   > 99.94:
+            Hz  = f'{Hz:03.0f}.'
         elif Hz >  9.994:
-            Hz  = f'{Hz:.1f}'
+            Hz  = f'{Hz:04.1f}'
         else:
-            Hz  = f'{Hz:.2f}'
+            Hz  = f'{Hz:04.2f}'
         self.canvas.itemconfigure(self.hz_value, text=f"{Hz}")
         self.target_hz_stringvar.set(str(self.clk.Hz))
         self.update_btn_pulse()
