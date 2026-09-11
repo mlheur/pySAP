@@ -1,7 +1,12 @@
 
-
 class CtlLine():
-    def __init__(self,pos,value=0,inv=0):
+    POS_COUNTER = 0
+    def __init__(self,pos=None,value=0,inv=0):
+        if pos is None:
+            pos = CtlLine.POS_COUNTER
+            CtlLine.POS_COUNTER += 1
+        elif pos == 0:
+            CtlLine.POS_COUNTER = 0
         self.pos        = pos
         self.mask       = 1 << self.pos
         self.value      = value
