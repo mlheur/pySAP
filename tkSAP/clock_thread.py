@@ -15,6 +15,8 @@ class clock_thread(Thread):
             while self.running and self.clk.Hz > 0:
                 self.clk.pulse()
             sleep(self.clk.NoTime)
+            if not self.running:
+                sleep(0.1)
 
     def resume(self):
         self.running = True

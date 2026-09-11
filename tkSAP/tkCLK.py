@@ -151,19 +151,26 @@ class tkCLK(object):
         self.update_btn_runstop()
 
     def update_btn_runstop(self):
-        stop = self.ui.clock_thread.running
-        run  = not stop
-        if run:
-            runstate  = "normal"
-            stopstate = "disabled"
+        runstate  = "disabled"
+        stopstate = "disabled"
+        if self.clk.Hz == 0:
+            pass
         else:
-            runstate  = "disabled"
-            stopstate = "normal"
+            if self.ui.clock_thread.running:
+                stopstate = "active"
+            else:
+                runstate  = "active"
         self.btn_run.configure(state=runstate)
         self.btn_stop.configure(state=stopstate)
 
     def update_btn_pulse(self):
-        self.btn_pulse.configure(state = "active" if (self.clk.Hz==0) else "disabled" )
+        state = "active"
+        if self.ui.clock_thread.running:
+            if self.clk.Hz == 0:
+                self.ui.clock_stop()
+            else:
+                state = "disabled"
+        self.btn_pulse.configure(state=state)
 
     def modify_clk(self):
         self.clk.modify(int(self.target_hz_stringvar.get()))
