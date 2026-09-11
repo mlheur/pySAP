@@ -11,6 +11,8 @@ class tkRAM(object):
         self.canvas = Canvas(self.frame,bg='#000',bd=0,highlightthickness=0)
         x = 0
         y = 0
+        w = 0
+        h = 0
         self.cells = [None] * self.addrspace
         for addr in range(self.addrspace):
             self.cells[addr] = tkBitfield(
@@ -26,14 +28,18 @@ class tkRAM(object):
                 profile      = 'SML',
             )
             x += self.cells[addr].coords['w']
+            if y == 0:
+                w += self.cells[addr].coords['w']
             if x >= DEFAULTS['RAM_COLUMNS'] * self.cells[addr].coords['w']:
                 x = 0
                 y += self.cells[addr].coords['h']
+                if x == 0:
+                    h += self.cells[addr].coords['h']
         self.update_all()
         self.canvas.pack()
         self.canvas.config(
-            width  = DEFAULTS['RAM_COLUMNS'] * self.cells[0].coords['w'],
-            height = (self.addrspace / DEFAULTS['RAM_COLUMNS']) * self.cells[0].coords['w'],
+            width  = w,
+            height = h,
         )
         self.next_update = None
 
