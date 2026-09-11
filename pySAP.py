@@ -20,34 +20,34 @@ class SAPisa(ISA):
         # The iflags are control bits set by other components, and used in the
         # instruction decoder to take different actions depending on these conditions.
         self.iflags = {
-            'CF':  CtlLine(0),
-            'ZF':  CtlLine(1)
+            'CF':  CtlLine(),
+            'ZF':  CtlLine()
         }
         # The oflags are the control lines set by the instruction decoder for enabling
         # various latches and operations on the next clock cycle.
         self.oflags = {
-            'Lo':  CtlLine(0,inv=1),  # Latch OUT
-            'Lb':  CtlLine(1,inv=1),  # Latch B
-            'Eu':  CtlLine(2),        # Enable ALU
-            'Su':  CtlLine(3),        # Subtract
-            'Ea':  CtlLine(4),        # Enable A
-            'La':  CtlLine(5,inv=1),  # Latch A
-            'Ei':  CtlLine(6,inv=1),  # Enable IR
-            'Li':  CtlLine(7,inv=1),  # Latch IR
-            'CE':  CtlLine(8,inv=1),  # Chip Enable RAM
-            'Lm':  CtlLine(9,inv=1),  # Latch MAR
-            'Ep':  CtlLine(10),       # Enable PC
-            'Cp':  CtlLine(11),       # Clock PC
-            'Lr':  CtlLine(12),       # Latch RAM
-            'Eb':  CtlLine(13),       # Enable B
-            'CLR': CtlLine(14,inv=1), # CLR
-            'HLT': CtlLine(15),       # HLT
-            'Rt':  CtlLine(16),       # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
-            'Sh':  CtlLine(17),       # ALU Shift Left; [Sh+Su] = ALU Shift Right.
-            'CC':  CtlLine(18),       # Clear the Carry Flag
-            'SC':  CtlLine(19,inv=1), # Set the Carry Flag
-            'CZ':  CtlLine(20),       # Clear the Zero Flag
-            'SZ':  CtlLine(21,inv=1), # Set the Zero Flag
+            'Lo':  CtlLine(0,inv=1), # Latch OUT
+            'Lb':  CtlLine(inv=1),   # Latch B
+            'Eu':  CtlLine(),        # Enable ALU
+            'Su':  CtlLine(),        # Subtract
+            'Ea':  CtlLine(),        # Enable A
+            'La':  CtlLine(inv=1),   # Latch A
+            'Ei':  CtlLine(inv=1),   # Enable IR
+            'Li':  CtlLine(inv=1),   # Latch IR
+            'CE':  CtlLine(inv=1),   # Chip Enable RAM
+            'Lm':  CtlLine(inv=1),   # Latch MAR
+            'Ep':  CtlLine(),        # Enable PC
+            'Cp':  CtlLine(),        # Clock PC
+            'Lr':  CtlLine(),        # Latch RAM
+            'Eb':  CtlLine(),        # Enable B
+            'CLR': CtlLine(inv=1),   # CLR
+            'HLT': CtlLine(),        # HLT
+            'Rt':  CtlLine(),        # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
+            'Sh':  CtlLine(),        # ALU Shift Left; [Sh+Su] = ALU Shift Right.
+            'CC':  CtlLine(),        # Clear the Carry Flag
+            'SC':  CtlLine(inv=1),   # Set the Carry Flag
+            'CZ':  CtlLine(),        # Clear the Zero Flag
+            'SZ':  CtlLine(inv=1),   # Set the Zero Flag
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
