@@ -18,8 +18,8 @@ class Clock():
         self.modify(self.Hz)
 
     def modify(self,Hz):
-        if self.perf_data is not None:
-            print(self.perf_data['history'])
+#        if self.perf_data is not None:
+#            print(self.perf_data['history'])
         self.Hz                   = Hz
         self.period               = Hz if Hz == 0 else int((1*NS)/Hz)
         self.NoTime               = int((self.period / NOTIME_FRACTION) / NS)
@@ -75,4 +75,4 @@ class Clock():
             while self.Hz == 0:
                 sleep(self.NoTime/NS)
             self.pulse()
-        print(self.perf_data['history'])
+        #print(self.perf_data['history'])
