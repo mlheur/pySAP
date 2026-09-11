@@ -101,6 +101,7 @@ class tkBitfield(object):
                 flag = self.flags[title]
                 flag_labels[flag.pos] = title
                 flag_colors[flag.pos] = PROFILES["COLORS"]["FLAG_IN"] if flag.inv == 0 else PROFILES["COLORS"]["FLAG_OV"]
+                #print(f'Assigning label for bulb title={title} flag_labels[flag.pos={flag.pos}]={flag_labels[flag.pos]}')
         for i in range(self.wordSize):
             self.bulbs[i] = dict()
             FarX -= self.profile['OUTER_DIAMETER']

@@ -34,20 +34,20 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkTstep)
-        # Draw the Memory Address Register
-        y += tkTstep.coords['h']
-        tkMAR = tkBitfield(
-            getValue  = lambda : self.clk.cpu.mar.value,
-            wordSize  = self.clk.cpu.mar.bits,
-            color     = "GREEN",
-            title     = "MAR",
+        # Draw the current Input Flags beside the ring counter
+        tkFlags = tkBitfield(
+            getValue  = getInputFlags,
+            wordSize  = len(self.clk.cpu.iflags),
+            color     = "CYAN",
+            title     = "FLG",
+            flags     = self.clk.cpu.iflags,
             canvas    = self.canvas,
-            x         = x,
+            x         = x + tkTstep.coords['w'],
             y         = y,
         )
-        self.components.append(tkMAR)
+        self.components.append(tkFlags)
+        y += tkTstep.coords['h']
         # Draw the current RAM value
-        y += tkMAR.coords['h']
         tkRAM = tkBitfield(
             getValue  = lambda : self.clk.cpu.ram.value[self.clk.cpu.mar.value],
             wordSize  = self.clk.cpu.ram.bits,
@@ -58,8 +58,20 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkRAM)
-        # Draw the current Instruction Register value
         y += tkRAM.coords['h']
+        # Draw the Memory Address Register
+        tkMAR = tkBitfield(
+            getValue  = lambda : self.clk.cpu.mar.value,
+            wordSize  = self.clk.cpu.mar.bits,
+            color     = "GREEN",
+            title     = "MAR",
+            canvas    = self.canvas,
+            x         = x,
+            y         = y,
+        )
+        self.components.append(tkMAR)
+        y += tkMAR.coords['h']
+        # Draw the current Instruction Register value
         tkIR = tkBitfield(
             getValue  = lambda : self.clk.cpu.ir.value,
             wordSize  = self.clk.cpu.ir.bits,
@@ -70,38 +82,8 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkIR)
-        # Draw the current Input Flags
         y += tkIR.coords['h']
-        tkFlags = tkBitfield(
-            getValue  = getInputFlags,
-            wordSize  = len(self.clk.cpu.iflags),
-            color     = "CYAN",
-            title     = "FLG",
-            flags     = self.clk.cpu.iflags,
-            canvas    = self.canvas,
-            x         = x,
-            y         = y,
-        )
-        self.components.append(tkFlags)
-        #####
-        # COLUMN 2
-        #####
-        x += tkMAR.coords['w']
-        # Draw the current Bus value
-        y = 0
-        y = tkMAR.coords['y']
-        tkBUS = tkBitfield(
-            getValue  = lambda : self.clk.cpu.w,
-            wordSize  = 8,
-            color     = "RED",
-            title     = "BUS",
-            canvas    = self.canvas,
-            x         = x,
-            y         = y,
-        )
-        self.components.append(tkBUS)
         # Draw the current OUT1 value
-        y = tkIR.coords['y']
         tkOUT = tkBitfield(
             getValue  = lambda : self.clk.cpu.out.value,
             wordSize  = self.clk.cpu.out.bits,
@@ -113,11 +95,29 @@ class tkCPU(object):
         )
         self.components.append(tkOUT)
         #####
+        # COLUMN 2
+        #####
+        x += tkRAM.coords['w']
+        y = 0
+        # Draw the current Bus value
+        y = tkRAM.coords['y']
+        tkBUS = tkBitfield(
+            getValue  = lambda : self.clk.cpu.w,
+            wordSize  = 8,
+            color     = "RED",
+            title     = "BUS",
+            canvas    = self.canvas,
+            x         = x,
+            y         = y,
+        )
+        self.components.append(tkBUS)
+        y += tkBUS.coords['h']
+        #####
         # COLUMN 3
         #####
         x += tkBUS.coords['w']
-        # Draw the current Program Counter valuewinfo screenheight
         y = 0
+        # Draw the current Program Counter valuewinfo screenheight
         tkPC = tkBitfield(
             getValue  = lambda : self.clk.cpu.pc.value,
             wordSize  = self.clk.cpu.pc.bits,
@@ -128,8 +128,8 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkPC)
-        # Draw the current A register value
         y += tkPC.coords['h']
+        # Draw the current A register value
         tkA = tkBitfield(
             getValue  = lambda : self.clk.cpu.a.value,
             wordSize  = self.clk.cpu.a.bits,
@@ -140,8 +140,8 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkA)
-        # Draw the current A register value
         y += tkA.coords['h']
+        # Draw the current A register value
         tkALU = tkBitfield(
             getValue  = lambda : self.clk.cpu.alu.value,
             wordSize  = self.clk.cpu.alu.bits,
@@ -152,8 +152,20 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkALU)
-        # Draw the current B register value
         y += tkALU.coords['h']
+        # Draw the current B register value
+        tkTMP = tkBitfield(
+            getValue  = lambda : self.clk.cpu.tmp.value,
+            wordSize  = self.clk.cpu.tmp.bits,
+            color     = "GREEN",
+            title     = "TMP",
+            canvas    = self.canvas,
+            x         = x,
+            y         = y,
+        )
+        self.components.append(tkTMP)
+        y += tkTMP.coords['h']
+        # Draw the current B register value
         tkB = tkBitfield(
             getValue  = lambda : self.clk.cpu.b.value,
             wordSize  = self.clk.cpu.b.bits,
@@ -164,8 +176,20 @@ class tkCPU(object):
             y         = y,
         )
         self.components.append(tkB)
-        # Draw the current Output Control Lines
         y += tkB.coords['h']
+        # Draw the current C register value
+        tkC = tkBitfield(
+            getValue  = lambda : self.clk.cpu.c.value,
+            wordSize  = self.clk.cpu.c.bits,
+            color     = "GREEN",
+            title     = "C",
+            canvas    = self.canvas,
+            x         = x,
+            y         = y,
+        )
+        self.components.append(tkC)
+        y += tkC.coords['h']
+        # Draw the current Output Control Lines
         tkCtls = tkBitfield(
             getValue  = getOutputFlags,
             wordSize  = len(self.clk.cpu.oflags),
@@ -173,7 +197,7 @@ class tkCPU(object):
             title     = "CTL",
             flags     = self.clk.cpu.oflags,
             canvas    = self.canvas,
-            x         = x + tkB.coords['w'],
+            x         = x + tkPC.coords['w'],
             y         = y,
             justify    = "right",
         )
@@ -181,7 +205,7 @@ class tkCPU(object):
         self.canvas.pack()
         self.canvas.config(
             width  = 3 * tkALU.coords['w'],
-            height = 5 * tkALU.coords['h'],
+            height = 7 * tkALU.coords['h'],
         )
 
     def update(self):

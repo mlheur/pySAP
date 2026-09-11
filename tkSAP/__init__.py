@@ -43,6 +43,7 @@ class tkSAP(object):
         self.tkCLK = tkCLK(
             self.panes['CLK'],
             self.clk,
+            self,
         )
         #, CPU
         self.tkCPU = tkCPU(
@@ -60,14 +61,15 @@ class tkSAP(object):
         self.mgr.root.mainloop()
 
     def update(self):
-        if self.clk.cpu.oflags['HLT'].istrue():
-            return
+        if self.clk.cpu.oflags['HLT'].istrue() and self.clock_thread.running:
+            self.clock_stop()
         self.tkCLK.update()
         self.tkCPU.update()
 
     def scheduled_update(self):
+        refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
         self.update()
-        self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
+        self.mgr.root.after(refrate,self.scheduled_update)
 
     def update_all(self):
         self.tkCLK.update()
@@ -81,6 +83,7 @@ class tkSAP(object):
                 initialdir       = DEFAULTS['DIR'],
             )
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
+        self.mgr.root.title(f'tkSAP: {fname}')
         self.update_all()
 
     def file_reset(self):
