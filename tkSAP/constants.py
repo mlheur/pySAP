@@ -8,8 +8,8 @@ DEFAULTS = {
 
 PROFILES = {
     "CLK": {
-        "BLOCK_SIZE"      : 100,
-        "BORDER_SIZE"     :  10,
+        "BLOCK_SIZE"      : 150,
+        "BORDER_SIZE"     :  15,
         "TEXT_PAD_FACTOR" :   1.5,
     },
     "BIG": {
@@ -18,7 +18,7 @@ PROFILES = {
         "BULB_DIAMETER"   :  32,
         "BULB_SPACING"    :   1,
         "PADDING"         :   0,
-        "FONT_SIZE"       :  20,
+        "FONT_SIZE"       :  18,
         "FLAG_SIZE"       :  12,
         "SPACER"          :   8,
     },
