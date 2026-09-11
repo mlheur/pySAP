@@ -27,11 +27,15 @@ class SAPisa(ISA):
         # various latches and operations on the next clock cycle.
         self.oflags = {
             'Lo':  CtlLine(pos=0,inv=1), # Latch OUT
-            'Lb':  CtlLine(inv=1),       # Latch B
+            'Lt':  CtlLine(inv=1),       # Latch B
             'Eu':  CtlLine(),            # Enable ALU
             'Su':  CtlLine(),            # Subtract
             'Ea':  CtlLine(),            # Enable A
             'La':  CtlLine(inv=1),       # Latch A
+            'Eb':  CtlLine(),            # Enable B
+            'Lb':  CtlLine(inv=1),       # Latch B
+            'Ec':  CtlLine(),            # Enable C
+            'Lc':  CtlLine(inv=1),       # Latch C
             'Ei':  CtlLine(inv=1),       # Enable IR
             'Li':  CtlLine(inv=1),       # Latch IR
             'CE':  CtlLine(inv=1),       # Chip Enable RAM
@@ -39,7 +43,6 @@ class SAPisa(ISA):
             'Ep':  CtlLine(),            # Enable PC
             'Cp':  CtlLine(),            # Clock PC
             'Lr':  CtlLine(),            # Latch RAM
-            'Eb':  CtlLine(),            # Enable B
             'CLR': CtlLine(inv=1),       # CLR
             'HLT': CtlLine(),            # HLT
             'Rt':  CtlLine(),            # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
@@ -100,7 +103,7 @@ class SAPisa(ISA):
 
             self.mkctl(['Ep','Lm']),           # 0x08 ADD : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x09     : IncPC RAM->MAR
-            self.mkctl(['CE','Lb']),           # 0x0A     : RAM->B
+            self.mkctl(['CE','Lt']),           # 0x0A     : RAM->TMP
             self.mkctl(['Eu','La','Rt']),      # 0x0B     : ALU->A Next
 
             self.mkctl(['CLR']),               # 0x0C RST : CLR
@@ -118,7 +121,7 @@ class SAPisa(ISA):
 
             self.mkctl(['Ep','Lm']),           # 0x12 SUB : PC->MAR
             self.mkctl(['Cp','CE','Lm']),      # 0x13     : IncPC RAM->MAR
-            self.mkctl(['CE','Lb']),           # 0x14     : RAM->B
+            self.mkctl(['CE','Lt']),           # 0x14     : RAM->TMP
             self.mkctl(['Su','Eu','La','Rt']), # 0x15     : Sub ALU->A Next
 
             self.mkctl(['Ep','Lm']),           # 0x16 STA : PC->MAR
@@ -181,16 +184,18 @@ class pySAP(CPU):
         self.addrlen    = addrlen
         self.iflags     = dict(isa.iflags)
         self.oflags     = dict(isa.oflags)
+        self.tmp        = StdRegister(self,'Lt')
         self.a          = StdRegister(self,'La','Ea')
         self.b          = StdRegister(self,'Lb','Eb')
+        self.c          = StdRegister(self,'Lc','Ec')
         self.out        = OUT(self,'Lo')
         self.ir         = IR(self,'Li','Ei')
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt')
-        self.alu        = ALU(self,self.a,self.b,'Eu','Su','Sh','CF')
-        self.components = [self.a,self.b,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
+        self.alu        = ALU(self,self.a,self.tmp,'Eu','Su','Sh','CF')
+        self.components = [self.a,self.b,self.c,self.tmp,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
     def clock(self,subscribers):
         self.ctlseq.clock(self.components,subscribers)
 
