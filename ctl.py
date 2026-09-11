@@ -5,8 +5,8 @@ class CtlLine():
         if pos is None:
             pos = CtlLine.POS_COUNTER
             CtlLine.POS_COUNTER += 1
-        elif pos == 0:
-            CtlLine.POS_COUNTER = 0
+        elif pos >= 0:
+            CtlLine.POS_COUNTER = pos+1
         self.pos        = pos
         self.mask       = 1 << self.pos
         self.value      = value
