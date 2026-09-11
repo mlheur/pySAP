@@ -2,7 +2,7 @@ DEFAULTS = {
     'Hz'          : 50,
     'EXT'         : '.sap',
     'DIR'         : './code/',
-    'FONT'        : 'Courier',
+    'FONT'        : 'Oxygen Mono',
     'RAM_COLUMNS' : 16,
 }
 
@@ -13,13 +13,13 @@ PROFILES = {
         "TEXT_PAD_FACTOR" :   1.5,
     },
     "BIG": {
-        "LABEL_WIDTH"     :  50,
+        "LABEL_WIDTH"     :  40,
         "LABEL_PADDING"   :   1,
-        "BULB_DIAMETER"   :  32,
+        "BULB_DIAMETER"   :  20,
         "BULB_SPACING"    :   1,
         "PADDING"         :   0,
-        "FONT_SIZE"       :  18,
-        "FLAG_SIZE"       :  12,
+        "FONT_SIZE"       :  16,
+        "FLAG_SIZE"       :   6,
         "SPACER"          :   8,
     },
     "SML": {
