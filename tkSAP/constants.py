@@ -4,6 +4,7 @@ DEFAULTS = {
     'DIR'         : './code/',
     'FONT'        : 'Oxygen Mono',
     'RAM_COLUMNS' : 16,
+    'TITLE'       : 'tkSAP',
 }
 
 PROFILES = {

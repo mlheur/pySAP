@@ -43,7 +43,7 @@ class tkRAM(object):
         )
         self.next_update = None
 
-    def update_all(self):
+    def update_all(self,):
         for cell in self.cells:
             cell.update()
 

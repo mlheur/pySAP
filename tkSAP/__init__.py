@@ -15,6 +15,7 @@ REFRESH_RATE = 2 # ms
 MENU = {
     '_File': {
         '_Open and assemble source file to start of RAM...' : 'file_open',
+        '_Wipe RAM'                                         : 'file_wiperam',
         '_Reset CPU'                                        : 'file_reset',
         '---'                                               : None,
         '_Quit'                                             : 'file_quit',
@@ -29,7 +30,7 @@ MENU = {
 class tkSAP(object):
     def __init__(self):
         # A main window will have some subframes / panels.
-        self.mgr = tkMGR("tkSAP")
+        self.mgr = tkMGR(DEFAULTS['TITLE'])
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
         self.clk = Clock(cpu=pySAP(isa=SAPisa()))
@@ -83,13 +84,22 @@ class tkSAP(object):
                 initialdir       = DEFAULTS['DIR'],
             )
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
-        self.mgr.root.title(f'tkSAP: {fname}')
+        self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
         self.update_all()
 
     def file_reset(self):
         self.clock_stop()
-        self.clk.cpu.oflags['CLR'].settruth(True)
+        self.clk.cpu.w = 0
+        for f in self.clk.cpu.oflags:
+            self.clk.cpu.oflags[f].value = 0
+        #self.clk.pulse()
         self.update_all()
+
+    def file_wiperam(self):
+        for i in range(len(self.clk.cpu.ram.value)):
+            self.clk.cpu.ram.value[i] = 0
+        self.tkRAM.update_all()
+        self.mgr.root.title(DEFAULTS['TITLE'])
 
     def file_quit(self):
         #print(f'Trying to quit')

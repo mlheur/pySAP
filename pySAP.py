@@ -47,10 +47,10 @@ class SAPisa(ISA):
             'HLT': CtlLine(),            # HLT
             'Rt':  CtlLine(),            # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
             'Sh':  CtlLine(),            # ALU Shift Left; [Sh+Su] = ALU Shift Right.
-            'CC':  CtlLine(),            # Clear the Carry Flag
-            'SC':  CtlLine(inv=1),       # Set the Carry Flag
-            'CZ':  CtlLine(),            # Clear the Zero Flag
-            'SZ':  CtlLine(inv=1),       # Set the Zero Flag
+            'CC':  CtlLine(inv=1),       # Clear the Carry Flag
+            'SC':  CtlLine(inv=0),       # Set the Carry Flag
+            'CZ':  CtlLine(inv=1),       # Clear the Zero Flag
+            'SZ':  CtlLine(inv=0),       # Set the Zero Flag
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
