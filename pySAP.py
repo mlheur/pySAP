@@ -190,6 +190,48 @@ class SAPisa(ISA):
         ])
         self.addinstr('SHL',_adr)
 
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['CC','Rt']),           # 0x1B CCF
+        ])
+        self.addinstr('CCF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['SC','Rt']),           # 0x1C SCF
+        ])
+        self.addinstr('SCF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['CZ','Rt']),           # 0x1D CZF
+        ])
+        self.addinstr('CZF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['SZ','Rt']),           # 0x1E SZF
+        ])
+        self.addinstr('SZF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Ep','Lm']),           # 0x1F STM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      # 0x20     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           # 0x21     : RAM->MAR
+            self.mkctl(['Ea','Lr','Rt']),      # 0x22     : A->RAM Next
+        ])
+        self.addinstr('STM',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Ep','Lm']),           # 0x23 LDM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      # 0x24     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           # 0x25     : RAM->MAR
+            self.mkctl(['CE','La','Rt']),      # 0x26     : RAM->A Next
+        ])
+        self.addinstr('LDM',_adr)
+
     def update(self):
         if self.clk.cpu.oflags['HLT'].istrue() and self.clock_thread.running:
             self.clock_stop()
