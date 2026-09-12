@@ -11,7 +11,7 @@ from .tkCODE import tkCODE
 
 from tkinter.filedialog import askopenfilename
 
-REFRESH_RATE = 2 # ms
+REFRESH_RATE = 500 # ms
 
 MENU = {
     '_File': {
@@ -35,7 +35,7 @@ class tkSAP(object):
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
         self.clk = Clock(cpu=pySAP(isa=SAPisa(),addrlen=12))
-        #self.clk.subscribe(self)
+        self.clk.subscribe(self)
         self.code = None
         # Run said clock in its own thread.
         self.clock_thread = clock_thread(self.clk)
@@ -72,6 +72,9 @@ class tkSAP(object):
             self.clock_stop()
         self.tkCLK.update()
         self.tkCPU.update()
+
+    def clock(self):
+        self.update()
 
     def scheduled_update(self):
         refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
