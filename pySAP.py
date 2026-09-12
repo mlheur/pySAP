@@ -180,16 +180,33 @@ class SAPisa(ISA):
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHL : A->shift->ALU->A Next
-        ])
-        self.addinstr('SHL',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHR : A->shift->ALU->A Next
+            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHR : A->shift->ALU->A Next
         ])
         self.addinstr('SHR',_adr)
 
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHL : A->shift->ALU->A Next
+        ])
+        self.addinstr('SHL',_adr)
+
+    def update(self):
+        if self.clk.cpu.oflags['HLT'].istrue() and self.clock_thread.running:
+            self.clock_stop()
+        self.tkCLK.update()
+        self.tkCPU.update()
+
+    def clock(self):
+        self.update()
+
+    def scheduled_update(self):
+        refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
+        self.update()
+        self.mgr.root.after(refrate,self.scheduled_update)
+
+    def update_all(self):
+        self.tkCLK.update()
+        self.tkCPU.update()
         _adr = len(self.ctl)
         self.ctl.extend([
             self.mkctl(['CC','Rt']),           # 0x1B CCF
