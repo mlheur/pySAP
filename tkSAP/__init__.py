@@ -62,6 +62,7 @@ class tkSAP(object):
             self.clk,
         )
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
+        self.file_open(DEFAULTS['PROGRAM'])
 
     def mainloop(self):
         self.mgr.root.mainloop()
@@ -123,8 +124,7 @@ class tkSAP(object):
         if not self.started:
             self.started = True
             self.clock_thread.start()
-        else:
-            self.clock_thread.resume()
+        self.clock_thread.resume()
 
     def clock_stop(self):
         self.clock_thread.stop()
