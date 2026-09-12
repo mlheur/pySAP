@@ -29,7 +29,7 @@ PROFILES = {
     "SML": {
         "LABEL_WIDTH"     :  30,
         "LABEL_PADDING"   :   0,
-        "BULB_DIAMETER"   :   6,
+        "BULB_DIAMETER"   :   4,
         "BULB_SPACING"    :   0,
         "PADDING"         :   0,
         "FONT_SIZE"       :   6,
