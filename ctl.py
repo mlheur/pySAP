@@ -36,11 +36,17 @@ class CtlSeq():
     def __str__(self):
         return '{}'.format(self.Tstep)
 
-    def iflags(self):
+    def get_flags(self,flagset):
         result = 0
-        for f in self.cpu.iflags:
-            result |= ((self.cpu.iflags[f].mask & (self.cpu.iflags[f].value) << self.cpu.iflags[f].pos))
+        for f in flagset:
+            result |= flagset[f].value << flagset[f].pos
         return result
+
+    def iflags(self):
+        return self.get_flags(self.cpu.iflags)
+
+    def oflags(self):
+        return self.get_flags(self.cpu.oflags)
 
     def decode(self):
         if self.cpu.oflags['CLR'].istrue():

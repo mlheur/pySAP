@@ -3,7 +3,8 @@ from tkinter import Canvas
 
 
 class tkCPU(object):
-    def __init__(self,frame,clk):
+    def __init__(self,frame,clk,ui):
+        self.ui         = ui
         self.frame      = frame
         self.canvas     = Canvas(self.frame,bg='#000',bd=0,highlightthickness=0)
         self.clk        = clk
@@ -36,20 +37,20 @@ class tkCPU(object):
             relcoord['j'] = "left"
             return relcoord
 
-        coords['MAR'] = self.draw_StdRegister(absolute(0,0),'MAR',self.clk.cpu.mar)
+        coords['MAR'] = self.draw_StdRegister(absolute(0,0),'MAR')
         coords['RAM'] = self.draw_RAM(below('MAR'))
-        coords['IR']  = self.draw_StdRegister(below('RAM'),'IR',self.clk.cpu.ir)
+        coords['IR']  = self.draw_StdRegister(below('RAM'),'IR')
         coords['STP'] = self.draw_STP(below('IR'))
         coords['FLG'] = self.draw_FLG(rightof('STP'))
 
         coords['BUS'] = self.draw_BUS(rightof('RAM'))
-        coords['OUT'] = self.draw_StdRegister(below('BUS'),'OUT',self.clk.cpu.out,color="WHITE")
+        coords['OUT'] = self.draw_StdRegister(below('BUS'),'OUT',color="WHITE")
 
-        coords['TMP'] = self.draw_StdRegister(rightof('BUS'),'TMP',self.clk.cpu.tmp)
-        coords['ALU'] = self.draw_StdRegister(below('TMP'),'ALU',self.clk.cpu.alu,color="YELLOW")
-        coords['A']   = self.draw_StdRegister(below('ALU'),'A',self.clk.cpu.a)
-        coords['B']   = self.draw_StdRegister(below('A'),'B',self.clk.cpu.b)
-        coords['C']   = self.draw_StdRegister(below('B'),'C',self.clk.cpu.c)
+        coords['TMP'] = self.draw_StdRegister(rightof('BUS'),'TMP')
+        coords['ALU'] = self.draw_StdRegister(below('TMP'),'ALU',color="YELLOW")
+        coords['A']   = self.draw_StdRegister(below('ALU'),'A')
+        coords['B']   = self.draw_StdRegister(below('A'),'B')
+        coords['C']   = self.draw_StdRegister(below('B'),'C')
         coords['CTL'] = self.draw_CTL(below_right('C'))
 
         coords['PC']  = self.draw_StdRegister(
@@ -59,7 +60,6 @@ class tkCPU(object):
                 'j':"right",
             },
             'PC',
-            self.clk.cpu.pc,
         )
 
         self.canvas.config(
@@ -68,25 +68,13 @@ class tkCPU(object):
         )
         self.canvas.pack()
 
-    def getFlags(self,flagset):
-        result = 0
-        for f in flagset:
-            result |= flagset[f].value << flagset[f].pos
-        return result
-
-    def getInputFlags(self):
-        return self.getFlags(self.clk.cpu.iflags)
-
-    def getOutputFlags(self):
-        return self.getFlags(self.clk.cpu.oflags)
-
-    def draw_bitfield(self,getValue,wordSize,color,title,relcoord,flags=None):
+    def draw_bitfield(self,color,title,relcoord,flags=None):
         x = relcoord['x']
         y = relcoord['y']
         j = relcoord['j']
         bitfield = tkBitfield(
-            getValue  = getValue,
-            wordSize  = wordSize,
+            getValue  = lambda : self.ui.cpu_state[title]['value'],
+            wordSize  = self.ui.cpu_state[title]['bits'],
             color     = color,
             title     = title,
             canvas    = self.canvas,
@@ -98,20 +86,15 @@ class tkCPU(object):
         self.components.append(bitfield)
         return bitfield.coords
 
-    def draw_StdRegister(self,relcoord,title,register,color="GREEN"):
+    def draw_StdRegister(self,relcoord,title,color="GREEN"):
         return self.draw_bitfield(
-            getValue  = lambda : register.value,
-            wordSize  = register.bits,
             color     = color,
             title     = title,
             relcoord  = relcoord,
         )
 
-
     def draw_RAM(self,relcoord):
         return self.draw_bitfield(
-            getValue  = lambda : self.clk.cpu.ram.value[self.clk.cpu.mar.value],
-            wordSize  = self.clk.cpu.ram.bits,
             color     = "RED",
             title     = "RAM",
             relcoord  = relcoord,
@@ -119,9 +102,6 @@ class tkCPU(object):
 
     def draw_BUS(self,relcoord):
         return self.draw_bitfield(
-            getValue  = lambda : self.clk.cpu.w,
-            #wordSize  = max(self.clk.cpu.addrlen,self.clk.cpu.bits),
-            wordSize  = self.clk.cpu.bits,
             color     = "RED",
             title     = "BUS",
             relcoord  = relcoord,
@@ -129,8 +109,6 @@ class tkCPU(object):
 
     def draw_CTL(self,relcoord):
         return self.draw_bitfield(
-            getValue  = self.getOutputFlags,
-            wordSize  = len(self.clk.cpu.oflags),
             color     = "MAGENTA",
             title     = "CTL",
             flags     = self.clk.cpu.oflags,
@@ -139,17 +117,13 @@ class tkCPU(object):
 
     def draw_STP(self,relcoord):
         return self.draw_bitfield(
-            getValue  = lambda : self.clk.cpu.ctlseq.Tstep,
-            wordSize  = 4,
             color     = "BLUE",
-            title     = "T",
+            title     = "STP",
             relcoord  = relcoord,
         )
 
     def draw_FLG(self,relcoord):
         return self.draw_bitfield(
-            getValue  = self.getInputFlags,
-            wordSize  = len(self.clk.cpu.iflags),
             color     = "CYAN",
             title     = "FLG",
             flags     = self.clk.cpu.iflags,

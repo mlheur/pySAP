@@ -272,9 +272,21 @@ class pySAP(CPU):
         self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt','HLT','CLR','Op')
         self.alu        = ALU(self,self.a,self.tmp,'Eu','Su','Sh','CF')
-        self.components = [self.a,self.b,self.c,self.tmp,self.alu,self.out,self.pc,self.ir,self.mar,self.ram]
+        self.components = {
+            'A'   : self.a,
+            'B'   : self.b,
+            'C'   : self.c,
+            'TMP' : self.tmp,
+            'ALU' : self.alu,
+            'OUT' : self.out,
+            'PC'  : self.pc,
+            'IR'  : self.ir,
+            'MAR' : self.mar,
+            'RAM' : self.ram,
+        }
+
     def clock(self,subscribers):
-        self.ctlseq.clock(self.components,subscribers)
+        self.ctlseq.clock(self.components.values(),subscribers)
 
 
 if __name__ == "__main__":

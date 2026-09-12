@@ -11,7 +11,7 @@ from .tkCODE import tkCODE
 
 from tkinter.filedialog import askopenfilename
 
-REFRESH_RATE = 500 # ms
+REFRESH_RATE = 2 # ms
 
 MENU = {
     '_File': {
@@ -37,6 +37,9 @@ class tkSAP(object):
         self.clk = Clock(cpu=pySAP(isa=SAPisa(),addrlen=12))
         self.clk.subscribe(self)
         self.code = None
+        self.cpu_state = dict()
+        self.capture_cpu_bits()
+        self.capture_cpu_state()
         # Run said clock in its own thread.
         self.clock_thread = clock_thread(self.clk)
         self.started = False
@@ -51,6 +54,7 @@ class tkSAP(object):
         self.tkCPU = tkCPU(
             self.panes['CPU'],
             self.clk,
+            self,
         )
         #, and RAM.
         self.tkRAM = tkRAM(
@@ -64,6 +68,28 @@ class tkSAP(object):
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
         self.file_open(DEFAULTS['PROGRAM'])
 
+    def capture_cpu_bits(self):
+        for reg in self.clk.cpu.components:
+            self.cpu_state[reg]         = dict()
+            self.cpu_state[reg]['bits'] = self.clk.cpu.components[reg].bits
+        for reg in ['FLG','CTL','STP','BUS',]:
+            self.cpu_state[reg] = dict()
+        self.cpu_state['FLG']['bits'] = len(self.clk.cpu.iflags)
+        self.cpu_state['CTL']['bits'] = len(self.clk.cpu.oflags)
+        self.cpu_state['STP']['bits'] = 4
+        self.cpu_state['BUS']['bits'] = self.clk.cpu.bits
+
+    def capture_cpu_state(self):
+        for reg in self.clk.cpu.components:
+            if reg == "RAM":
+                self.cpu_state[reg]['value'] = self.clk.cpu.components["RAM"].value[self.clk.cpu.components["MAR"].value]
+            else:
+                self.cpu_state[reg]['value'] = self.clk.cpu.components[reg].value
+        self.cpu_state['FLG']['value'] = self.clk.cpu.ctlseq.iflags()
+        self.cpu_state['CTL']['value'] = self.clk.cpu.ctlseq.oflags()
+        self.cpu_state['STP']['value'] = self.clk.cpu.ctlseq.Tstep
+        self.cpu_state['BUS']['value'] = self.clk.cpu.w
+
     def mainloop(self):
         self.mgr.root.mainloop()
 
@@ -74,7 +100,7 @@ class tkSAP(object):
         self.tkCPU.update()
 
     def clock(self):
-        self.update()
+        self.capture_cpu_state()
 
     def scheduled_update(self):
         refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
