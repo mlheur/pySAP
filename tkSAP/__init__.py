@@ -11,7 +11,7 @@ from .tkCODE import tkCODE
 
 from tkinter.filedialog import askopenfilename
 
-REFRESH_RATE = 2 # ms
+REFRESH_RATE = 20 # ms
 
 MENU = {
     '_File': {
@@ -108,6 +108,7 @@ class tkSAP(object):
         self.mgr.root.after(refrate,self.scheduled_update)
 
     def update_all(self):
+        self.capture_cpu_state
         self.tkCLK.update()
         self.tkCPU.update()
         self.tkRAM.update_all()
@@ -135,9 +136,9 @@ class tkSAP(object):
     def file_wiperam(self):
         for i in range(len(self.clk.cpu.ram.value)):
             self.clk.cpu.ram.value[i] = 0
-        self.tkRAM.update_all()
         self.tkCODE.reset()
         self.mgr.root.title(DEFAULTS['TITLE'])
+        self.update_all()
 
     def file_quit(self):
         #print(f'Trying to quit')

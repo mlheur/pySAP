@@ -60,7 +60,7 @@ class CtlSeq():
                     microaddr = (self.AROM[conditions][self.cpu.ir.value]) + (self.Tstep-3)
                     self.micro = self.CROM[microaddr]
                 except KeyError:
-                    print(f'Invalid opcode: 0x{self.cpu.ir.value:02X} at address 0x{self.cpu.pc.value:02X}')
+                    print(f'Invalid opcode: 0x{self.cpu.ir.value:02X} at address 0x{self.cpu.pc.value-1:02X}')
                     #input("Press [Enter] to continue")
                     for F in self.cpu.oflags:
                         self.cpu.oflags[F].settruth(False)
