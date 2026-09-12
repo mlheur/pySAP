@@ -236,9 +236,11 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa=None,bits=8,addrlen=8,code=None):
+    def __init__(self,isa=None,bits=8,addrlen=8,code=None,ipl=None):
         super().__init__()
         self.isa        = isa
+        if ipl is not None:
+            code = self.isa.assemble_file(ipl)
         self.bits       = bits
         self.addrlen    = addrlen
         self.iflags     = dict(isa.iflags)
@@ -262,84 +264,38 @@ class pySAP(CPU):
 if __name__ == "__main__":
     # Handle arguments and default values
     from sys import argv
-    assemble_only = False
-    filename      = None
-    Hz            = None
-    WithProfiling = False
-    NoGUI         = False
-    OldGUI        = False
-    SecondGUI     = False
-    DollarZero    = argv.pop(0)
+    DollarZero = argv.pop(0)
+    RUNTIME = dict()
     while len(argv) > 0:
         arg = argv.pop(0)
         if arg[0] == "-":
             if arg[1] == "f":
-                filename = argv.pop(0)
+                RUNTIME['SOURCE'] = argv.pop(0)
                 #print(f'filename {filename}')
                 continue
             elif arg[1] == "a":
+                RUNTIME['PRINT_ASM'] = True
                 #print("Assemble Only")
-                assemble_only = True
                 continue
             elif arg[1] == "v":
-                WithProfiling = True
+                RUNTIME['PROFILING'] = True
                 continue
             elif arg == "-Hz":
-                Hz=int(argv.pop(0))
-                continue
-            elif arg == "-og":
-                OldGUI = True
-                continue
-            elif arg == "-sg":
-                SecondGUI = True
-                continue
-            elif arg == "-ng":
-                NoGUI = True
+                RUNTIME['Hz'] = int(argv.pop(0))
                 continue
         raise RuntimeError(f'unable to handle the arg {arg}, remaining argv {argv}')
     argv.append(DollarZero)
-    FastClock = False
-    if filename is None:
-        filename = "./code/cylon.sap"
-        if Hz is None:
-            FastClock = True
     # Instantiate the instruction decoder, it's necessary for assembling the initial program.
-    isa = SAPisa()
-    if assemble_only:
-        if filename is not None:
-            isa.assemble_file(filename,verbose=True)
-        else:
-            raise RuntimeError("assembly needs a source file [-f ./code/source.sap]")
+    if 'PRINT_ASM' in RUNTIME and RUNTIME['PRINT_ASM']:
+        if 'SOURCE' not in RUNTIME or RUNTIME['SOURCE'] is None:
+            raise RuntimeError(f"assembly needs a source file [{DollarZero} -a -f ./code/source.sap]")
+        SAPisa().assemble_file(RUNTIME['SOURCE'],verbose=True)
         from sys import exit
         exit(0)
-    # Assemble the initial program for loading into RAM
-    code = isa.assemble_file(filename)
-    # Instantiate the CPU with said program ...
-    sap = pySAP(isa=isa,code=code)
-    # ... and the clock.
-    clk = Clock(cpu=sap,Hz=50 if FastClock else Hz)
-    # Load a GUI
-    if not NoGUI:
-        if OldGUI:
-            from oldGUI import guiSAP as GUI
-            gui = GUI(sap,clk)
-        elif SecondGUI:
-            from secondGUI import guiSAP as GUI
-            gui = GUI(sap,clk)
-        else:
-            NoGUI = True
-            gui = None
-    # Finally, allow the clock to run the CPU.
-    if WithProfiling:
-        from cProfile import Profile
-        from pstats import Stats, SortKey
-        with Profile() as pr:
-            clk.run()
-        Stats(pr).sort_stats(SortKey.TIME).print_stats()
-    else:
-        clk.run()
-        if not NoGUI:
-            try:
-                gui.wait_for_close()
-            except KeyboardInterrupt as KE:
-                pass
+    Clock(
+        Hz  = RUNTIME['Hz'],
+        cpu = pySAP(
+            isa = SAPisa(),
+            ipl = RUNTIME['SOURCE'],
+        ),
+    ).run()
