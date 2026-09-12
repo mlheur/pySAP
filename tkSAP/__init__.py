@@ -142,11 +142,10 @@ class tkSAP(object):
 
     def file_quit(self):
         #print(f'Trying to quit')
-        if not self.started:
-            self.clock_run()
-        self.clock_thread.stop(final=True)
-        self.clock_thread.join()
         self.mgr.root.quit()
+        if self.started:
+            self.clock_thread.stop(final=True)
+            self.clock_thread.join()
         from sys import exit
         exit(0)
 
