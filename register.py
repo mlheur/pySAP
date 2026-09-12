@@ -64,9 +64,3 @@ class PC(Register):
         if self.latch.istrue():
             if self.enable.istrue(): self.value = self.cpu.w & self.mask
             else: self.value = (self.value + 1) & self.mask
-
-
-class IR(StdRegister):
-    def tick(self):
-        if self.cpu.oflags['CLR'].istrue(): self.value = 0
-        if self.enable.istrue(): self.cpu.w = ( self.value & self.mask )

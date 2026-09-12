@@ -5,7 +5,6 @@ from register import Register
 from register import StdRegister
 from register import OUT
 from register import PC
-from register import IR
 from ram import RAM
 from alu import ALU
 from ctl import CtlLine
@@ -250,7 +249,7 @@ class pySAP(CPU):
         self.b          = StdRegister(self,'Lb','Eb')
         self.c          = StdRegister(self,'Lc','Ec')
         self.out        = OUT(self,'Lo')
-        self.ir         = IR(self,'Li','Ei')
+        self.ir         = StdRegister(self,'Li','Ei')
         self.pc         = PC(self,addrlen,'Cp','Ep')
         self.mar        = Register(self,addrlen,'Lm')
         self.ram        = RAM(self,'Lr','CE',code)
