@@ -34,7 +34,7 @@ class tkSAP(object):
         self.mgr = tkMGR(DEFAULTS['TITLE'])
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
-        self.clk = Clock(cpu=pySAP(isa=SAPisa()))
+        self.clk = Clock(cpu=pySAP(isa=SAPisa(),addrlen=12))
         #self.clk.subscribe(self)
         self.code = None
         # Run said clock in its own thread.

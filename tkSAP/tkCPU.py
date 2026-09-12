@@ -124,8 +124,9 @@ class tkCPU(object):
             color     = "GREEN",
             title     = "PC",
             canvas    = self.canvas,
-            x         = x,
+            x         = x+tkBUS.coords['w'],
             y         = y,
+            justify   = "right",
         )
         self.components.append(tkPC)
         y += tkPC.coords['h']
