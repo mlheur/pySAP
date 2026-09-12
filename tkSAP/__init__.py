@@ -11,6 +11,8 @@ from .tkCODE import tkCODE
 
 from tkinter.filedialog import askopenfilename
 
+from threading import Thread
+
 REFRESH_RATE = 20 # ms
 
 MENU = {
@@ -100,7 +102,7 @@ class tkSAP(object):
         self.tkCPU.update()
 
     def clock(self):
-        self.capture_cpu_state()
+        Thread(target=self.capture_cpu_state).run()
 
     def scheduled_update(self):
         refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
