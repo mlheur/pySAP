@@ -7,6 +7,7 @@ from .tkMGR import tkMGR
 from .tkCLK import tkCLK
 from .tkCPU import tkCPU
 from .tkRAM import tkRAM
+from .tkCODE import tkCODE
 
 from tkinter.filedialog import askopenfilename
 
@@ -56,6 +57,10 @@ class tkSAP(object):
             self.panes['RAM'],
             self.clk,
         )
+        self.tkCODE = tkCODE (
+            self.panes['CODE'],
+            self.clk,
+        )
         self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
 
     def mainloop(self):
@@ -85,6 +90,7 @@ class tkSAP(object):
             )
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
         self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
+        self.tkCODE.loadfile(fname)
         self.update_all()
 
     def file_reset(self):
@@ -99,6 +105,7 @@ class tkSAP(object):
         for i in range(len(self.clk.cpu.ram.value)):
             self.clk.cpu.ram.value[i] = 0
         self.tkRAM.update_all()
+        self.tkCODE.reset()
         self.mgr.root.title(DEFAULTS['TITLE'])
 
     def file_quit(self):

@@ -22,13 +22,16 @@ class CtlLine():
 
 
 class CtlSeq():
-    def __init__(self,cpu,arom,crom,ResetT):
+    def __init__(self,cpu,arom,crom,ResetT,hlt,clr,inv_op):
         self.cpu     = cpu
         self.AROM    = arom
         self.CROM    = crom
         self.Tstep   = 1
         self.micro   = self.CROM[0]
         self.ResetT  = cpu.oflags[ResetT]
+        self.hlt     = cpu.oflags[hlt]
+        self.clr     = cpu.oflags[clr]
+        self.inv_op  = cpu.iflags[inv_op]
 
     def __str__(self):
         return '{}'.format(self.Tstep)
@@ -52,11 +55,12 @@ class CtlSeq():
                     self.micro = self.CROM[microaddr]
                 except KeyError:
                     print(f'Invalid opcode: 0x{self.cpu.ir.value:02X} at address 0x{self.cpu.pc.value:02X}')
-                    input("Press [Enter] to continue")
+                    #input("Press [Enter] to continue")
                     for F in self.cpu.oflags:
                         self.cpu.oflags[F].settruth(False)
                     self.ResetT.settruth(True)
-                    self.Tstep = -1
+                    self.hlt.settruth(True)
+                    self.clr.settruth(True)
                     return
                 #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
                 #print(f'AROM={self.AROM[conditions]}')

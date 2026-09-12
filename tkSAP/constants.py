@@ -5,6 +5,8 @@ DEFAULTS = {
     'FONT'        : 'Oxygen Mono',
     'RAM_COLUMNS' : 16,
     'TITLE'       : 'tkSAP',
+    'SOURCE_X'    : 10,
+    'SOURCE_Y'    : 50,
 }
 
 PROFILES = {

@@ -48,10 +48,16 @@ class instruction_set(object):
             if data is not None:
                 return [self.ASM[instr],data]
             return [self.ASM[instr]]
-    def assemble_file(self,sourcefile,verbose=False):
+    def assemble_file(self,sourcefile,verbose=False,as_string=False,as_source=False):
         #print(f'self.ASM=[{self.ASM}]')
         asm = []
         src = []
+        if hasattr(self,"stringed") and self.stringed is not None and as_string:
+            return self.stringed
+        if hasattr(self,"source") and self.source is not None and as_source:
+            return self.source
+        self.stringed = ""
+        self.source   = ""
         self._addr = len(asm)
         self._pointers = dict()
         def subassembly(word):
@@ -84,6 +90,7 @@ class instruction_set(object):
         try:
             with open(sourcefile, encoding="utf-8") as f:
                 for line in f:
+                    self.source += line
                     line = line.rstrip()
                     #print(f'assembling line=[{line}]')
                     if " " in line:
@@ -95,8 +102,10 @@ class instruction_set(object):
             # Assembly is complete, except labels have to be replaced with values
             def reassemble(i,value,offset=0):
                 asm[i] = value + offset
+                this_line = f'ASM: addr=0x{i:02X} data=0x{asm[i]:02X} src={src[i]}'
                 if verbose:
-                    print(f'ASM: addr=0x{i:02X} data=0x{asm[i]:02X} src={src[i]}')
+                    print(this_line)
+                self.stringed += this_line + '\n'
 
             inttype = type(0)
             for i in range(len(asm)):

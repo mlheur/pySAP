@@ -64,19 +64,29 @@ class tkMGR(object):
         # Create the outermost frame that's got a horizontal divider
         panes['OUTER'] = PanedWindow(orient=VERTICAL,bd=0)
         # Create the inner frame on the upper half that's got a vertical divider
-        panes['INNER'] = PanedWindow(panes['OUTER'],orient=HORIZONTAL,bd=0)
-        panes['INNER'].pack(side=TOP)
-        panes['OUTER'].add(panes['INNER'])
+        panes['UPPER'] = PanedWindow(panes['OUTER'],orient=HORIZONTAL,bd=0)
+        panes['UPPER'].pack()
+        panes['OUTER'].add(panes['UPPER'])
+        # And the lower half
+        panes['LOWER'] = PanedWindow(panes['OUTER'],orient=HORIZONTAL,bd=0)
+        panes['LOWER'].pack()
+        panes['OUTER'].add(panes['LOWER'])
         # Create the RAM frame on the lower half of the outer frame
-        panes['RAM'] = Frame(self.root,bg='blue',bd=0,highlightthickness=0)
-        panes['RAM'].pack(side=BOTTOM)
-        panes['OUTER'].add(panes['RAM'])
+        panes['RAM'] = Frame(panes['LOWER'],bg='#000',bd=0,highlightthickness=0)
+        panes['RAM'].pack()
+        panes['LOWER'].add(panes['RAM'])
+        # Add the code panel
+        panes['CODE'] = Frame(panes['LOWER'],bg='blue',bd=0,highlightthickness=0)
+        panes['CODE'].pack()
+        panes['LOWER'].add(panes['CODE'])
+        # And the CPU
+        panes['CPU'] = Frame(panes['UPPER'],bg='green',bd=0,highlightthickness=0)
+        panes['CPU'].pack()
+        panes['UPPER'].add(panes['CPU'])
         # Create the clock and CPU that wil go on the left and right halves of the lower frame.
-        panes['CLK'] = Frame(panes['INNER'],bg='red',bd=0,highlightthickness=0)
-        panes['CLK'].pack(side=RIGHT)
-        panes['INNER'].add(panes['CLK'])
-        panes['CPU'] = Frame(panes['INNER'],bg='green',bd=0,highlightthickness=0)
-        panes['CPU'].pack(side=LEFT)
-        panes['INNER'].add(panes['CPU'])
+        panes['CLK'] = Frame(panes['UPPER'],bg='red',bd=0,highlightthickness=0)
+        panes['CLK'].pack()
+        panes['UPPER'].add(panes['CLK'])
+        # Finalize
         panes['OUTER'].pack(fill=BOTH,expand=True)
         return panes
