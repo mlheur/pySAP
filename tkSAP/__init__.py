@@ -88,6 +88,7 @@ class tkSAP(object):
                 defaultextension = DEFAULTS['EXT'],
                 initialdir       = DEFAULTS['DIR'],
             )
+        self.file_reset()
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
         self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
         self.tkCODE.loadfile(fname)

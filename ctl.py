@@ -61,6 +61,7 @@ class CtlSeq():
                     self.ResetT.settruth(True)
                     self.hlt.settruth(True)
                     self.clr.settruth(True)
+                    self.inv_op.settruth(True)
                     return
                 #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
                 #print(f'AROM={self.AROM[conditions]}')
