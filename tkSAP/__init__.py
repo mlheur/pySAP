@@ -121,6 +121,7 @@ class tkSAP(object):
         exit(0)
 
     def clock_run(self):
+        self.clk.pulse()
         if not self.started:
             self.started = True
             self.clock_thread.start()
