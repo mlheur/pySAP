@@ -4,7 +4,7 @@ from .constants import PROFILES
 class tkBitfield(object):
     def __init__(
         self,
-        wordSize     = None,
+        word_size    = None,
         color        = None,
         title        = None,
         x            = None,
@@ -23,7 +23,7 @@ class tkBitfield(object):
         self.title         = title
         self.profile       = PROFILES[profile]
         self.flags         = flags
-        self.wordSize      = wordSize
+        self.word_size     = word_size
         self.getValue      = getValue
         self.getAddrValue  = getAddrValue
         self.addr          = addr
@@ -31,7 +31,7 @@ class tkBitfield(object):
         self.iterVal       = None
         self.justify       = justify
         self.last_value    = None
-        self.last_sequence = [True] * self.wordSize
+        self.last_sequence = [True] * self.word_size
         # Assert the parameters are sufficient
         if (self.addr is None and self.getValue is None) or (self.addr is not None and self.getAddrValue is None):
             raise RuntimeError('FATAL: tkBitfield constructor requires either [addr and getAddrValue] or [getValue]')
@@ -39,8 +39,8 @@ class tkBitfield(object):
             raise RuntimeError('FATAL: justify must be one of "left" or "right"')
         # Preallocate arrays
         self.bulbs        = {
-            True  : [] * self.wordSize,
-            False : [] * self.wordSize,
+            True  : [] * self.word_size,
+            False : [] * self.word_size,
         }
         ###
         # Determine overall dimensions, this bitfield widget is drawn from right-to-left;
@@ -51,7 +51,7 @@ class tkBitfield(object):
         # Allocate some padding around the backplates, bulbs for sure, label if shown.
         qty_padding = 4 if show_label else 2
         # The width is [pad+label+pad]+[pad+bulbs+pad] or [spacer][pad+bulbs+pad]
-        w = (qty_padding*self.profile['LABEL_PADDING']) + lbl_width + (self.wordSize * self.profile['OUTER_DIAMETER'])
+        w = (qty_padding*self.profile['LABEL_PADDING']) + lbl_width + (self.word_size* self.profile['OUTER_DIAMETER'])
         h = (self.profile['OUTER_DIAMETER']) + (self.profile['LABEL_DOOUBLE_PADDING'])
         # The final coordinates are chosen ...
         self.coords       = {'x':x,'y':y,'w':w,'h':h}
@@ -95,14 +95,14 @@ class tkBitfield(object):
         y2 = y1 + self.profile['BULB_DIAMETER']
         FarX = self.coords['x'] + self.coords['w'] - self.profile['LABEL_PADDING']
         if self.flags is not None:
-            flag_labels = [None] * self.wordSize
-            flag_colors = [None] * self.wordSize
+            flag_labels = [None] * self.word_size
+            flag_colors = [None] * self.word_size
             for title in self.flags:
                 flag = self.flags[title]
                 flag_labels[flag.pos] = title
                 flag_colors[flag.pos] = PROFILES["COLORS"]["FLAG_IN"] if flag.inv == 0 else PROFILES["COLORS"]["FLAG_OV"]
                 #print(f'Assigning label for bulb title={title} flag_labels[flag.pos={flag.pos}]={flag_labels[flag.pos]}')
-        for i in range(self.wordSize):
+        for i in range(self.word_size):
             self.bulbs[i] = dict()
             FarX -= self.profile['OUTER_DIAMETER']
             x1    = FarX + self.profile['BULB_SPACING'] 
@@ -158,7 +158,7 @@ class tkBitfield(object):
             self.iterPtr = 0
             if self.iterVal is None:
                 self.iterVal = self.get()
-        if self.iterPtr >= self.wordSize:
+        if self.iterPtr >= self.word_size:
             self.iterPtr = None
             self.iterVal = None
             raise StopIteration
