@@ -74,7 +74,7 @@ class tkCPU(object):
         j = relcoord['j']
         bitfield = tkBitfield(
             getValue  = lambda : self.ui.cpu_state[title]['value'],
-            wordSize  = self.ui.cpu_state[title]['bits'],
+            word_size = self.ui.cpu_state[title]['bits'],
             color     = color,
             title     = title,
             canvas    = self.canvas,
