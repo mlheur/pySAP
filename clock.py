@@ -49,8 +49,9 @@ class Clock():
         # Released from the gate, set the next goalpost.
         #print(f'Released from gate at {_now} period={self.period} NoTime={self.NoTime} next_pulse={self.next_pulse}')
         self.next_pulse += self.period
-        if self.next_pulse < _now:
-            self.next_pulse = _now + self.period / 2
+        too_much = _now - self.period
+        if self.next_pulse < too_much:
+            self.next_pulse = too_much
         #print(f'Advanced next_pulse={self.next_pulse}')
         # do the thing.
         self.cpu.clock(self.subscribers)
