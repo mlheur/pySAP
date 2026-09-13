@@ -39,6 +39,7 @@ PROFILES = {
     "RAM": {
         True  : [0xF,0x2,0x2],
         False : [0x6,0x2,0x2],
+        "BPP" : 15,
     },
     "LED": {
         "RED":     {"ON":"#F22", "OFF":"#622"},
