@@ -13,10 +13,16 @@ from ctl import CtlSeq
 from instruction_set import instruction_set as ISA
 from cpu import CPU
 
+WORD_SIZE =  8
+ADDR_LEN  = 16
+
 
 class SAPisa(ISA):
 
-    def __init__(self):
+    def __init__(self,word_size=WORD_SIZE):
+        super().__init__(
+            word_size = word_size
+        )
         # The iflags are control bits set by other components, and used in the
         # instruction decoder to take different actions depending on these conditions.
         self.iflags = {
@@ -110,130 +116,130 @@ class SAPisa(ISA):
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x04 JMP : PC->MAR
-            self.mkctl(['Cp','Ep','CE','Rt']), # 0x05     : RAM->PC Next
-        ])
-        self.addinstr('JMP',_adr)
-        _JMP_adr = _adr
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x06 LDI : PC->MAR
-            self.mkctl(['Cp','CE','La','Rt']), # 0x07     : IncPC RAM->A Next
-        ])
-        self.addinstr('LDI',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x08 ADD : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x09     : IncPC RAM->MAR
-            self.mkctl(['CE','Lt']),           # 0x0A     : RAM->TMP
-            self.mkctl(['Eu','La','Rt']),      # 0x0B     : ALU->A Next
-        ])
-        self.addinstr('ADD',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['CLR']),               # 0x0C RST : CLR
+            self.mkctl(['CLR']),               # RST : CLR
         ])
         self.addinstr('RST',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Ea','Lo','Rt']),      # 0x0D OUT : A->OUT Next
+            self.mkctl(['CC','Rt']),           # CCF
         ])
-        self.addinstr('OUT',_adr)
+        self.addinstr('CCF',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x0E LDA : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x0F     : IncPC RAM->MAR
-            self.mkctl(['CE','La','Rt']),      # 0x10     : RAM->A Next
+            self.mkctl(['SC','Rt']),           # SCF
         ])
-        self.addinstr('LDA',_adr)
+        self.addinstr('SCF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['CZ','Rt']),           # CZF
+        ])
+        self.addinstr('CZF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['SZ','Rt']),           # SZF
+        ])
+        self.addinstr('SZF',_adr)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Ep','Lm']),           # JMP : PC->MAR
+            self.mkctl(['Cp','Ep','CE','Rt']), #     : RAM->PC Next
+        ])
+        self.addinstr('JMP',_adr,is_mri=True)
+        _JMP_adr = _adr
 
         _adr = len(self.ctl)
         self.ctl.extend([
             # For conditional branching, when _NOT_ taking the branch
             # we need the PC to skip the branch address before letting
             # the CPU read the next instruction.
-            self.mkctl(['Cp','Rt']),           # 0x11 *** : IncPC Next
+            self.mkctl(['Cp','Rt']),           # not JMP : IncPC Next
         ])
-        self.addinstr('JC', [    _adr,_JMP_adr,    _adr,_JMP_adr])
-        self.addinstr('JNC',[_JMP_adr,    _adr,_JMP_adr,    _adr])
-        self.addinstr('JZ', [    _adr,    _adr,_JMP_adr,_JMP_adr])
-        self.addinstr('JNZ',[_JMP_adr,_JMP_adr,    _adr,    _adr])
+        self.addinstr('JC', [    _adr,_JMP_adr,    _adr,_JMP_adr], is_mri=True)
+        self.addinstr('JNC',[_JMP_adr,    _adr,_JMP_adr,    _adr], is_mri=True)
+        self.addinstr('JZ', [    _adr,    _adr,_JMP_adr,_JMP_adr], is_mri=True)
+        self.addinstr('JNZ',[_JMP_adr,_JMP_adr,    _adr,    _adr], is_mri=True)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x12 SUB : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x13     : IncPC RAM->MAR
-            self.mkctl(['CE','Lt']),           # 0x14     : RAM->TMP
-            self.mkctl(['Su','Eu','La','Rt']), # 0x15     : Sub ALU->A Next
+            self.mkctl(['Ep','Lm']),           # LDI : PC->MAR
+            self.mkctl(['Cp','CE','La','Rt']), #     : IncPC RAM->A Next
         ])
-        self.addinstr('SUB',_adr)
+        self.addinstr('LDI',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x16 STA : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x17     : IncPC RAM->MAR
-            self.mkctl(['Ea','Lr','Rt']),      # 0x18     : A->RAM Next
+            self.mkctl(['Ea','Lo','Rt']),      # OUT : A->OUT Next
         ])
-        self.addinstr('STA',_adr)
+        self.addinstr('OUT',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Sh','Eu','Rt']),      # 0x19 SHR : A->shift->ALU->A Next
+            self.mkctl(['Ep','Lm']),           # ADD : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['CE','Lt']),           #     : RAM->TMP
+            self.mkctl(['Eu','La','Rt']),      #     : ALU->A Next
+        ])
+        self.addinstr('ADD',_adr,is_mri=True)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Ep','Lm']),           # SUB : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['CE','Lt']),           #     : RAM->TMP
+            self.mkctl(['Su','Eu','La','Rt']), #     : Sub ALU->A Next
+        ])
+        self.addinstr('SUB',_adr,is_mri=True)
+
+        _adr = len(self.ctl)
+        self.ctl.extend([
+            self.mkctl(['Sh','Eu','Rt']),      # SHR : A->shift->ALU->A Next
         ])
         self.addinstr('SHR',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['Sh','Eu','Su','Rt']), # 0x1A SHL : A->shift->ALU->A Next
+            self.mkctl(['Sh','Eu','Su','Rt']), # SHL : A->shift->ALU->A Next
         ])
         self.addinstr('SHL',_adr)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['CC','Rt']),           # 0x1B CCF
+            self.mkctl(['Ep','Lm']),           # LDA : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
         ])
-        self.addinstr('CCF',_adr)
+        self.addinstr('LDA',_adr,is_mri=True)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['SC','Rt']),           # 0x1C SCF
+            self.mkctl(['Ep','Lm']),           # STA : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['Ea','Lr','Rt']),      #     : A->RAM Next
         ])
-        self.addinstr('SCF',_adr)
+        self.addinstr('STA',_adr,is_mri=True)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['CZ','Rt']),           # 0x1D CZF
+            self.mkctl(['Ep','Lm']),           # STM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           #     : RAM->MAR
+            self.mkctl(['Ea','Lr','Rt']),      #     : A->RAM Next
         ])
-        self.addinstr('CZF',_adr)
+        self.addinstr('STM',_adr,is_mri=True)
 
         _adr = len(self.ctl)
         self.ctl.extend([
-            self.mkctl(['SZ','Rt']),           # 0x1E SZF
+            self.mkctl(['Ep','Lm']),           # LDM : PC->MAR
+            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            self.mkctl(['CE','Lm']),           #     : RAM->MAR
+            self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
         ])
-        self.addinstr('SZF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x1F STM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x20     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           # 0x21     : RAM->MAR
-            self.mkctl(['Ea','Lr','Rt']),      # 0x22     : A->RAM Next
-        ])
-        self.addinstr('STM',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x23 LDM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x24     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           # 0x25     : RAM->MAR
-            self.mkctl(['CE','La','Rt']),      # 0x26     : RAM->A Next
-        ])
-        self.addinstr('LDM',_adr)
+        self.addinstr('LDM',_adr,is_mri=True)
 
     def update(self):
         if self.clk.cpu.oflags['HLT'].istrue() and self.clock_thread.running:
@@ -297,7 +303,7 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa=None,bits=8,addrlen=16,code=None,ipl=None):
+    def __init__(self,isa=None,bits=WORD_SIZE,addrlen=ADDR_LEN,code=None,ipl=None):
         super().__init__()
         self.isa        = isa
         if ipl is not None:
