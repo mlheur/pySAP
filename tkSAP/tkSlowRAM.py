@@ -19,7 +19,7 @@ class tkRAM(object):
             self.cells[addr] = tkBitfield(
                 addr         = addr,
                 getAddrValue = lambda addr : self.clk.cpu.ram.value[addr],
-                wordSize     = self.clk.cpu.bits,
+                word_size    = self.clk.cpu.bits,
                 color        = 'RED',
                 title        = f'0x{addr:04X}',
                 canvas       = self.canvas,
