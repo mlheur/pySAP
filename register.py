@@ -60,11 +60,17 @@ class OUT(StdRegister):
                 pass
 
 
-class MAR(Register):
-    def __init__(self,cpu,bits,latch,latch_hi):
-        super().__init__(cpu,bits,latch,None)
+class DoubleRegister(Register):
+    def __init__(self,cpu,bits,latch,enable,latch_hi):
+        super().__init__(cpu,bits,latch,enable)
         self.cpu_mask   = (2**cpu.bits)-1
         self.latch_hi   = self.cpu.oflags[latch_hi]
+
+
+class MAR(DoubleRegister):
+    def __init__(self,cpu,bits,latch,latch_hi):
+        super().__init__(cpu,bits,latch,None,latch_hi)
+
     def tock(self):
         if self.latch_hi.istrue():
             lo = self.value & self.cpu_mask
@@ -74,12 +80,10 @@ class MAR(Register):
             super().tock()
 
 
-class PC(Register):
+class PC(DoubleRegister):
 
     def __init__(self,cpu,bits,latch,enable,latch_hi):
-        super().__init__(cpu,bits,latch,enable)
-        self.cpu_mask   = (2**cpu.bits)-1
-        self.latch_hi   = self.cpu.oflags[latch_hi]
+        super().__init__(cpu,bits,latch,enable,latch_hi)
 
     def tock(self):
         if self.latch_hi.istrue():
