@@ -52,7 +52,7 @@ class tkBitfield(object):
         qty_padding = 4 if show_label else 2
         # The width is [pad+label+pad]+[pad+bulbs+pad] or [spacer][pad+bulbs+pad]
         w = (qty_padding*self.profile['LABEL_PADDING']) + lbl_width + (self.wordSize * self.profile['OUTER_DIAMETER'])
-        h = (self.profile['OUTER_DIAMETER']) + (2*self.profile['LABEL_PADDING'])
+        h = (self.profile['OUTER_DIAMETER']) + (self.profile['LABEL_DOOUBLE_PADDING'])
         # The final coordinates are chosen ...
         self.coords       = {'x':x,'y':y,'w':w,'h':h}
         # ... except when right-justified we have to translate the left-most pixel leftward according to the final width
@@ -66,7 +66,7 @@ class tkBitfield(object):
             x1 = self.coords['x'] + self.profile['LABEL_PADDING']
             x2 = x1               + self.profile['LABEL_WIDTH']
             x3 = x2 - 1
-            y3 = self.coords['y'] + self.profile['LABEL_PADDING'] + (0.5 * self.profile['OUTER_DIAMETER'])
+            y3 = self.coords['y'] + self.profile['LABEL_PADDING'] + (self.profile['BULB_HALF_DIAMETER'])
             self.canvas.create_rectangle(
                 x1,y1,x2,y2,
                 fill    = PROFILES["COLORS"]["TEXT_BG"],
@@ -121,8 +121,8 @@ class tkBitfield(object):
             if self.flags is not None:
                 #print(f'Labelling the bulb flag_labels[i={i}]={flag_labels[i]}')
                 self.canvas.create_text(
-                    x1+(self.profile["BULB_DIAMETER"]/2),
-                    y1+(self.profile["BULB_DIAMETER"]/2),
+                    x1+(self.profile["BULB_HALF_DIAMETER"]),
+                    y1+(self.profile["BULB_HALF_DIAMETER"]),
                     font = self.profile["flag_font"],
                     text = flag_labels[i],
                     fill = flag_colors[i],

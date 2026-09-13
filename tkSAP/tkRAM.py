@@ -1,6 +1,6 @@
-from .tkBitfield import tkBitfield
-from tkinter import Canvas
-from .constants import DEFAULTS
+from tkinter import Label, PhotoImage
+from .constants import DEFAULTS, PROFILES
+
 
 class tkRAM(object):
     def __init__(self,frame,clk):
@@ -8,52 +8,53 @@ class tkRAM(object):
         self.clk   = clk
         self.clk.subscribe(self)
         self.addrspace = 2**self.clk.cpu.addrlen
-        self.canvas = Canvas(self.frame,bg='#000',bd=0,highlightthickness=0)
-        x = 0
-        y = 0
-        w = 0
-        h = 0
-        self.cells = [None] * self.addrspace
-        for addr in range(self.addrspace):
-            self.cells[addr] = tkBitfield(
-                addr         = addr,
-                getAddrValue = lambda addr : self.clk.cpu.ram.value[addr],
-                wordSize     = self.clk.cpu.bits,
-                color        = 'RED',
-                title        = f'0x{addr:04X}',
-                canvas       = self.canvas,
-                x            = x,
-                y            = y,
-                show_label   = x == 0,
-                profile      = 'SML',
-            )
-            x += self.cells[addr].coords['w']
-            if y == 0:
-                w += self.cells[addr].coords['w']
-            if x >= DEFAULTS['RAM_COLUMNS'] * self.cells[addr].coords['w']:
-                x = 0
-                y += self.cells[addr].coords['h']
-                if x == 0:
-                    h += self.cells[addr].coords['h']
+        w = DEFAULTS['RAM_COLUMNS'] * self.clk.cpu.bits
+        h = int(self.addrspace / DEFAULTS['RAM_COLUMNS'])
+        #print(f'w={w},h={h}')
+        #self.canvas = Canvas(
+        #    self.frame,
+        #    bg                 = '#000',
+        #    bd                 = 0,
+        #    highlightthickness = 0,
+        #    width              = w,
+        #    height             = h,
+        #)
+        self.next_clock = None
+        self.masks = [None] * self.clk.cpu.bits
+        for bitpos in range(self.clk.cpu.bits):
+            self.masks[bitpos] = 1 << bitpos
+        self.hdr = f'P6\n{w} {h}\n15\n'.encode()
+        self.pxl = bytearray(PROFILES["RAM"][False] * self.addrspace * self.clk.cpu.bits)
+        self.bitmap = PhotoImage(data=self.hdr+self.pxl)
+        self.canvas = Label(frame,image=self.bitmap)
         self.update_all()
         self.canvas.pack()
-        self.canvas.config(
-            width  = w,
-            height = h,
-        )
-        self.next_update = None
 
-    def update_all(self,):
-        for cell in self.cells:
-            cell.update()
+    def update_all(self):
+        self.pxl = bytearray(PROFILES["RAM"][False] * self.addrspace * self.clk.cpu.bits)
+        for addr in range(self.addrspace):
+            self.update_byte(addr,with_update=False)
+        self.bitmap.configure(
+            data = self.hdr + self.pxl,
+        )
+
+    def update_byte(self,addr,with_update=True):
+        pxladdr = self.clk.cpu.bits * addr
+        byte = self.clk.cpu.ram.value[addr]
+        for bitpos in range(self.clk.cpu.bits-1,-1,-1):
+            #print(f'  bitpos={bitpos} bitmask={self.masks[bitpos]:08b}')
+            is_lit = (byte & self.masks[bitpos]) > 0
+            for rgb in [0,1,2]:
+                self.pxl[rgb+(3*pxladdr)] = PROFILES["RAM"][is_lit][rgb]
+            pxladdr += 1
+        if with_update:
+            self.bitmap.configure(
+                data = self.hdr + self.pxl,
+            )
 
     def clock(self):
-        #print(f'Clocked tkRAM')
-        if self.next_update is not None:
-            #print(f'Redrawing RAM, addr={self.next_update}')
-            self.cells[self.next_update].update()
-            self.next_update = None
-        elif self.clk.cpu.oflags['Lr'].istrue():
-            self.next_update = self.clk.cpu.mar.value
-            #print(f'Written to RAM, addr={self.next_update}')
-
+        if self.next_clock is not None:
+            self.update_byte(self.next_clock)
+            self.next_clock = None
+        else:
+            self.next_clock = self.clk.cpu.mar.value

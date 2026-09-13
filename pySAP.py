@@ -5,6 +5,7 @@ from register import Register
 from register import StdRegister
 from register import OUT
 from register import PC
+from register import MAR
 from ram import RAM
 from alu import ALU
 from ctl import CtlLine
@@ -51,6 +52,8 @@ class SAPisa(ISA):
             'SC':  CtlLine(inv=0),       # Set the Carry Flag
             'CZ':  CtlLine(inv=1),       # Clear the Zero Flag
             'SZ':  CtlLine(inv=0),       # Set the Zero Flag
+            'Hp':  CtlLine(),            # Put the bus in the hi-byte of the PC
+            'Hm':  CtlLine(),            # Put the bus in the hi-byte of the MAR
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
@@ -294,7 +297,7 @@ class SAPisa(ISA):
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
-    def __init__(self,isa=None,bits=8,addrlen=8,code=None,ipl=None):
+    def __init__(self,isa=None,bits=8,addrlen=16,code=None,ipl=None):
         super().__init__()
         self.isa        = isa
         if ipl is not None:
@@ -309,8 +312,8 @@ class pySAP(CPU):
         self.c          = StdRegister(self,'Lc','Ec')
         self.out        = OUT(self,'Lo')
         self.ir         = StdRegister(self,'Li','Ei')
-        self.pc         = PC(self,addrlen,'Cp','Ep')
-        self.mar        = Register(self,addrlen,'Lm')
+        self.pc         = PC(self,addrlen,'Cp','Ep','Hp')
+        self.mar        = MAR(self,addrlen,'Lm','Hm')
         self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt','HLT','CLR','Op')
         self.alu        = ALU(self,self.a,self.tmp,'Eu','Su','Sh','CF')
@@ -346,9 +349,6 @@ if __name__ == "__main__":
             elif arg[1] == "a":
                 RUNTIME['PRINT_ASM'] = True
                 #print("Assemble Only")
-                continue
-            elif arg[1] == "v":
-                RUNTIME['PROFILING'] = True
                 continue
             elif arg == "-Hz":
                 RUNTIME['Hz'] = int(argv.pop(0))

@@ -33,6 +33,9 @@ class tkMGR(object):
         for profile in PROFILES:
             if "BULB_DIAMETER" in PROFILES[profile]:
                 PROFILES[profile]["OUTER_DIAMETER"] = PROFILES[profile]["BULB_DIAMETER"] + ( 2 * PROFILES[profile]["BULB_SPACING"])
+                PROFILES[profile]["BULB_HALF_DIAMETER"] = PROFILES[profile]["BULB_DIAMETER"] / 2
+                PROFILES[profile]["OUTER_HALF_DIAMETER"] = PROFILES[profile]["OUTER_DIAMETER"] / 2
+                PROFILES[profile]['LABEL_DOOUBLE_PADDING'] = PROFILES[profile]['LABEL_PADDING'] * 2
 
     def build_menu(self,handler,menuitems):
         menu = Menu(self.root)

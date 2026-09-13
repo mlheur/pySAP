@@ -36,7 +36,7 @@ class tkSAP(object):
         self.mgr = tkMGR(DEFAULTS['TITLE'])
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
-        self.clk = Clock(cpu=pySAP(isa=SAPisa(),addrlen=12))
+        self.clk = Clock(cpu=pySAP(isa=SAPisa()))
         self.clk.subscribe(self)
         self.code = None
         self.cpu_state = dict()
@@ -46,29 +46,38 @@ class tkSAP(object):
         self.clock_thread = clock_thread(self.clk)
         self.started = False
         self.panes = self.mgr.build_panes()
-        # Finally, populate the individual frames: clock,
+        self.mkCLK()
+        self.mkCPU()
+        self.mkRAM()
+        self.mkCODE()
+        self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
+        self.file_open(DEFAULTS['PROGRAM'])
+
+    def mkCLK(self):
         self.tkCLK = tkCLK(
             self.panes['CLK'],
             self.clk,
             self,
         )
-        #, CPU
+
+    def mkCPU(self):
         self.tkCPU = tkCPU(
             self.panes['CPU'],
             self.clk,
             self,
         )
-        #, and RAM.
+
+    def mkRAM(self):
         self.tkRAM = tkRAM(
             self.panes['RAM'],
             self.clk,
         )
+
+    def mkCODE(self):
         self.tkCODE = tkCODE (
             self.panes['CODE'],
             self.clk,
         )
-        self.mgr.root.after(REFRESH_RATE,self.scheduled_update)
-        self.file_open(DEFAULTS['PROGRAM'])
 
     def capture_cpu_bits(self):
         for reg in self.clk.cpu.components:

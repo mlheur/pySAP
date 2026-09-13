@@ -3,7 +3,7 @@ DEFAULTS = {
     'EXT'         : '.sap',
     'DIR'         : './code/',
     'FONT'        : 'Oxygen Mono',
-    'RAM_COLUMNS' : 16,
+    'RAM_COLUMNS' : 128,
     'TITLE'       : 'tkSAP',
     'SOURCE_X'    : 10,
     'SOURCE_Y'    : 50,
@@ -35,6 +35,10 @@ PROFILES = {
         "FONT_SIZE"       :   6,
         "FLAG_SIZE"       :   0,
         "SPACER"          :   1,
+    },
+    "RAM": {
+        True  : [0xF,0x2,0x2],
+        False : [0x6,0x2,0x2],
     },
     "LED": {
         "RED":     {"ON":"#F22", "OFF":"#622"},
