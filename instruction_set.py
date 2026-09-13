@@ -8,12 +8,19 @@ from ctl import CtlLine
 # the various control lines that have to be pulled high and low
 # to set the various Enable and Latch lines on the components.
 class instruction_set(object):
+
+    def __init__(self,word_size):
+        self.mri       = dict()
+        self.word_size = word_size
+        self.word_mask = (2**self.word_size)-1
+
     def __str__(self) -> str:
         ret = ""
         for cond in self.addr:
             for i,asm in enumerate(self.addr[cond]):
                 ret = "{}\naddress=[0x{:02X}] condition=[0b{:02b}] asm=[0x{:02X}] microinstruction=[0x{:02X}]".format(ret,i,cond,asm,self.addr[cond][asm])
         return ret
+
     # mkctl generates control words that are bitwise representations
     # for the control lines, stored in CPU.oflags.
     def mkctl(self,flags=[]):
@@ -27,10 +34,12 @@ class instruction_set(object):
             else:
                 word |= self.oflags[f].mask
         return word
+
     # At runtime we can create a new assembly instruction
     # for the ROM, providing the microinstructions associated
     # with the assembly instruction.
-    def addinstr(self,instr,micro):
+    def addinstr(self,instr,micro,is_mri=False):
+        self.mri[instr] = is_mri
         if type(micro) is list:
             for condition,value in enumerate(micro):
                 if not condition in self.addr:
@@ -41,13 +50,20 @@ class instruction_set(object):
                 if not condition in self.addr:
                     self.addr[condition] = dict()
                 self.addr[condition][self.ASM[instr]] = micro
+
     # At runtime, we can assemble a new program into machine code,
     # usually those will get stored back into RAM for later execution.
     def assemble(self,instr,data=None):
         if instr in self.ASM:
             if data is not None:
-                return [self.ASM[instr],data]
+                if self.mri[instr]:
+                    hi = (data >> self.word_size) & self.word_mask
+                    lo = (data)                   & self.word_mask
+                    return [self.ASM[instr],lo,hi]
+                else:
+                    return [self.ASM[instr],data & self.word_mask]
             return [self.ASM[instr]]
+
     def assemble_file(self,sourcefile,verbose=False,as_string=False,as_source=False):
         #print(f'self.ASM=[{self.ASM}]')
         asm = []
