@@ -1,13 +1,13 @@
 DEFAULTS = {
     'Hz'          : 50,
     'EXT'         : '.sap',
-    'DIR'         : './code/',
+    'DIR'         : './code_16/',
     'FONT'        : 'Oxygen Mono',
     'RAM_COLUMNS' : 128,
     'TITLE'       : 'tkSAP',
     'SOURCE_X'    : 10,
     'SOURCE_Y'    : 50,
-    'PROGRAM'     : './code/cylon.sap',
+    'PROGRAM'     : './code_8/cylon.sap',
 }
 
 PROFILES = {
