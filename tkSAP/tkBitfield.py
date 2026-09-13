@@ -150,6 +150,7 @@ class tkBitfield(object):
         return self.getValue()
 
     def __iter__(self):
+        self.get()
         return self
 
     def __next__(self):
