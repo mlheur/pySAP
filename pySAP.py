@@ -4,8 +4,7 @@ from clock import Clock
 from register import Register
 from register import StdRegister
 from register import OUT
-from register import PC
-from register import MAR
+from register import DoubleRegister
 from ram import RAM
 from alu import ALU
 from ctl import CtlLine
@@ -33,33 +32,39 @@ class SAPisa(ISA):
         # The oflags are the control lines set by the instruction decoder for enabling
         # various latches and operations on the next clock cycle.
         self.oflags = {
-            'Lo':  CtlLine(pos=0,inv=1), # Latch OUT
-            'Lt':  CtlLine(inv=1),       # Latch B
+            'CLR': CtlLine(pos=0,inv=1), # CLR
+            'Rt':  CtlLine(),            # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
+            'Lo':  CtlLine(inv=1),       # Latch OUT
+            'Et':  CtlLine(),            # Enable TMP
+            'Lt':  CtlLine(inv=1),       # Latch TMP
             'Eu':  CtlLine(),            # Enable ALU
             'Su':  CtlLine(),            # Subtract
+            'Sh':  CtlLine(),            # ALU Shift Left; [Sh+Su] = ALU Shift Right.
             'Ea':  CtlLine(),            # Enable A
             'La':  CtlLine(inv=1),       # Latch A
             'Eb':  CtlLine(),            # Enable B
             'Lb':  CtlLine(inv=1),       # Latch B
             'Ec':  CtlLine(),            # Enable C
             'Lc':  CtlLine(inv=1),       # Latch C
-            'Ei':  CtlLine(inv=1),       # Enable IR
+            'Ei':  CtlLine(),            # Enable IR
             'Li':  CtlLine(inv=1),       # Latch IR
-            'CE':  CtlLine(inv=1),       # Chip Enable RAM
-            'Lm':  CtlLine(inv=1),       # Latch MAR
-            'Ep':  CtlLine(),            # Enable PC
-            'Cp':  CtlLine(),            # Clock PC
-            'Lr':  CtlLine(),            # Latch RAM
-            'CLR': CtlLine(inv=1),       # CLR
-            'HLT': CtlLine(),            # HLT
-            'Rt':  CtlLine(),            # Reset T counter, on last microinstruction to avoid fixed-length checking and not use a whole NOP at the end of everything.
-            'Sh':  CtlLine(),            # ALU Shift Left; [Sh+Su] = ALU Shift Right.
+            'CE':  CtlLine(),            # Chip Enable RAM
+            'Lr':  CtlLine(inv=1),       # Latch RAM
             'CC':  CtlLine(inv=1),       # Clear the Carry Flag
             'SC':  CtlLine(inv=0),       # Set the Carry Flag
             'CZ':  CtlLine(inv=1),       # Clear the Zero Flag
             'SZ':  CtlLine(inv=0),       # Set the Zero Flag
-            'Hp':  CtlLine(),            # Put the bus in the hi-byte of the PC
-            'Hm':  CtlLine(),            # Put the bus in the hi-byte of the MAR
+            'Cm':  CtlLine(),            # Clock the MAR
+            'Cp':  CtlLine(),            # Clock PC
+            'Eml': CtlLine(),            # Enable MAR lo
+            'Emh': CtlLine(),            # Enable MAR hi
+            'Epl': CtlLine(),            # Enable PC
+            'Eph': CtlLine(),            # Put the bus in the hi-byte of the PC
+            'Lml': CtlLine(inv=1),       # Latch MAR lo
+            'Lmh': CtlLine(inv=1),       # Latch MAR hi
+            'Lpl': CtlLine(inv=1),       # Enable PC
+            'Lph': CtlLine(inv=1),       # Put the bus in the hi-byte of the PC
+            'HLT': CtlLine(),            # HLT
         }
         # We build the bitwise mask for the output flags at runtime since the length of oflags is arbitrary.
         self.mask = (2**len(self.oflags))-1
@@ -96,209 +101,134 @@ class SAPisa(ISA):
         }
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
         # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
+
+        ctl_PC_to_MAR = self.mkctl(['Epl','Eph','Lml','Lmh'])
+
         self.ctl = []
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Rt']),                # 0x00 NOP : Next
-        ])
-        self.addinstr('NOP',_adr)
+
+        self.addinstr('NOP',len(self.ctl))
+        self.ctl.extend([self.mkctl(['Rt'])])
 
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x01 T1 : PC->MAR,
-            self.mkctl(['Cp','CE','Li']),      # 0x02 T2 : IncPC RAM->IR  
+            ctl_PC_to_MAR,                # 0x01 T1 : PC->MAR,
+            self.mkctl(['Cp','CE','Li']), # 0x02 T2 : IncPC RAM->IR
         ])
 
-        _adr = len(self.ctl)
+        self.addinstr('HLT',len(self.ctl))
+        self.ctl.extend([self.mkctl(['HLT'])])
+
+        self.addinstr('RST',len(self.ctl))
+        self.ctl.extend([self.mkctl(['CLR'])])
+
+        self.addinstr('CCF',len(self.ctl))
+        self.ctl.extend([self.mkctl(['CC','Rt'])])
+
+        self.addinstr('SCF',len(self.ctl))
+        self.ctl.extend([self.mkctl(['SC','Rt'])])
+
+        self.addinstr('CZF',len(self.ctl))
+        self.ctl.extend([self.mkctl(['CZ','Rt'])])
+
+        self.addinstr('SZF',len(self.ctl))
+        self.ctl.extend([self.mkctl(['SZ','Rt'])])
+
+        self.addinstr('SHR',len(self.ctl))
+        self.ctl.extend([self.mkctl(['Sh','Eu','Rt'])])
+
+        self.addinstr('SHL',len(self.ctl))
+        self.ctl.extend([self.mkctl(['Sh','Eu','Su','Rt'])])
+
+        self.addinstr('OUT',len(self.ctl))
+        self.ctl.extend([self.mkctl(['Ea','Lo','Rt'])])
+
+        self.addinstr('LDI',len(self.ctl))
         self.ctl.extend([
-            self.mkctl(['HLT']),               # 0x03 HLT : HLT
+            ctl_PC_to_MAR,                     # LDI : PC->MAR
+            self.mkctl(['Cp','CE','La','Rt']), #     : IncPC RAM->A Next
         ])
-        self.addinstr('HLT',_adr)
 
-        _adr = len(self.ctl)
+        _JMP_adr = len(self.ctl)
+        self.addinstr('JMP',_JMP_adr,is_mri=True)
         self.ctl.extend([
-            self.mkctl(['CLR']),               # RST : CLR
+            ctl_PC_to_MAR,                 # JMP : PC->MAR
+            self.mkctl(['CE','Lph','Cm']), #     : RAM->PC-HI, IncMAR
+            self.mkctl(['CE','Lpl','Rt']), #     : RAM->PC-LO, Next
         ])
-        self.addinstr('RST',_adr)
 
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['CC','Rt']),           # CCF
-        ])
-        self.addinstr('CCF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['SC','Rt']),           # SCF
-        ])
-        self.addinstr('SCF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['CZ','Rt']),           # CZF
-        ])
-        self.addinstr('CZF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['SZ','Rt']),           # SZF
-        ])
-        self.addinstr('SZF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # JMP : PC->MAR
-            self.mkctl(['Cp','Ep','CE','Rt']), #     : RAM->PC Next
-        ])
-        self.addinstr('JMP',_adr,is_mri=True)
-        _JMP_adr = _adr
-
-        _adr = len(self.ctl)
+        _NOJ_adr = len(self.ctl)
+        self.addinstr('JC', [_NOJ_adr,_JMP_adr,_NOJ_adr,_JMP_adr], is_mri=True)
+        self.addinstr('JNC',[_JMP_adr,_NOJ_adr,_JMP_adr,_NOJ_adr], is_mri=True)
+        self.addinstr('JZ', [_NOJ_adr,_NOJ_adr,_JMP_adr,_JMP_adr], is_mri=True)
+        self.addinstr('JNZ',[_JMP_adr,_JMP_adr,_NOJ_adr,_NOJ_adr], is_mri=True)
         self.ctl.extend([
             # For conditional branching, when _NOT_ taking the branch
             # we need the PC to skip the branch address before letting
             # the CPU read the next instruction.
-            self.mkctl(['Cp','Rt']),           # not JMP : IncPC Next
+            self.mkctl(['Cp']),                # not JMP : IncPC
+            self.mkctl(['Cp','Rt']),           #         : IncPC Next
         ])
-        self.addinstr('JC', [    _adr,_JMP_adr,    _adr,_JMP_adr], is_mri=True)
-        self.addinstr('JNC',[_JMP_adr,    _adr,_JMP_adr,    _adr], is_mri=True)
-        self.addinstr('JZ', [    _adr,    _adr,_JMP_adr,_JMP_adr], is_mri=True)
-        self.addinstr('JNZ',[_JMP_adr,_JMP_adr,    _adr,    _adr], is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('ADD',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # LDI : PC->MAR
-            self.mkctl(['Cp','CE','La','Rt']), #     : IncPC RAM->A Next
-        ])
-        self.addinstr('LDI',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ea','Lo','Rt']),      # OUT : A->OUT Next
-        ])
-        self.addinstr('OUT',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # ADD : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            ctl_PC_to_MAR,                     # ADD : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt']),           #     : RAM->TMP
             self.mkctl(['Eu','La','Rt']),      #     : ALU->A Next
         ])
-        self.addinstr('ADD',_adr,is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('SUB',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # SUB : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            ctl_PC_to_MAR,                     # SUB : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt']),           #     : RAM->TMP
             self.mkctl(['Su','Eu','La','Rt']), #     : Sub ALU->A Next
         ])
-        self.addinstr('SUB',_adr,is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('LDA',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Sh','Eu','Rt']),      # SHR : A->shift->ALU->A Next
-        ])
-        self.addinstr('SHR',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Sh','Eu','Su','Rt']), # SHL : A->shift->ALU->A Next
-        ])
-        self.addinstr('SHL',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # LDA : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            ctl_PC_to_MAR,                     # LDA : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
         ])
-        self.addinstr('LDA',_adr,is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('STA',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # STA : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
+            ctl_PC_to_MAR,                     # STA : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['Ea','Lr','Rt']),      #     : A->RAM Next
         ])
-        self.addinstr('STA',_adr,is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('STM',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # STM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           #     : RAM->MAR
+            ctl_PC_to_MAR,                     # STM : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
+            self.mkctl(['CE','Lml']),          #     : RAM->MAR-LO
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['Ea','Lr','Rt']),      #     : A->RAM Next
         ])
-        self.addinstr('STM',_adr,is_mri=True)
 
-        _adr = len(self.ctl)
+        self.addinstr('LDM',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # LDM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      #     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           #     : RAM->MAR
+            ctl_PC_to_MAR,                     # LDM : PC->MAR
+            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
+            self.mkctl(['CE','Lml']),          #     : RAM->MAR-LO
+            self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
         ])
-        self.addinstr('LDM',_adr,is_mri=True)
-
-    def update(self):
-        if self.clk.cpu.oflags['HLT'].istrue() and self.clock_thread.running:
-            self.clock_stop()
-        self.tkCLK.update()
-        self.tkCPU.update()
-
-    def clock(self):
-        self.update()
-
-    def scheduled_update(self):
-        refrate = REFRESH_RATE if self.clock_thread.running else 10 * REFRESH_RATE
-        self.update()
-        self.mgr.root.after(refrate,self.scheduled_update)
-
-    def update_all(self):
-        self.tkCLK.update()
-        self.tkCPU.update()
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['CC','Rt']),           # 0x1B CCF
-        ])
-        self.addinstr('CCF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['SC','Rt']),           # 0x1C SCF
-        ])
-        self.addinstr('SCF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['CZ','Rt']),           # 0x1D CZF
-        ])
-        self.addinstr('CZF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['SZ','Rt']),           # 0x1E SZF
-        ])
-        self.addinstr('SZF',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x1F STM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x20     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           # 0x21     : RAM->MAR
-            self.mkctl(['Ea','Lr','Rt']),      # 0x22     : A->RAM Next
-        ])
-        self.addinstr('STM',_adr)
-
-        _adr = len(self.ctl)
-        self.ctl.extend([
-            self.mkctl(['Ep','Lm']),           # 0x23 LDM : PC->MAR
-            self.mkctl(['Cp','CE','Lm']),      # 0x24     : IncPC RAM->MAR
-            self.mkctl(['CE','Lm']),           # 0x25     : RAM->MAR
-            self.mkctl(['CE','La','Rt']),      # 0x26     : RAM->A Next
-        ])
-        self.addinstr('LDM',_adr)
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
@@ -312,14 +242,14 @@ class pySAP(CPU):
         self.addrlen    = addrlen
         self.iflags     = dict(isa.iflags)
         self.oflags     = dict(isa.oflags)
-        self.tmp        = StdRegister(self,'Lt')
+        self.tmp        = StdRegister(self,'Lt','Et')
         self.a          = StdRegister(self,'La','Ea')
         self.b          = StdRegister(self,'Lb','Eb')
         self.c          = StdRegister(self,'Lc','Ec')
         self.out        = OUT(self,'Lo')
         self.ir         = StdRegister(self,'Li','Ei')
-        self.pc         = PC(self,addrlen,'Cp','Ep','Hp')
-        self.mar        = MAR(self,addrlen,'Lm','Hm')
+        self.pc         = DoubleRegister(self,addrlen,'Cp','Lpl','Lph','Epl','Eph')
+        self.mar        = DoubleRegister(self,addrlen,'Cm','Lml','Lmh','Eml','Emh')
         self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt','HLT','CLR','Op')
         self.alu        = ALU(self,self.a,self.tmp,'Eu','Su','Sh','CF')

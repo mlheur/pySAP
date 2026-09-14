@@ -35,6 +35,7 @@ class instruction_set(object):
         for f in flags:
             if f not in self.oflags:
                 print("unknown control flag: [{}]".format(f))
+                raise RuntimeError
                 continue
             if self.oflags[f].inv == 1:
                 word &= ~self.oflags[f].mask

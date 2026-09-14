@@ -31,7 +31,7 @@ class tkCODE(object):
         self.assembled = self.canvas.create_text(
             0,0,
             text    = multiline_assembly,
-            font    = PROFILES["BIG"]["label_font"],
+            #font    = PROFILES["BIG"]["label_font"],
             fill    = '#000',
             justify = "left",
             anchor  = "nw",
@@ -45,7 +45,7 @@ class tkCODE(object):
         self.sourced = self.canvas.create_text(
             0,0,
             text    = multiline_source,
-            font    = PROFILES["BIG"]["label_font"],
+            #font    = PROFILES["BIG"]["label_font"],
             fill    = '#000',
             justify = "left",
             anchor  = "nw",

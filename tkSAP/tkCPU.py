@@ -42,7 +42,8 @@ class tkCPU(object):
         coords['IR']  = self.draw_StdRegister(below('RAM'),'IR')
         coords['PC']  = self.draw_StdRegister(below('IR'),'PC')
         coords['STP'] = self.draw_STP(below('PC'))
-        coords['FLG'] = self.draw_FLG(rightof('STP'))
+        coords['FLG'] = self.draw_FLG(below('STP'))
+        coords['CTL'] = self.draw_CTL(below('FLG'))
 
         coords['BUS'] = self.draw_BUS(rightof('RAM'))
         coords['OUT'] = self.draw_StdRegister(below('BUS'),'OUT',color="WHITE")
@@ -52,18 +53,9 @@ class tkCPU(object):
         coords['A']   = self.draw_StdRegister(below('ALU'),'A')
         coords['B']   = self.draw_StdRegister(below('A'),'B')
         coords['C']   = self.draw_StdRegister(below('B'),'C')
-        coords['CTL'] = self.draw_CTL(below_right('C'))
-
-        #    {
-        #        'x':coords['TMP']['x'] + coords['TMP']['w'],
-        #        'y':0,
-        #        'j':"right",
-        #    },
-        #    'PC',
-        #)
 
         self.canvas.config(
-            width  = 3 * coords['A']['w'],
+            width  = coords['CTL']['w'],
             height = 7 * coords['A']['h'],
         )
         self.canvas.pack()

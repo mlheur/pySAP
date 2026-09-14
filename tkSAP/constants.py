@@ -7,7 +7,7 @@ DEFAULTS = {
     'TITLE'       : 'tkSAP',
     'SOURCE_X'    : 10,
     'SOURCE_Y'    : 50,
-    'PROGRAM'     : './code_8/cylon.sap',
+    'PROGRAM'     : './code_16/fib.sap',
 }
 
 PROFILES = {
