@@ -22,6 +22,7 @@ class Clock():
 #            print(self.perf_data['history'])
         self.Hz                   = Hz
         self.period               = Hz if Hz == 0 else int((1*NS)/Hz)
+        self.lag_time             = 100 * self.period
         self.NoTime               = int((self.period / NOTIME_FRACTION) / NS)
         _now                      = now()
         self.perf_data            = dict()
@@ -49,9 +50,9 @@ class Clock():
         # Released from the gate, set the next goalpost.
         #print(f'Released from gate at {_now} period={self.period} NoTime={self.NoTime} next_pulse={self.next_pulse}')
         self.next_pulse += self.period
-        too_much = _now - self.period
+        too_much = _now - self.lag_time
         if self.next_pulse < too_much:
-            self.next_pulse = too_much
+            self.next_pulse = _now
         #print(f'Advanced next_pulse={self.next_pulse}')
         # do the thing.
         self.cpu.clock(self.subscribers)
