@@ -68,7 +68,6 @@ class instruction_set(object):
         self.source       = ""
 
         #####
-        # First pass:
         # - Filter out all the comments, whitespace
         # - Allocate two bytes for the memory address of memory-referencing-instructions
         # - Create a list of the all the assembly words before asembly & linking
@@ -100,14 +99,8 @@ class instruction_set(object):
             line = fhandle.readline()
         fhandle.close()
         filtered_source_length = len(filtered_source_words)
-        #out = "\n".join(filtered_source_words)
-        #print(f'1st Pass:\n{out}')
-        #_ = input()
-        #print(f'labels = {labels}')
-        #_ = input()
 
         #####
-        # Second pass:
         # - replace all labels with their address
         next_is_mri = False
         for i in range(filtered_source_length):
@@ -124,12 +117,7 @@ class instruction_set(object):
                     replace_label_with_value(src,labels,filtered_source_words,i,next_is_mri)
             next_is_mri = src in self.MRI and self.MRI[src]
 
-        #out = "\n".join(filtered_source_words)
-        #print(f'2nd Pass:\n{out}')
-        #_ = input()
-
         #####
-        # Third pass:
         # - Expand addresses over two bytes
         # - Replace mnemonic with binary value
         assembled = list(filtered_source_words)
@@ -146,9 +134,9 @@ class instruction_set(object):
                 assembly[i+2] = assembly[i+2] + "_LO"
             if src in self.ASM:
                 assembled[i]   = f'0x{self.ASM[src]:02X}'
-        #out = "\n".join(assembled)
-        #print(f'3rd Pass:\n{out}')
 
+        # Stringify the assembly for decompiled view
+        # convert all 0xXX string values to int.
         for adr,asm in enumerate(assembly):
             assembled[adr] = int(assembled[adr],16)
             self.stringed += f'addr=0x{adr:04X} data=0x{assembled[adr]:02X} source={asm}\n'
