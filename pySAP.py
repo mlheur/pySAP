@@ -99,12 +99,13 @@ class SAPisa(ISA):
             'STM': 0x14,
             'LDM': 0x15,
         }
+
+
         # Building the self.ctl control word array is how we're teaching the instruction decoder which oflags to set for each microinstruction.
         # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
-
-        ctl_PC_to_MAR = self.mkctl(['Epl','Eph','Lml','Lmh'])
-
         self.ctl = []
+
+        ctl_PC_to_MAR = self.mkctl(['Epl','Eph','Lml','Lmh']) # This control word is used in most memory-access instructions, build it once.
 
         self.addinstr('NOP',len(self.ctl))
         self.ctl.extend([self.mkctl(['Rt'])])
@@ -132,10 +133,10 @@ class SAPisa(ISA):
         self.addinstr('SZF',len(self.ctl))
         self.ctl.extend([self.mkctl(['SZ','Rt'])])
 
-        self.addinstr('SHR',len(self.ctl))
+        self.addinstr('SHL',len(self.ctl))
         self.ctl.extend([self.mkctl(['Sh','Eu','Rt'])])
 
-        self.addinstr('SHL',len(self.ctl))
+        self.addinstr('SHR',len(self.ctl))
         self.ctl.extend([self.mkctl(['Sh','Eu','Su','Rt'])])
 
         self.addinstr('OUT',len(self.ctl))
