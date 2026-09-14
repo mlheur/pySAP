@@ -1,6 +1,13 @@
 from ctl import CtlLine
 
 
+def replace_label_with_value(src,lbls,fsi,i,next_is_mri,o=0):
+    if src in lbls:
+        if next_is_mri:
+            fsi[i] = f'0x{int(lbls[src])+int(o):04X}'
+        else:
+            fsi[i] = f'0x{int(lbls[src])+int(o):02X}'
+
 # The class is where the microinstructions are figured out
 # for the instruction decoder.  This implementation of SAP CPU
 # is using a lookup table: for each instruction, for each t-step
@@ -10,7 +17,7 @@ from ctl import CtlLine
 class instruction_set(object):
 
     def __init__(self,word_size):
-        self.mri       = dict()
+        self.MRI       = dict()
         self.word_size = word_size
         self.word_mask = (2**self.word_size)-1
 
@@ -39,7 +46,7 @@ class instruction_set(object):
     # for the ROM, providing the microinstructions associated
     # with the assembly instruction.
     def addinstr(self,instr,micro,is_mri=False):
-        self.mri[instr] = is_mri
+        self.MRI[instr] = is_mri
         if type(micro) is list:
             for condition,value in enumerate(micro):
                 if not condition in self.addr:
@@ -51,100 +58,99 @@ class instruction_set(object):
                     self.addr[condition] = dict()
                 self.addr[condition][self.ASM[instr]] = micro
 
-    # At runtime, we can assemble a new program into machine code,
-    # usually those will get stored back into RAM for later execution.
-    def assemble(self,instr,data=None):
-        if instr in self.ASM:
-            if data is not None:
-                if self.mri[instr]:
-                    hi = (data >> self.word_size) & self.word_mask
-                    lo = (data)                   & self.word_mask
-                    return [self.ASM[instr],lo,hi]
-                else:
-                    return [self.ASM[instr],data & self.word_mask]
-            return [self.ASM[instr]]
-
     def assemble_file(self,sourcefile,verbose=False,as_string=False,as_source=False):
         #print(f'self.ASM=[{self.ASM}]')
-        asm = []
-        src = []
         if hasattr(self,"stringed") and self.stringed is not None and as_string:
             return self.stringed
         if hasattr(self,"source") and self.source is not None and as_source:
             return self.source
-        self.stringed = ""
-        self.source   = ""
-        self._addr = len(asm)
-        self._pointers = dict()
-        def subassembly(word):
-            def save(word,data):
-                asm.append(data)
-                src.append(word)
-            self._addr = len(asm)
-            #print(f'subassembly(word={word}) addr=0x{self._addr:02X}')
-            if word in self.ASM:
-                save(word,self.ASM[word])
-            else:
-                try:
-                    data = int(word,16)
-                    save(word,data)
-                except:
-                    if word == "#":
-                        #print("comment")
-                        return False
-                    elif word == "":
-                        return True
-                    elif word[0] == ":":
-                        ## We have found a label, get this address and save it for later use in search & replace
-                        self._pointers[word[1:]] = self._addr
-                        return True
-                    elif word[0] == "[" and word[-1] == "]":
-                        save(word,word[1:-1])
-                        return True
-                    print(f'WARNING: assemble_file encountered unexpected data {word}')
-            return True
-        try:
-            with open(sourcefile, encoding="utf-8") as f:
-                for line in f:
-                    self.source += line
-                    line = line.rstrip()
-                    #print(f'assembling line=[{line}]')
-                    if " " in line:
-                        for word in line.split(" "):
-                            if not subassembly(word):
-                                break
-                    else:
-                        subassembly(line)
-            # Assembly is complete, except labels have to be replaced with values
-            def reassemble(i,value,offset=0):
-                asm[i] = value + offset
-                this_line = f'ASM: addr=0x{i:02X} data=0x{asm[i]:02X} src={src[i]}'
-                if verbose:
-                    print(this_line)
-                self.stringed += this_line + '\n'
+        self.stringed     = ""
+        self.source       = ""
 
-            inttype = type(0)
-            for i in range(len(asm)):
-                if type(asm[i]) == inttype:
-                    reassemble(i,asm[i])
+        #####
+        # First pass:
+        # - Filter out all the comments, whitespace
+        # - Allocate two bytes for the memory address of memory-referencing-instructions
+        # - Create a list of the all the assembly words before asembly & linking
+        # - get the address of all the labels
+        filtered_source_words = []
+        assembly              = []
+        labels  = dict()
+        address = 0
+        fhandle = open(sourcefile,'r')
+        line = fhandle.readline()
+        while line != "":
+            self.source += line
+            words = line.rstrip().split(" ")
+            for word in words:
+                if word == "":
                     continue
+                if word[0] == '#':
+                    break
+                if word[0] == ':':
+                    labels[word[1:]] = address
                 else:
-                    word = asm[i]
-                    offset = "0"
-                    if "+" in asm[i]:
-                        [word,offset] = asm[i].split("+")
-                    elif "-" in asm[i]:
-                        [word,offset] = asm[i].split("-")
-                        offset = -1 * int(offset)
-                    if word in self._pointers:
-                        reassemble(i,self._pointers[word],int(offset))
-                        continue
-                raise RuntimeError(f"reassembly failed, extra data? i={i} asm={asm} word={word} offset={offset}")
-        except IOError as E:
-            print(f'FATAL: unable assemble source file; IOError [{E}]')
-            pass
-        self._addr = None
-        del self._addr
-        self._pointers = None
-        del self._pointers
-        return asm
+                    filtered_source_words.append(word)
+                    assembly.append(word)
+                    address += 1
+                    if word in self.MRI and self.MRI[word]:
+                        filtered_source_words.append('HI_BYTE')
+                        assembly.append("")
+                        address += 1
+            line = fhandle.readline()
+        fhandle.close()
+        filtered_source_length = len(filtered_source_words)
+        #out = "\n".join(filtered_source_words)
+        #print(f'1st Pass:\n{out}')
+        #_ = input()
+        #print(f'labels = {labels}')
+        #_ = input()
+
+        #####
+        # Second pass:
+        # - replace all labels with their address
+        next_is_mri = False
+        for i in range(filtered_source_length):
+            src = filtered_source_words[i]
+            if src[0] == '[':
+                src = src[1:-1]
+                if '+' in src:
+                    [src,off] = src.split('+')
+                    replace_label_with_value(src,labels,filtered_source_words,i,next_is_mri,off)
+                elif '-' in src:
+                    [src,off] = src.split('-')
+                    replace_label_with_value(src,labels,filtered_source_words,i,next_is_mri,-1*int(off))
+                else:
+                    replace_label_with_value(src,labels,filtered_source_words,i,next_is_mri)
+            next_is_mri = src in self.MRI and self.MRI[src]
+
+        #out = "\n".join(filtered_source_words)
+        #print(f'2nd Pass:\n{out}')
+        #_ = input()
+
+        #####
+        # Third pass:
+        # - Expand addresses over two bytes
+        # - Replace mnemonic with binary value
+        assembled = list(filtered_source_words)
+        for i in range(filtered_source_length):
+            src = assembled[i]
+            #print(f'expanding addresses of {src}')
+            if src in self.MRI and self.MRI[src]:
+                address = int(assembled[i+2],16)
+                hi = f'0x{address >> self.word_size & self.word_mask:02X}'
+                lo = f'0x{address & self.word_mask:02X}'
+                assembled[i+1] = hi
+                assembly[i+1] = assembly[i+2] + "_HI"
+                assembled[i+2] = lo
+                assembly[i+2] = assembly[i+2] + "_LO"
+            if src in self.ASM:
+                assembled[i]   = f'0x{self.ASM[src]:02X}'
+        #out = "\n".join(assembled)
+        #print(f'3rd Pass:\n{out}')
+
+        for adr,asm in enumerate(assembly):
+            assembled[adr] = int(assembled[adr],16)
+            self.stringed += f'addr=0x{adr:04X} data=0x{assembled[adr]:02X} source={asm}\n'
+
+        return assembled
