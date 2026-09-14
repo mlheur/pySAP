@@ -77,7 +77,7 @@ class tkCLK(object):
         ## Constrain the options to 1,2,5,10,20,50,100,...
         spinvals = [0]
         stops = [1,2,5]
-        for exp in range(4):
+        for exp in range(5):
             for stop in stops:
                 n = stop * (10**exp)
                 spinvals.append(str(n))
@@ -85,7 +85,7 @@ class tkCLK(object):
         self.hz_spinner = Spinbox(
             self.frame,
             values = spinvals,
-            width=4,
+            width=5,
             relief="sunken",
             repeatdelay=500,
             repeatinterval=100,
@@ -179,16 +179,18 @@ class tkCLK(object):
     def update(self):
         Hz = self.clk.perf_data['history'][self.clk.perf_data['histptr']]
         Hz = 0 if Hz is None else Hz
-        if Hz > 999.4:
-            Hz  = f'{Hz:03.0f}'
+        if Hz > 9994:
+            Hz  = f'{Hz:04.0f}'
+        elif Hz > 999.4:
+            Hz  = f'{Hz:04.0f}.'
         elif Hz   > 99.94:
-            Hz  = f'{Hz:03.0f}.'
+            Hz  = f'{Hz:05.1f}'
         elif Hz >  9.994:
-            Hz  = f'{Hz:04.1f}'
+            Hz  = f'{Hz:05.2f}'
         elif Hz > 0.0:
-            Hz  = f'{Hz:04.2f}'
+            Hz  = f'{Hz:05.3f}'
         else:
-            Hz  = '0000'
+            Hz  = '00000'
         self.canvas.itemconfigure(self.hz_value, text=f"{Hz}")
         self.target_hz_stringvar.set(str(self.clk.Hz))
         self.update_btn_pulse()
