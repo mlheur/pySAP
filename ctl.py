@@ -1,3 +1,4 @@
+from logger import LOGGER, TRACE, INFO
 
 
 class CtlLine():
@@ -16,8 +17,7 @@ class CtlLine():
         self.value      = (word & self.mask) >> self.pos
         #print("CtlLine.update({:016b}); mask={self.mask:016b} value={self.value} inv={self.inv} truth={t}".format(word,self=self,t=self.istrue()))
     def settruth(self,truth):
-        if self.inv == 0: self.value = int(truth)
-        else: self.value = int(not truth)
+        self.value = int(truth != self.inv)
     def istrue(self):
         return not self.value == self.inv
 
@@ -50,8 +50,9 @@ class CtlSeq():
         return self.get_flags(self.cpu.oflags)
 
     def decode(self):
-        if self.clr.istrue():
-            self.micro = self.CROM[0] & ~(self.clr.mask)
+        do_clear = self.clr.istrue()
+        if do_clear:
+            self.micro = self.CROM[2] & ~(self.clr.mask)
         else:
             if self.Tstep <= 0x2:
                 self.micro = self.CROM[self.Tstep]
@@ -70,23 +71,23 @@ class CtlSeq():
                     self.clr.settruth(True)
                     self.invalid_opcode.settruth(True)
                     return
-                #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
-                #print(f'AROM={self.AROM[conditions]}')
-                #print(f'CROM={self.CROM}')
         for F in self.cpu.oflags:
             self.cpu.oflags[F].update(self.micro)
+        return do_clear
 
     def clock(self,components,subscribers):
-
+        LOGGER.log(TRACE,f'++CtlSeq:clock()')
         # Parse the subinstruction
-        self.decode()
-        #print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
-        #for f in self.cpu.oflags:
-        #    #print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
+        do_clear = self.decode()
+        LOGGER.log(2,f'micro after decode:     {self.micro:b}')
 
         # enable to bus
         for component in components:
             component.tick()
+
+        if do_clear:
+            self.clr.value = self.clr.inv
+            self.ResetT.value = self.ResetT.inv
 
         # Update GUI
         for subby in subscribers:
@@ -119,9 +120,9 @@ class CtlSeq():
 #        ))
 
         # Increment the RingCounter
-        if self.clr.istrue():
-            self.clr.settruth(False)
-            self.ResetT.settruth(False)
+        if do_clear:
+            for f in self.cpu.oflags:
+                self.cpu.oflags[f].value = self.cpu.oflags[f].inv
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
             self.Tstep = 1
@@ -129,3 +130,4 @@ class CtlSeq():
             self.Tstep = 1
         else:
             self.Tstep += 1
+        LOGGER.log(TRACE,f'--CtlSeq:clock(): Normal exit')

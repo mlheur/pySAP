@@ -1,4 +1,4 @@
-from ctl import CtlLine
+from logger import LOGGER, TRACE
 
 
 def replace_label_with_value(src,lbls,fsi,i,next_is_mri,o=0):
@@ -17,9 +17,11 @@ def replace_label_with_value(src,lbls,fsi,i,next_is_mri,o=0):
 class instruction_set(object):
 
     def __init__(self,word_size):
+        LOGGER.log(TRACE,f'++instruction_set:__init(word_size={word_size})')
         self.MRI       = dict()
         self.word_size = word_size
         self.word_mask = (2**self.word_size)-1
+        LOGGER.log(TRACE,f'--instruction_set:__init(): Normal exit')
 
     def __str__(self) -> str:
         ret = ""

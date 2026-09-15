@@ -1,7 +1,8 @@
 #!/usr/bin/env ./venv/bin/python3
 
+from logger import LOGGER, TRACE, INFO
+
 from clock import Clock
-from register import Register
 from register import StdRegister
 from register import OUT
 from register import DoubleRegister
@@ -19,6 +20,7 @@ ADDR_LEN  = 16
 class SAPisa(ISA):
 
     def __init__(self,word_size=WORD_SIZE):
+        LOGGER.log(TRACE,f"++SAPisa:__init__(word_size={word_size})")
         super().__init__(
             word_size = word_size
         )
@@ -74,6 +76,7 @@ class SAPisa(ISA):
         self.NOP = 0
         for f in self.oflags:
             self.NOP = self.NOP | (self.oflags[f].inv << self.oflags[f].pos)
+        LOGGER.log(2,f'Built NOP as 0x{self.NOP:X} {self.NOP:b}')
         # This array assigns binary mnemonics for each string of ASM code.
         self.ASM = {
             'NOP': 0x00,
@@ -105,14 +108,15 @@ class SAPisa(ISA):
         # Any flag not listed on the mkctl call is set to false (high or low depending on inv=0|1), the ones listed will be set to true.
         self.ctl = []
 
-        ctl_PC_to_MAR = self.mkctl(['Epl','Eph','Lml','Lmh']) # This control word is used in most memory-access instructions, build it once.
+        ctl_PC_to_MAR = self.mkctl(['Epl','Eph','Lml','Lmh','Cp']) # This control word is used in most memory-access instructions, build it once.
+        LOGGER.log(2,f'Built PC-MAR 0x{ctl_PC_to_MAR:X} {ctl_PC_to_MAR:b}')
 
         self.addinstr('NOP',len(self.ctl))
         self.ctl.extend([self.mkctl(['Rt'])])
 
         self.ctl.extend([
-            ctl_PC_to_MAR,                # 0x01 T1 : PC->MAR,
-            self.mkctl(['Cp','CE','Li']), # 0x02 T2 : IncPC RAM->IR
+            ctl_PC_to_MAR,           # 0x01 T1 : PC->MAR, IncPC,
+            self.mkctl(['CE','Li']), # 0x02 T2 : RAM->IR
         ])
 
         self.addinstr('HLT',len(self.ctl))
@@ -144,14 +148,14 @@ class SAPisa(ISA):
 
         self.addinstr('LDI',len(self.ctl))
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # LDI : PC->MAR
-            self.mkctl(['Cp','CE','La','Rt']), #     : IncPC RAM->A Next
+            ctl_PC_to_MAR,                # LDI : PC->MAR, IncPC,
+            self.mkctl(['CE','La','Rt']), #     : RAM->A Next
         ])
 
         _JMP_adr = len(self.ctl)
         self.addinstr('JMP',_JMP_adr,is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                 # JMP : PC->MAR
+            ctl_PC_to_MAR,                 # JMP : PC->MAR, IncPC,
             self.mkctl(['CE','Lph','Cm']), #     : RAM->PC-HI, IncMAR
             self.mkctl(['CE','Lpl','Rt']), #     : RAM->PC-LO, Next
         ])
@@ -166,13 +170,13 @@ class SAPisa(ISA):
             # we need the PC to skip the branch address before letting
             # the CPU read the next instruction.
             self.mkctl(['Cp']),                # not JMP : IncPC
-            self.mkctl(['Cp','Rt']),           #         : IncPC Next
+            self.mkctl(['Cp','Rt']),           #         : IncPC, Next
         ])
 
         self.addinstr('ADD',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # ADD : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # ADD : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt']),           #     : RAM->TMP
@@ -181,8 +185,8 @@ class SAPisa(ISA):
 
         self.addinstr('SUB',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # SUB : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # SUB : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt']),           #     : RAM->TMP
@@ -191,8 +195,8 @@ class SAPisa(ISA):
 
         self.addinstr('LDA',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # LDA : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # LDA : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
@@ -200,8 +204,8 @@ class SAPisa(ISA):
 
         self.addinstr('STA',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # STA : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # STA : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['Ea','Lr','Rt']),      #     : A->RAM Next
@@ -209,8 +213,8 @@ class SAPisa(ISA):
 
         self.addinstr('STM',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # STM : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # STM : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
@@ -221,8 +225,8 @@ class SAPisa(ISA):
 
         self.addinstr('LDM',len(self.ctl),is_mri=True)
         self.ctl.extend([
-            ctl_PC_to_MAR,                     # LDM : PC->MAR
-            self.mkctl(['Cp','CE','Lt','Cm']), #     : IncPC RAM->TMP IncMAR
+            ctl_PC_to_MAR,                     # LDM : PC->MAR, IncPC,
+            self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
             self.mkctl(['CE','Lml','Cp']),     #     : RAM->MAR-LO IncPC
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','Lt','Cm']),      #     : RAM->TMP IncMAR
@@ -230,11 +234,13 @@ class SAPisa(ISA):
             self.mkctl(['Et','Lmh']),          #     : TMP->MAR-HI
             self.mkctl(['CE','La','Rt']),      #     : RAM->A Next
         ])
+        LOGGER.log(TRACE,f"--SAPisa:__init__(): Normal Exit")
 
 # The CPU itself is a simple collection of components.  It's the clock and
 # controller/sequencer that do all the work, with help from the ROM.
 class pySAP(CPU):
     def __init__(self,isa=None,bits=WORD_SIZE,addrlen=ADDR_LEN,code=None,ipl=None):
+        LOGGER.log(TRACE,f"++pySAP:__init__(bits={bits},addrlen={addrlen},code={code},ipl={ipl})")
         super().__init__()
         self.isa        = isa
         if ipl is not None:
@@ -266,6 +272,7 @@ class pySAP(CPU):
             'MAR' : self.mar,
             'RAM' : self.ram,
         }
+        LOGGER.log(TRACE,f"--pySAP:__init__(): Normal Exit")
 
     def clock(self,subscribers):
         self.ctlseq.clock(self.components.values(),subscribers)

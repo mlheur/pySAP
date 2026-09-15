@@ -119,7 +119,7 @@ class tkSAP(object):
         self.mgr.root.after(refrate,self.scheduled_update)
 
     def update_all(self):
-        self.capture_cpu_state
+        self.capture_cpu_state()
         self.tkCLK.update()
         self.tkCPU.update()
         self.tkRAM.update_all()

@@ -55,8 +55,8 @@ class tkCODE(object):
         h = max(w,coords[3])
 
         self.canvas.configure(
-            width  = w + DEFAULTS['SOURCE_X'],
-            height = h + DEFAULTS['SOURCE_Y'],
+            width  = 1000,
+            height = 1000,
         )
 
         self.canvas.itemconfigure(self.assembled,state="hidden")
