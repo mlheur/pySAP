@@ -5,7 +5,7 @@ from random import randint
 class RAM(StdRegister):
 
     def __init__(self,cpu,latch,enable,code=None):
-        super().__init__(cpu,latch,enable)
+        super().__init__(cpu,None,latch,enable)
         self.value = []
         if code is not None:
             codelen = len(code)

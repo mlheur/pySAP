@@ -130,19 +130,18 @@ class tkSAP(object):
                 defaultextension = DEFAULTS['EXT'],
                 initialdir       = DEFAULTS['DIR'],
             )
-        self.file_reset()
+        self.file_reset(with_update=False)
         self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
         self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
         self.tkCODE.loadfile(fname)
         self.update_all()
 
-    def file_reset(self):
+    def file_reset(self,with_update=True):
         self.clock_stop()
-        self.clk.cpu.w = 0
-        for f in self.clk.cpu.oflags:
-            self.clk.cpu.oflags[f].value = 0
+        self.clk.cpu.reset()
         #self.clk.pulse()
-        self.update_all()
+        if with_update:
+            self.update_all()
 
     def file_wiperam(self):
         for i in range(len(self.clk.cpu.ram.value)):

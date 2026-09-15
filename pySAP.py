@@ -54,8 +54,8 @@ class SAPisa(ISA):
             'SC':  CtlLine(inv=0),       # Set the Carry Flag
             'CZ':  CtlLine(inv=1),       # Clear the Zero Flag
             'SZ':  CtlLine(inv=0),       # Set the Zero Flag
-            'Cm':  CtlLine(),            # Clock the MAR
-            'Cp':  CtlLine(),            # Clock PC
+            'Cm':  CtlLine(inv=1),       # Clock the MAR
+            'Cp':  CtlLine(inv=1),       # Clock PC
             'Eml': CtlLine(),            # Enable MAR lo
             'Emh': CtlLine(),            # Enable MAR hi
             'Epl': CtlLine(),            # Enable PC
@@ -243,14 +243,14 @@ class pySAP(CPU):
         self.addrlen    = addrlen
         self.iflags     = dict(isa.iflags)
         self.oflags     = dict(isa.oflags)
-        self.tmp        = StdRegister(self,'Lt','Et')
-        self.a          = StdRegister(self,'La','Ea')
-        self.b          = StdRegister(self,'Lb','Eb')
-        self.c          = StdRegister(self,'Lc','Ec')
-        self.out        = OUT(self,'Lo')
-        self.ir         = StdRegister(self,'Li','Ei')
-        self.pc         = DoubleRegister(self,addrlen,'Cp','Lpl','Lph','Epl','Eph')
-        self.mar        = DoubleRegister(self,addrlen,'Cm','Lml','Lmh','Eml','Emh')
+        self.tmp        = StdRegister(self,'CLR','Lt','Et')
+        self.a          = StdRegister(self,'CLR','La','Ea')
+        self.b          = StdRegister(self,'CLR','Lb','Eb')
+        self.c          = StdRegister(self,'CLR','Lc','Ec')
+        self.out        = OUT(self,'CLR','Lo')
+        self.ir         = StdRegister(self,'CLR','Li','Ei')
+        self.pc         = DoubleRegister(self,addrlen,'CLR','Cp','Lpl','Lph','Epl','Eph')
+        self.mar        = DoubleRegister(self,addrlen,'CLR','Cm','Lml','Lmh','Eml','Emh')
         self.ram        = RAM(self,'Lr','CE',code)
         self.ctlseq     = CtlSeq(self,dict(isa.addr),list(isa.ctl),'Rt','HLT','CLR','Op')
         self.alu        = ALU(self,self.a,self.tmp,'Eu','Su','Sh','CF')

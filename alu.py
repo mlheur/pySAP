@@ -3,7 +3,7 @@ from register import StdRegister
 
 class ALU(StdRegister):
     def __init__(self,cpu,A,B,enable,sub,shift,carry):
-        super().__init__(cpu,enable=enable)
+        super().__init__(cpu,None,enable=enable)
         self.A     = A
         self.B     = B
         self.sub   = self.cpu.oflags[sub]

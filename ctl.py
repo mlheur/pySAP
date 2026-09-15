@@ -23,16 +23,16 @@ class CtlLine():
 
 
 class CtlSeq():
-    def __init__(self,cpu,arom,crom,ResetT,hlt,clr,inv_op):
-        self.cpu     = cpu
-        self.AROM    = arom
-        self.CROM    = crom
-        self.Tstep   = 1
-        self.micro   = self.CROM[0]
-        self.ResetT  = cpu.oflags[ResetT]
-        self.hlt     = cpu.oflags[hlt]
-        self.clr     = cpu.oflags[clr]
-        self.inv_op  = cpu.iflags[inv_op]
+    def __init__(self,cpu,arom,crom,ResetT,hlt,clr,invalid_opcode):
+        self.cpu            = cpu
+        self.AROM           = arom
+        self.CROM           = crom
+        self.Tstep          = 1
+        self.micro          = self.CROM[0]
+        self.ResetT         = cpu.oflags[ResetT]
+        self.hlt            = cpu.oflags[hlt]
+        self.clr            = cpu.oflags[clr]
+        self.invalid_opcode = cpu.iflags[invalid_opcode]
 
     def __str__(self):
         return '{}'.format(self.Tstep)
@@ -50,8 +50,8 @@ class CtlSeq():
         return self.get_flags(self.cpu.oflags)
 
     def decode(self):
-        if self.cpu.oflags['CLR'].istrue():
-            self.micro = self.CROM[0] & ~(self.cpu.oflags['CLR'].mask)
+        if self.clr.istrue():
+            self.micro = self.CROM[0] & ~(self.clr.mask)
         else:
             if self.Tstep <= 0x2:
                 self.micro = self.CROM[self.Tstep]
@@ -68,7 +68,7 @@ class CtlSeq():
                     self.ResetT.settruth(True)
                     self.hlt.settruth(True)
                     self.clr.settruth(True)
-                    self.inv_op.settruth(True)
+                    self.invalid_opcode.settruth(True)
                     return
                 #print(f'microaddr={microaddr} conditions={conditions} self.Tstep={self.Tstep}')
                 #print(f'AROM={self.AROM[conditions]}')
@@ -77,33 +77,36 @@ class CtlSeq():
             self.cpu.oflags[F].update(self.micro)
 
     def clock(self,components,subscribers):
+
         # Parse the subinstruction
         self.decode()
         #print("T:{} MICRO: Bin={v:020b} Hex={v:05X} Dec={v:08d}".format(self.Tstep,v=self.micro))
         #for f in self.cpu.oflags:
         #    #print("{f}={t}".format(f=f,t=int(self.cpu.oflags[f].istrue())))
+
         # enable to bus
         for component in components:
             component.tick()
+
         # Update GUI
-#        T0 = perf_counter()
         for subby in subscribers:
             if hasattr(subby,"clock"):
                 subby.clock()
-#        T1 = perf_counter()
-#        print(f'REAL: T1-T0 = {T1-T0:.5f}')
-        if self.cpu.oflags['HLT'].istrue():
+
+        if self.hlt.istrue():
             return
+
         # latch from bus
         for component in components:
             component.tock()
-        # update flags if Clear|Set Carry|Zero were asserted.
-        for FLG in "CZ":
-            for CMD in "SC":
+
+        # update iflags if relevant set/clr oflag is set.
+        for CMD in "SC": # Set or Clr
+            for FLG in "CZ": # Carry or Zero
                 oCTL = f'{CMD}{FLG}'
                 iCTL = f'{FLG}F'
                 if self.cpu.oflags[oCTL].istrue():
-                    self.cpu.iflags[iCTL].settruth(True if CMD == "S" else False)
+                    self.cpu.iflags[iCTL].settruth(CMD == "S")
 
 #        #print("A={:08x} B={:08x} OUT={:08x} IR={:08x} PC={:08x} MAR={:08x} ALU={:08x}".format(
 #            self.cpu.a.value,
@@ -116,11 +119,9 @@ class CtlSeq():
 #        ))
 
         # Increment the RingCounter
-        if self.cpu.oflags['CLR'].istrue():
-            for f in self.cpu.iflags.values():
-                f.settruth(False)
-            for f in self.cpu.oflags.values():
-                f.settruth(False)
+        if self.clr.istrue():
+            self.clr.settruth(False)
+            self.ResetT.settruth(False)
             self.Tstep = 1
         elif self.micro == self.CROM[0]:
             self.Tstep = 1

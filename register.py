@@ -2,9 +2,12 @@ from random import randint
 from threading import Thread
 
 class Register():
-    def __init__(self,cpu,bits,latch=None,enable=None):
+
+    def __init__(self,cpu,bits,clr,latch=None,enable=None):
         self.cpu        = cpu
         self.bits       = bits
+        if clr is not None:
+            self.clr    = cpu.oflags[clr]
         self.mask       = (2**bits) - 1      # ToDo: validate host architecture is more than bits.
         self.value      = randint(0,1+2**bits)
         if latch is not None and latch in self.cpu.oflags:
@@ -15,24 +18,26 @@ class Register():
             self.enable = self.cpu.oflags[enable]
         else:
             self.enable = None
+
     def tick(self):
-        if self.cpu.oflags['CLR'].istrue():
+        if self.clr is not None and self.clr.istrue():
             self.value  = 0
         if self.enable is not None and self.enable.istrue():
             self.cpu.w  = self.value & self.mask
+
     def tock(self):
         if self.latch is not None and self.latch.istrue():
             self.value  = self.cpu.w & self.mask
 
 
 class StdRegister(Register):
-    def __init__(self,cpu,latch=None,enable=None):
-        super().__init__(cpu,cpu.bits,latch,enable)
+    def __init__(self,cpu,clr,latch=None,enable=None):
+        super().__init__(cpu,cpu.bits,clr,latch,enable)
 
 
 class OUT(StdRegister):
-    def __init__(self,cpu,latch=None,enable=None):
-        super().__init__(cpu,latch,enable)
+    def __init__(self,cpu,clr,latch=None,enable=None):
+        super().__init__(cpu,clr,latch,enable)
         self.nROWS = 0
         self.thread = Thread(target=self.print)
 
@@ -61,8 +66,8 @@ class OUT(StdRegister):
 
 
 class DoubleRegister(Register):
-    def __init__(self,cpu,bits,clock,latch_lo,latch_hi,enable_lo,enable_hi):
-        super().__init__(cpu,bits,latch_lo,enable_lo)
+    def __init__(self,cpu,bits,clr,clock,latch_lo,latch_hi,enable_lo,enable_hi):
+        super().__init__(cpu,bits,clr,latch_lo,enable_lo)
         self.cpu_mask   = (2**cpu.bits)-1
         self.latch_hi   = self.cpu.oflags[latch_hi]
         self.enable_hi  = self.cpu.oflags[enable_hi]
@@ -78,7 +83,7 @@ class DoubleRegister(Register):
         return tt
 
     def tick(self):
-        if self.cpu.oflags['CLR'].istrue():
+        if self.clr.istrue():
             self.value = 0
         tt = self.get_truth()
         if tt['en_lo'] and tt['en_hi']:
