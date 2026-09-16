@@ -79,15 +79,15 @@ class tkMGR(object):
         panes['RAM'].pack()
         panes['LOWER'].add(panes['RAM'])
         # Add the code panel
-        panes['CODE'] = Frame(panes['LOWER'],bg='blue',bd=0,highlightthickness=0)
+        panes['CODE'] = Frame(panes['LOWER'],bg='#002',bd=0,highlightthickness=0)
         panes['CODE'].pack()
         panes['LOWER'].add(panes['CODE'])
         # And the CPU
-        panes['CPU'] = Frame(panes['UPPER'],bg='green',bd=0,highlightthickness=0)
+        panes['CPU'] = Frame(panes['UPPER'],bg='#000',bd=0,highlightthickness=0)
         panes['CPU'].pack()
         panes['UPPER'].add(panes['CPU'])
         # Create the clock and CPU that wil go on the left and right halves of the lower frame.
-        panes['CLK'] = Frame(panes['UPPER'],bg='red',bd=0,highlightthickness=0)
+        panes['CLK'] = Frame(panes['UPPER'],bg='#000',bd=0,highlightthickness=0)
         panes['CLK'].pack()
         panes['UPPER'].add(panes['CLK'])
         # Finalize
