@@ -1,5 +1,8 @@
+from logger import LOGGER, DEBUG
+
+
 from tkinter import Tk, Menu, PanedWindow, Frame, BOTH, LEFT, BOTTOM, RIGHT, TOP, HORIZONTAL, VERTICAL
-from tkinter.font import Font
+from tkinter.font import Font, families
 
 from .constants import PROFILES, DEFAULTS
 
@@ -16,16 +19,23 @@ class tkMGR(object):
         g = f'{w}x{h}+{x}+{y}'
         self.root.geometry(g)
         # Generate the fonts that will be used in the UI
+        use_font = None
+        for want_font in DEFAULTS['FONT']:
+            for have_font in families():
+                if have_font == want_font:
+                    use_font = want_font
+                    LOGGER.log(DEBUG,f'Choosing font {use_font}')
+                    break
         for P in PROFILES:
             if "FONT_SIZE" in PROFILES[P]:
                 PROFILES[P]["label_font"] = Font(
-                    family = DEFAULTS['FONT'],
+                    family = use_font,
                     size   = PROFILES[P]["FONT_SIZE"],
                     weight = "bold",
                 )
             if "FLAG_SIZE" in PROFILES[P]:
                 PROFILES[P]["flag_font"] = Font(
-                    family = DEFAULTS['FONT'],
+                    family = use_font,
                     size   = PROFILES[P]["FLAG_SIZE"],
                     weight = "bold",
                 )
