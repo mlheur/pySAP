@@ -159,7 +159,6 @@ class tkSAP(object):
         self.update_all()
 
     def file_quit(self):
-        #print(f'Trying to quit')
         self.mgr.root.quit()
         if self.started:
             self.clock_thread.stop(final=True)
