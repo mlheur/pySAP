@@ -125,16 +125,22 @@ class tkSAP(object):
         self.tkRAM.update_all()
 
     def file_open(self,fname=None):
+        self.clock_stop()
         if fname is None:
             fname = askopenfilename(
                 defaultextension = DEFAULTS['EXT'],
                 initialdir       = DEFAULTS['DIR'],
             )
-        self.file_reset(with_update=False)
-        self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
-        self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
-        self.tkCODE.loadfile(fname)
-        self.update_all()
+        try:
+            self.file_reset(with_update=False)
+            self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
+            self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
+            self.tkCODE.loadfile(fname)
+            self.update_all()
+        except FileNotFoundError:
+            self.clock_run()
+        except TypeError:
+            self.clock_run()
 
     def file_reset(self,with_update=True):
         self.clock_stop()
@@ -144,6 +150,7 @@ class tkSAP(object):
             self.update_all()
 
     def file_wiperam(self):
+        self.clock_stop()
         for i in range(len(self.clk.cpu.ram.value)):
             self.clk.cpu.ram.value[i] = 0
         self.tkCODE.reset()
