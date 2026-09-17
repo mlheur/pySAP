@@ -1,53 +1,30 @@
 from logger import LOGGER, TRACE, INFO
 
-
-class CtlLine():
-    POS_COUNTER = 0
-    def __init__(self,pos=None,value=0,inv=0):
-        if pos is None:
-            pos = CtlLine.POS_COUNTER
-            CtlLine.POS_COUNTER += 1
-        elif pos >= 0:
-            CtlLine.POS_COUNTER = pos+1
-        self.pos        = pos
-        self.mask       = 1 << self.pos
-        self.value      = value
-        self.inv        = inv
-    def update(self,word):
-        self.value      = (word & self.mask) >> self.pos
-        #print("CtlLine.update({:016b}); mask={self.mask:016b} value={self.value} inv={self.inv} truth={t}".format(word,self=self,t=self.istrue()))
-    def settruth(self,truth):
-        self.value = int(truth != self.inv)
-    def istrue(self):
-        return not self.value == self.inv
+from random import randint
 
 
-class CtlSeq():
-    def __init__(self,cpu,arom,crom,ResetT,hlt,clr,invalid_opcode):
-        self.cpu            = cpu
-        self.AROM           = arom
-        self.CROM           = crom
-        self.Tstep          = 1
-        self.micro          = self.CROM[0]
-        self.ResetT         = cpu.oflags[ResetT]
-        self.hlt            = cpu.oflags[hlt]
-        self.clr            = cpu.oflags[clr]
-        self.invalid_opcode = cpu.iflags[invalid_opcode]
+class Sequencer():
 
-    def __str__(self):
-        return '{}'.format(self.Tstep)
+    def __init__(self,cpu,bits=4):
+        self.cpu                = cpu
+        self.Tstep              = randint(9,bits)
+        self.isntr_to_micro     = dict()
+        self.micro_instructions = list()
 
-    def get_flags(self,flagset):
+    def createMicroInstruction(self,ctl_list):
         result = 0
-        for f in flagset:
-            result |= flagset[f].value << flagset[f].pos
-        return result
+        for ctl in self.cpu.control_lines:
+            control_line = self.cpu.control_lines[ctl]
+            if (control_line.inverted or ctl not in ctl_list) or (not control_line.inverted and ctl in ctl_list):
+                result &= ~control_line.mask
+            else:
+                result |= control_line.mask
+        self.micro_instructions.append(result)
+        return len(self.micro_instructions)
 
-    def iflags(self):
-        return self.get_flags(self.cpu.iflags)
-
-    def oflags(self):
-        return self.get_flags(self.cpu.oflags)
+    def addInstructionEntry(self,instruction,conditions,micro_instruction_index):
+        self.isntr_to_micro[instruction] = dict() if self.isntr_to_micro[instruction] is None else self.isntr_to_micro[instruction]
+        self.isntr_to_micro[instruction][conditions] = micro_instruction_index
 
     def decode(self):
         do_clear = self.clr.istrue()
