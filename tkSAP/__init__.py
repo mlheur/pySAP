@@ -145,7 +145,6 @@ class tkSAP(object):
     def file_reset(self,with_update=True):
         self.clock_stop()
         self.clk.cpu.reset()
-        #self.clk.pulse()
         if with_update:
             self.update_all()
 
