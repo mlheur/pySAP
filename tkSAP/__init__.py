@@ -133,14 +133,16 @@ class tkSAP(object):
             )
         try:
             self.file_reset(with_update=False)
-            self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
-            self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
-            self.tkCODE.loadfile(fname)
-            self.update_all()
         except FileNotFoundError:
             self.clock_run()
+            return
         except TypeError:
             self.clock_run()
+            return
+        self.clk.cpu.setram(self.clk.cpu.isa.assemble_file(fname))
+        self.mgr.root.title(f'{DEFAULTS["TITLE"]}: {fname}')
+        self.tkCODE.loadfile(fname)
+        self.update_all()
 
     def file_reset(self,with_update=True):
         self.clock_stop()
