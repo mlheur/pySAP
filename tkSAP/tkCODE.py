@@ -12,7 +12,7 @@ class tkCODE(object):
         if self.canvas is not None:
             self.canvas.destroy()
         self.canvas = Canvas(self.frame)
-        self.canvas.pack()
+        self.canvas.place(x=0,y=0,in_=self.frame)
 
     def toggle_source_assembled(self,arg,*args,**argv):
         old_assembled_state = self.canvas.itemcget(self.assembled,"state")
@@ -29,7 +29,7 @@ class tkCODE(object):
         multiline_assembly = self.clk.cpu.isa.assemble_file(fname,as_string=True)
         #print(multiline_assembly)
         self.assembled = self.canvas.create_text(
-            0,0,
+            DEFAULTS['SOURCE_PAD'],DEFAULTS['SOURCE_PAD'],
             text    = multiline_assembly,
             #font    = PROFILES["BIG"]["label_font"],
             fill    = '#000',
@@ -43,7 +43,7 @@ class tkCODE(object):
         multiline_source = self.clk.cpu.isa.assemble_file(fname,as_source=True)
         #print(multiline_source)
         self.sourced = self.canvas.create_text(
-            0,0,
+            DEFAULTS['SOURCE_PAD'],DEFAULTS['SOURCE_PAD'],
             text    = multiline_source,
             #font    = PROFILES["BIG"]["label_font"],
             fill    = '#000',
@@ -55,8 +55,8 @@ class tkCODE(object):
         h = max(w,coords[3])
 
         self.canvas.configure(
-            width  = 1000,
-            height = 1000,
+            width  = w + DEFAULTS['SOURCE_X'],
+            height = h + DEFAULTS['SOURCE_Y'],
         )
 
         self.canvas.itemconfigure(self.assembled,state="hidden")

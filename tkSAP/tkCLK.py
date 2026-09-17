@@ -38,7 +38,7 @@ class tkCLK(object):
             height = h,
             width  = w,
         )
-        self.canvas.pack()
+        self.canvas.place(x=0,y=0,in_=self.frame)
 
     def draw_backplate(self,x,y):
         x1 = x + PROFILES['CLK']['BORDER_SIZE']

@@ -2,11 +2,12 @@ DEFAULTS = {
     'Hz'          : 50,
     'EXT'         : '.sap',
     'DIR'         : './code_16/',
-    'FONT'        : 'Oxygen Mono',
+    'FONT'        : 'Courier New', #'Oxygen Mono',
     'RAM_COLUMNS' : 128,
     'TITLE'       : 'tkSAP',
+    'SOURCE_PAD'  : 5,
     'SOURCE_X'    : 10,
-    'SOURCE_Y'    : 50,
+    'SOURCE_Y'    : 500,
     'PROGRAM'     : './code_16/fib.sap',
 }
 
