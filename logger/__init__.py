@@ -30,6 +30,6 @@ for destination in handlers:
     if config['type'] == 'stream':
         config['handler'] = StreamHandler(stream=config['target'])
     elif config['type'] == 'file':
-        config['handler'] = FileHandler(config['target'])
+        config['handler'] = FileHandler(config['target'],delay=True)
     config['handler'].setLevel(config['level'])
     LOGGER.addHandler(config['handler'])
