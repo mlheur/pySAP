@@ -24,6 +24,7 @@ class tkMGR(object):
             for have_font in families():
                 if have_font == want_font:
                     use_font = want_font
+                    DEFAULTS['FONT'] = use_font
                     LOGGER.log(DEBUG,f'Choosing font {use_font}')
                     break
         for P in PROFILES:

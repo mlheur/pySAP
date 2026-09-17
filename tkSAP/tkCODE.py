@@ -1,18 +1,61 @@
 from .constants import PROFILES, DEFAULTS
-from tkinter import Canvas
+from tkinter import Scrollbar, Listbox
+from tkinter.font import Font
 
 
 class tkCODE(object):
     def __init__(self,frame,clk):
         self.frame  = frame
         self.clk    = clk
-        self.canvas = None
+        self.scrl   = Scrollbar(self.frame,orient="vertical")
+        self.scrl.pack(side="right",fill="y")
+        self.code_font = Font(
+            family = DEFAULTS['FONT'], # already resolved by tkMGR
+            size   = PROFILES['CODE']['SIZE'],
+            weight = "bold",
+        )
+        self.listboxes = {
+            'ASM' : Listbox(
+                self.frame,
+                yscrollcommand     = self.sync_listboxes,
+                width              = PROFILES['CODE']['WIDTH'],
+                bg                 = PROFILES['CODE']['BG'],
+                bd                 = 0,
+                highlightthickness = 0,
+                font               = self.code_font,
+            ),
+            'SRC' : Listbox(
+                self.frame,
+                yscrollcommand     = self.sync_listboxes,
+                width              = PROFILES['CODE']['WIDTH'],
+                bg                 = PROFILES['CODE']['BG'],
+                bd                 = 0,
+                highlightthickness = 0,
+                font               = self.code_font,
+            ),
+        }
+        self.scrl.config(command=self.sync_scrollbar)
+        for box in self.listboxes:
+            self.listboxes[box].pack(
+                side="left",
+                fill="y",
+                expand=True,
+            )
+
+    def sync_scrollbar(self,*args):
+        #print(f'scrollbar=[{args}]')
+        for box in self.listboxes:
+            self.listboxes[box].yview(*args)
+
+    def sync_listboxes(self,*args):
+        #print(f'listbox=[{args}]')
+        self.scrl.set(*args)
+        for box in self.listboxes:
+            self.listboxes[box].yview('moveto',args[0])
 
     def reset(self):
-        if self.canvas is not None:
-            self.canvas.destroy()
-        self.canvas = Canvas(self.frame)
-        self.canvas.place(x=0,y=0,in_=self.frame)
+        for box in self.listboxes:
+            self.listboxes[box].delete(0,"end")
 
     def toggle_source_assembled(self,arg,*args,**argv):
         old_assembled_state = self.canvas.itemcget(self.assembled,"state")
@@ -23,49 +66,24 @@ class tkCODE(object):
 
     def loadfile(self,fname):
         self.reset()
-        w = 0
-        h = 0
 
-        multiline_assembly = self.clk.cpu.isa.assemble_file(fname,as_string=True)
-        #print(multiline_assembly)
-        self.assembled = self.canvas.create_text(
-            DEFAULTS['SOURCE_PAD'],DEFAULTS['SOURCE_PAD'],
-            text    = multiline_assembly,
-            #font    = PROFILES["BIG"]["label_font"],
-            fill    = '#000',
-            justify = "left",
-            anchor  = "nw",
-        )
-        coords = self.canvas.bbox(self.assembled)
-        w = max(w,coords[2])
-        h = max(w,coords[3])
+        code = {
+            'ASM' : self.clk.cpu.isa.assemble_file(fname,as_string=True),
+            'SRC' : self.clk.cpu.isa.assemble_file(fname,as_source=True),
+        }
 
-        multiline_source = self.clk.cpu.isa.assemble_file(fname,as_source=True)
-        #print(multiline_source)
-        self.sourced = self.canvas.create_text(
-            DEFAULTS['SOURCE_PAD'],DEFAULTS['SOURCE_PAD'],
-            text    = multiline_source,
-            #font    = PROFILES["BIG"]["label_font"],
-            fill    = '#000',
-            justify = "left",
-            anchor  = "nw",
-        )
-        coords = self.canvas.bbox(self.sourced)
-        w = max(w,coords[2])
-        h = max(w,coords[3])
-
-        self.canvas.configure(
-            width  = w + DEFAULTS['SOURCE_X'],
-            height = h + DEFAULTS['SOURCE_Y'],
-        )
-
-        self.canvas.itemconfigure(self.assembled,state="hidden")
-        self.canvas.itemconfigure(self.sourced,state="normal")
-
-        self.canvas.bind(
-            "<Button-1>",
-            self.toggle_source_assembled,
-        )
-
-
-
+        lengths = dict()
+        for box in code:
+            lengths[box] = 0
+            for i,line in enumerate(code[box].split('\n')):
+                if line != "":
+                    self.listboxes[box].insert(i,line)
+                    lengths[box] += 1
+        maxlen = 0
+        for box in code:
+            if maxlen < lengths[box]:
+                maxlen = lengths[box]
+        for box in code:
+            if lengths[box] < maxlen:
+                for i in range(lengths[box],maxlen):
+                    self.listboxes[box].insert(i,"")

@@ -5,13 +5,15 @@ DEFAULTS = {
     'FONT'        : ['Courier New','Oxygen Mono','Tex Gyre Cursor','Courier'],
     'RAM_COLUMNS' : 128,
     'TITLE'       : 'tkSAP',
-    'SOURCE_PAD'  : 5,
-    'SOURCE_X'    : 10,
-    'SOURCE_Y'    : 500,
     'PROGRAM'     : './code_16/fib.sap',
 }
 
 PROFILES = {
+    "CODE" : {
+        "WIDTH" : 50,
+        "BG"    : '#AAF',
+        "SIZE"  : 12
+    },
     "CLK": {
         "BLOCK_SIZE"      : 150,
         "BORDER_SIZE"     :  15,
