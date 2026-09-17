@@ -155,7 +155,7 @@ class tkSAP(object):
         self.mgr.root.quit()
         if self.started:
             self.clock_thread.stop(final=True)
-            self.clock_thread.join()
+            self.clock_thread.join(0.5)
         from sys import exit
         exit(0)
 
