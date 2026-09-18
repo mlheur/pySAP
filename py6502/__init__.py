@@ -40,6 +40,7 @@ REGISTER_BUS_ATTACHMENTS = {
     },
 }
 
+
 class py6502(CPU):
 
     def __init__(self):
