@@ -15,14 +15,17 @@ class Register(object):
         self.connections = {}
         self.value       = randint(0,self.cpu.mask)
 
+    def _actionIsTrue(self,conn,action:str):
+        return conn.action[action] is not None and conn.action[action].isTrue()
+
     def tick(self):
         for conn in self.connections:
-            if conn.enable is not None and conn.enable.isTrue():
+            if self._actionIsTrue(conn,'enable'):
                 conn.bus.write(self.value & self.cpu.mask)
 
     def tock(self):
         for conn in self.connections:
-            if conn.latch is not None and conn.latch.isTrue():
+            if self._actionIsTrue(conn,'latch'):
                 self.value = conn.bus.read() & self.cpu.mask
 
     def addBusConnection(
