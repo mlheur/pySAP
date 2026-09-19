@@ -49,10 +49,12 @@ class AddressBusCombined(Bus):
 
     def __init__(self,adh,adl):
         super().__init__(adh.bits+adl.bits)
-        del self.write
 
     def read(self):
         return self.adl.read() & (self.adh.read() << self.adl.bits)
+
+    def write(self):
+        pass
 
 
 class py6502(CPU):
