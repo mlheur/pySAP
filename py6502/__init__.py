@@ -31,18 +31,17 @@ REGISTER_BUS_ATTACHMENTS = {
         'I'  :False,
         'PCH':False,
         'PCL':False,
-        'IDL':True,
-        'DBB':True,
+        'DL' :True,
     },
     'ADH' : {
         'ALU':None,
         'PCH':True,
-        'IDL':None,
+        'DL' :None,
     },
     'ADL' : {
         'ALU':None,
         'PCL':True,
-        'IDL':None,
+        'DL' :None,
     },
 }
 
