@@ -5,7 +5,6 @@ from .constants import DEFAULTS
 from .clock_thread import clock_thread
 from .tkMGR import tkMGR
 from .tkCLK import tkCLK
-from .tkCPU import tkCPU
 from .tkRAM import tkRAM
 from .tkCODE import tkCODE
 
@@ -30,13 +29,19 @@ MENU = {
 }
 
 
-class tkSAP(object):
-    def __init__(self):
+class tkGUI(object):
+    def __init__(self,cpu_name:str="SAP"):
+        self.cpu_name = cpu_name
         # A main window will have some subframes / panels.
         self.mgr = tkMGR(DEFAULTS['TITLE'])
         self.mgr.build_menu(self,MENU)
         # The system needs a clock, it needs a CPU, which needs an ISA.
-        self.clk = Clock(cpu=pySAP(isa=SAPisa()))
+        from importlib import import_module
+        tkModule = import_module(f'tk{self.cpu_name}')
+        pyModule = import_module(f'py{self.cpu_name}')
+        self.tkCPU_class = getattr(tkModule,f'tk{self.cpu_name}')
+        self.pyCPU_class = getattr(pyModule,f'py{self.cpu_name}')
+        self.clk = Clock(cpu=self.pyCPU_class())
         self.clk.subscribe(self)
         self.code = None
         self.cpu_state = dict()
@@ -61,7 +66,7 @@ class tkSAP(object):
         )
 
     def mkCPU(self):
-        self.tkCPU = tkCPU(
+        self.tkCPU = self.tkCPU_class(
             self.panes['CPU'],
             self.clk,
             self,

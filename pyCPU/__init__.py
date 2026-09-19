@@ -1,5 +1,5 @@
 from .control_line import ControlLine
-from .bus import Bus, BusConnection
+from .bus import Bus, BusConnection, BusUser
 from .register import Register
 
 

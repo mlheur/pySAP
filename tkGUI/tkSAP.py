@@ -2,7 +2,7 @@ from .tkBitfield import tkBitfield
 from tkinter import Canvas
 
 
-class tkCPU(object):
+class tkSAP(object):
     def __init__(self,frame,clk,ui):
         self.ui         = ui
         self.frame      = frame

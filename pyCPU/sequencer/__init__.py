@@ -6,10 +6,7 @@ from random import randint
 class Sequencer():
 
     def __init__(self,cpu,bits=4):
-        self.cpu                = cpu
-        self.Tstep              = randint(9,bits)
-        self.isntr_to_micro     = dict()
-        self.micro_instructions = list()
+        self.Tstep              = randint(0,bits)
 
     def createMicroInstruction(self,ctl_list):
         result = 0
