@@ -6,7 +6,7 @@ NOTIME_FRACTION    = 1000
 PERF_HIST_LENGTH   = 10
 PERF_HIST_TIME     = 0.1 * NS
 
-class Clock():
+class pyClock():
 
     def __init__(self,cpu=None,Hz=None):
         self.cpu           = cpu
@@ -22,6 +22,7 @@ class Clock():
 #            print(self.perf_data['history'])
         self.Hz                   = Hz
         self.period               = Hz if Hz == 0 else int((1*NS)/Hz)
+        self.period              /= 2 # because the 6502 uses Ph0 as tick and Ph1 as tock
         self.lag_time             = 100 * self.period
         self.NoTime               = int((self.period / NOTIME_FRACTION) / NS)
         _now                      = now()

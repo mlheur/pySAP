@@ -15,6 +15,9 @@ class Bus(object):
     def write(self,value):
         self.value = value & self.mask
 
+    def getWidth(self):
+        return self.bits
+
 
 class BusConnection(object):
 
@@ -32,7 +35,7 @@ class BusConnection(object):
             self.action['enable'] = lambda : enable.isTrue
 
     def getWidth(self):
-        return self.bus.bits
+        return self.bus.getWidth()
 
     def actionIsTrue(self,action:str):
         return self.action[action] is not None and self.action[action]()

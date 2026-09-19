@@ -2,6 +2,7 @@ from pyCPU import CPU, Bus, BusConnection
 from pyCPU.control_line import ControlLine
 
 from pyRAM import pyRAM
+from pyClock import pyClock
 
 FLAGS = 'CZIDB_VN'
 
@@ -62,6 +63,9 @@ class py6502(CPU):
     def __init__(self,external_control_lines):
         super().__init__(bits=8)
         self.external_control_lines = external_control_lines
+        self.external_control_tracker = {}
+        for name in self.external_control_lines:
+            self.external_control_tracker[name] = 0
 
         self.createBus('DATA')
         self.createBus('ADH')
@@ -98,21 +102,48 @@ class py6502(CPU):
                     )
                 )
 
+    def _updateControlLine(self,control_name,direction):
+        self.external_control_tracker[control_name] += direction
+        self.external_control_lines[control_name].setTruth(self.external_control_tracker[control_name]>0)
+
+    def assertControlLine(self,control_name):
+        self._updateControlLine(control_name,1)
+
+    def releaseControlLine(self,control_name):
+        self._updateControlLine(control_name,-1)
+
 
 class py6502_Computer(object):
 
-    def __init__(self):
-
+    def __init__(self,Hz):
         self.external_control_lines = {}
         for control in EXTERNAL_CONTROLS:
             self.external_control_lines[control] = ControlLine(
                 inverted = EXTERNAL_CONTROLS[control]['inverted']
             )
-
         self.chips = {}
         self.chips["6502"] = py6502(self.external_control_lines)
-
-
         self.chips["RAM"] = pyRAM(
-            rw_control_line = self.external_control_lines['RW'],
+            addr_bus            = self.chips["6502"].busses["ADDR"],
+            data_bus            = self.chips["6502"].busses["DATA"],
+            phase1_control_line = self.external_control_lines['Ph1'],
+            phase2_control_line = self.external_control_lines['Ph2'],
+            rw_control_line     = self.external_control_lines['RW'],
         )
+        self.chips['CLOCK'] = pyClock(cpu=self,Hz=Hz)
+        self.state = "tick"
+
+    def clock(self,subscribers):
+        if self.state == "tick":
+            self.chips['6502'].assertControlLine('Ph0')
+            self.chips['6502'].tick()
+            self.chips['RAM'].tick()
+            self.state = "tock"
+        elif self.state == "tock":
+            self.chips['6502'].releaseControlLine('Ph0')
+            self.chips['6502'].tock()
+            self.chips['RAM'].tock()
+            self.state = "tick"
+        for subby in subscribers:
+            if hasattr(subby,"clock"):
+                subby.clock()

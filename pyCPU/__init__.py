@@ -40,7 +40,14 @@ class CPU(object):
             )
         )
         self.registers[register_name] = reg
+         
+    def tick(self):
+        for register in self.registers:
+            register.tick()
+
+    def tock(self):
+        for register in self.registers:
+            register.tock()
 
     def __str__(self):
         return f'CPU(bits={self.bits},mask=0x{self.mask:X},registers={self.registers},busses={self.busses})'
-         
