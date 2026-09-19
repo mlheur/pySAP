@@ -132,8 +132,12 @@ class py6502_Computer(object):
         )
         self.chips['CLOCK'] = pyClock(cpu=self,Hz=Hz)
         self.state = "tick"
+        self.viewers = []
 
-    def clock(self,subscribers):
+    def addViewer(self,viewer):
+        self.subscribers.append(viewer)
+
+    def clock(self):
         if self.state == "tick":
             self.chips['6502'].assertControlLine('Ph0')
             self.chips['6502'].tick()
@@ -144,6 +148,6 @@ class py6502_Computer(object):
             self.chips['6502'].tock()
             self.chips['RAM'].tock()
             self.state = "tick"
-        for subby in subscribers:
-            if hasattr(subby,"clock"):
-                subby.clock()
+        for viewer in self.viewers:
+            if hasattr(viewer,"clock"):
+                viewer.clock()

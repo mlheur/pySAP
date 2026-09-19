@@ -11,7 +11,6 @@ class pyClock():
     def __init__(self,cpu=None,Hz=None):
         self.cpu           = cpu
         self.Hz            = 0 if Hz is None else Hz
-        self.subscribers   = list()
         self.NoTime        = 0
         self.next_pulse    = None
         self.perf_data     = None
@@ -37,9 +36,6 @@ class pyClock():
         # to the most-recently-added entry.  UI updates will read the value
         # at histptr, which will always be valid.
         self.perf_data['histptr'] = PERF_HIST_LENGTH - 1
-
-    def subscribe(self,subscriber):
-        self.subscribers.append(subscriber)
 
     def pulse(self):
         # Gate ourselves until it's almost time to clock.
