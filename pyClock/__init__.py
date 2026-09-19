@@ -66,12 +66,7 @@ class pyClock():
             self.perf_data['histptr'] %= PERF_HIST_LENGTH
             self.perf_data['history'][self.perf_data['histptr']] = perfset[2] / ((perfset[1] - perfset[0]) / NS)
 
-    def run(self,cpu=None,ram=None,Hz=None):
-        if cpu is not None:
-            self.cpu = cpu
-        if ram is not None:
-            self.cpu.setram(ram)
-        self.cpu.reset()
+    def run(self,Hz=None):
         if Hz is not None:
             self.modify(Hz)
         else:
