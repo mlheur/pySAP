@@ -1,52 +1,24 @@
-from .control_line import ControlLine
-from .bus import Bus, BusConnection, BusUser
-from .register import Register
+from pySocket import pySocket
+from pyRegister import pyRegister
 
-
-class CPU(object):
+class pyCPU(object):
 
     def __init__(
             self,
-            bits : int,
+            bits   : int,
+            socket : pySocket = None,
         ):
-        self.bits      = bits
-        self.mask      = (2**self.bits)-1
-        self.registers = {}
-        self.busses    = {}
+        self.bits      : int        = bits
+        self.mask      : int        = (2**self.bits)-1
+        self.registers : pyRegister = {}
+        self.socket    : pySocket   = socket
 
-    def createBus(
-            self,
-            bus_name  : str,
-            bus_width : int = None
-        ):
-        if bus_width is None:
-            bus_width = self.bits
-        self.busses[bus_name] = Bus(bus_width)
-
-    def createRegister(
-            self,
-            register_name : str,
-            bus_name      : str,
-        ):
-        if bus_name not in self.busses:
-            raise ValueError(f'bus_name={bus_name} not in self.busses')
-        reg = Register(self)
-        reg.addBusConnection(
-            bus_name,
-            BusConnection(
-                self.busses[bus_name],
-                ControlLine(inverted=True),
-                ControlLine(inverted=False),
-            )
-        )
-        self.registers[register_name] = reg
-         
     def tick(self):
-        for register in self.registers:
+        for register in self.registers.values():
             register.tick()
 
     def tock(self):
-        for register in self.registers:
+        for register in self.registers.values():
             register.tock()
 
     def __str__(self):

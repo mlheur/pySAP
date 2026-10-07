@@ -1,4 +1,5 @@
-# http://visual6502.org/JSSim/expert.html?graphics=t&steps=1
+# http://visual6502.org/JSSim/expert.html?graphics=t&steps=1sockea;lskdjf;alskdjf;alskdjf;lasdf
+asdfasdfasdfasdfpuasdfasdfasdf
 cycle	ab	db	rw	Fetch	pc	a	x	y	s	p	Execute	State	ir	tcstate	pd	adl	adh	sb	alu	alucin	alua	alub	alucout	aluvout	dasb	plaOutputs	DPControl	idb	dor	irq	nmi	res
 0	0000	a9	1	LDA #	0000	aa	00	00	fd	nv‑BdIZc	BRK	T1	00	101111	a9	01	00	ff	ff	0	ff	00	0	0	ff	brk/rti,SUMS	ADL/ABL,ADH/ABH,SUMS,#DAA,~DAA,ADDSB7,ADDSB06,#DSA,~DSA,SBDB,PCHADH,PCLADL	ff	00	1	1	1
 1	0001	00	1		0001	aa	00	00	fd	nv‑BdIZc	LDA #	T0+T2	a9	010111	a9	01	00	ff	ff	0	ff	ff	0	0	ff	T2,T0,T0‑lda,T0‑acc,T2‑abs‑access,SUMS	ADL/ABL,ADH/ABH,SS,DBADD,SBADD,SUMS,#DAA,~DAA,ADDSB7,ADDSB06,#DSA,~DSA,SBDB,ADHPCH,PCHADH,PCLADL,ADLPCL	ff	ff	1	1	1

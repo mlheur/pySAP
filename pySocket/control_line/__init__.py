@@ -1,7 +1,7 @@
 from random import randint
 
 
-class ControlLine():
+class ControlLine(object):
 
     _NEXT = 0
 
@@ -31,3 +31,27 @@ class ControlLine():
 
     def __str__(self):
         return f'ControlLine(position={self.position},mask=0x{self.mask:X},value={self.value},inverted={self.inverted},isTrue()={self.isTrue()})'
+
+
+class GroundLine(ControlLine):
+
+    def isTrue(self):
+        return False
+
+    def update(self, control_word):
+        pass
+
+    def setTruth(self,truth):
+        pass
+
+
+class VccLine(ControlLine):
+
+    def isTrue(self):
+        return True
+
+    def update(self, control_word):
+        pass
+
+    def setTruth(self,truth):
+        pass
